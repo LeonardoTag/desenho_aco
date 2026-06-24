@@ -442,30 +442,6 @@ namespace CapitalAco.DrawingMacro.App.Services
             return avisos;
         }
 
-        public List<(double X, double Y)> GerarCoordenadasRetangularesParciais(List<(double Azimute, double Comprimento)> coordenadasPolares)
-        {
-            var parciais = new List<(double X, double Y)>();
-            foreach (var (azimute, dh) in coordenadasPolares)
-            {
-                double rad = azimute * (Math.PI / 180.0);
-                double xParc = Math.Sin(rad) * dh;
-                double yParc = -Math.Cos(rad) * dh;
-                parciais.Add((xParc, yParc));
-            }
-            return parciais;
-        }
-
-        public List<(double X, double Y)> GerarCoordenadasRetangularesAbsolutas(List<(double X, double Y)> coordenadasParciais)
-        {
-            var absolutas = new List<(double X, double Y)> { (0.0, 0.0) };
-            foreach (var (xParc, yParc) in coordenadasParciais)
-            {
-                var (xAtual, yAtual) = absolutas[^1];
-                absolutas.Add((xAtual + xParc, yAtual + yParc));
-            }
-            return absolutas;
-        }
-
         public DimensoesAcabadas? CalcularDimensoesAcabadas(InstrucoesPolares instrucoes)
         {
             if (instrucoes.CoordenadasPolares.Count == 0)
@@ -480,7 +456,7 @@ namespace CapitalAco.DrawingMacro.App.Services
             }
 
             var (dim, _) = GerarDimensoesTotaisEPontoInicial(absolutas);
-            return new DimensoesAcabadas { Largura = Math.Round(dim.Largura, 1), Altura = Math.Round(dim.Altura, 1) };
+            return new DimensoesAcabadas { Largura = Math.Round(dim.Width, 1), Altura = Math.Round(dim.Height, 1) };
         }
 
         public bool PerfilCruzaASiMesmo(string chapaCodigo, double comprimento, List<Segmento> segmentos)

@@ -6,7 +6,6 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using CapitalAco.DrawingMacro.App.Models;
-using SkiaSharp;
 
 namespace CapitalAco.DrawingMacro.App.Services
 {
@@ -85,7 +84,7 @@ namespace CapitalAco.DrawingMacro.App.Services
                             // Preview 3D do Perfil
                             drawRow.RelativeItem(4).Height(240).Border(1).BorderColor(Colors.Grey.Lighten2).Canvas((canvas, size) =>
                             {
-                                SkiaRenderer.RenderizarPeca((SKCanvas)canvas, new SKSize(size.Width, size.Height), polar, dimensoes, true, _geometryService);
+                                SkiaRenderer.RenderizarPeca(canvas, size, polar, dimensoes, true, _geometryService);
                             });
 
                             drawRow.ConstantItem(15);
@@ -93,7 +92,7 @@ namespace CapitalAco.DrawingMacro.App.Services
                             // Planificação
                             drawRow.RelativeItem(5).Height(240).Border(1).BorderColor(Colors.Grey.Lighten2).Canvas((canvas, size) =>
                             {
-                                SkiaRenderer.RenderizarPlanificacao((SKCanvas)canvas, new SKSize(size.Width, size.Height), dadosPlan);
+                                SkiaRenderer.RenderizarPlanificacao(canvas, size, dadosPlan);
                             });
                         });
 
@@ -185,11 +184,11 @@ namespace CapitalAco.DrawingMacro.App.Services
                                     {
                                         var polar = _geometryService.ConverterInstrucoesParaCoordenadasPolares(item.ChapaCodigo, item.Comprimento, item.Segmentos);
                                         var dim = _geometryService.CalcularDimensoesAcabadas(polar);
-                                        SkiaRenderer.RenderizarPeca((SKCanvas)canvas, new SKSize(size.Width, size.Height), polar, dim, false, _geometryService);
+                                        SkiaRenderer.RenderizarPeca(canvas, size, polar, dim, false, _geometryService);
                                     }
                                     catch
                                     {
-                                        ((SKCanvas)canvas).Clear(SKColors.White);
+                                        canvas.Clear(Colors.White);
                                     }
                                 });
 
@@ -234,7 +233,7 @@ namespace CapitalAco.DrawingMacro.App.Services
                                 row.ConstantItem(60).PaddingRight(5).AlignMiddle().AlignCenter().Column(c =>
                                 {
                                     c.Item().Border(1).BorderColor(Colors.Grey.Darken1).Width(15).Height(15).Canvas((canvas, size) => { });
-                                    c.Item().PaddingTop(3).AlignCenter().Text("Cortado").FontSize(7);
+                                    c.Item().PaddingTop(3).Text("Cortado").FontSize(7).AlignCenter();
                                 });
                             });
                         }

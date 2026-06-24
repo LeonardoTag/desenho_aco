@@ -4,7 +4,6 @@ using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using CapitalAco.DrawingMacro.App.Services;
-using CapitalAco.DrawingMacro.App.ViewModels;
 
 namespace CapitalAco.DrawingMacro.App
 {

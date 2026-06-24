@@ -122,7 +122,7 @@ namespace CapitalAco.DrawingMacro.App.Services
                 var pe0 = coordenadasExtrusao[i];
                 var pe1 = coordenadasExtrusao[i + 1];
 
-                var pathPoints = new SKPoint[] { p0, p1, pe1, pe0 };
+                var pathPoints = new[] { p0, p1, pe1, pe0 };
                 double midX = (p0.X + p1.X) / 2.0;
                 double midY = (p0.Y + p1.Y) / 2.0;
                 double depth = midY * Math.Abs(dy) - midX * dx;

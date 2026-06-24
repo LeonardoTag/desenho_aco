@@ -1,16 +1,12 @@
 <UserControl x:Class="CapitalAco.DrawingMacro.App.Views.EditorPecaView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns="http://schemas.microsoft.com/winfx/2000/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2000/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="1200"
              Background="#2C3E50"
              Foreground="White">
-    <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-    </UserControl.Resources>
-
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="340"/>
@@ -75,7 +71,7 @@
                     <CheckBox Grid.Row="2" Grid.ColumnSpan="2" Content="Segmento Curvo (Calandra)" IsChecked="{Binding SegEhCurvo}" Margin="2,8,2,2" Foreground="White"/>
 
                     <!-- Detalhes Calandra -->
-                    <Border Grid.Row="3" Grid.ColumnSpan="2" Visibility="{Binding SegEhCurvo, Converter={StaticResource BooleanToVisibilityConverter}}" Background="#2C3E50" Padding="5" Margin="2,5,2,2" CornerRadius="4">
+                    <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Visibility="{Binding SegEhCurvo, Converter={StaticResource BooleanToVisibilityConverter}}" Background="#2C3E50" Padding="5" Margin="2,5,2,2" CornerRadius="4">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -105,7 +101,7 @@
                                 </ComboBox>
                             </StackPanel>
                         </Grid>
-                    </Border>
+                    </StackPanel>
 
                     <Button Grid.Row="4" Grid.ColumnSpan="2" Content="Adicionar Segmento" Command="{Binding AdicionarSegmentoCommand}" Margin="2,10,2,2" Background="#27AE60" Foreground="White" BorderThickness="0" Height="26"/>
                 </Grid>

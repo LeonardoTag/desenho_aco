@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using Serilog;
 using CapitalAco.DrawingMacro.App.Models;
 
