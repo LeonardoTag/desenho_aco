@@ -41,16 +41,16 @@ Para garantir 100% de paridade visual e matemática entre o desenho exibido na t
 
 ## 3. Checklist de Conclusão
 
-- [ ] **Fase 1: Planejamento e Estruturação do Diário de Bordo**
+- [x] **Fase 1: Planejamento e Estruturação do Diário de Bordo**
     - [x] Análise estrutural da pasta Python original
     - [x] Criação do arquivo `ESTADO_MIGRACAO.md` na raiz
-    - [ ] Obtenção da aprovação para o primeiro commit
-- [ ] **Fase 2: Scaffolding e Infraestrutura Inicial (C#)**
-    - [ ] Criação do arquivo de Solução `.sln` e do projeto WPF (.NET 8)
-    - [ ] Instalação de todos os pacotes NuGet necessários
-    - [ ] Configuração do Serilog (logging diário local)
-    - [ ] Criação dos Models (`Chapa`, `ModeloPeca`, `Segmento`, `Configuracao`)
-    - [ ] Carregamento inicial de `chapas.csv` e `biblioteca_pecas.json`
+    - [x] Obtenção da aprovação para o primeiro commit
+- [x] **Fase 2: Scaffolding e Infraestrutura Inicial (C#)**
+    - [x] Criação do arquivo de Solução `.sln` e do projeto WPF (.NET 8)
+    - [x] Instalação de todos os pacotes NuGet necessários
+    - [x] Configuração do Serilog (logging diário local)
+    - [x] Criação dos Models (`Chapa`, `ModeloPeca`, `Segmento`, `Configuracao`)
+    - [x] Carregamento inicial de `chapas.csv` e `biblioteca_pecas.json`
 - [ ] **Fase 3: Camada Core - Matemática e Geometria**
     - [ ] Portabilidade de `NumericUtils` e manipulação de strings/valores decimais
     - [ ] Implementação das fórmulas geométricas base (Azimutes, deduções e compensações de dobras)
@@ -72,15 +72,15 @@ Para garantir 100% de paridade visual e matemática entre o desenho exibido na t
 ## 4. Pendências e Próximos Passos (Backlog)
 
 ### Próximo Passo Imediato
-**Fase 2 - Scaffolding:** Configurar a estrutura básica do projeto C# dentro do diretório `desenho_c#`.
+**Fase 3 - Matemática e Geometria:** Implementar as lógicas de geometria base, conversão polar/cartesiana e o otimizador Nelder-Mead no C#.
 
 ### Arquivos Python a Migrar:
-*   `desenho_python/config_manager.py` ➔ C# Service
+*   `desenho_python/config_manager.py` ➔ C# Service (Concluído)
+*   `desenho_python/core/biblioteca_pecas.py` ➔ C# Service (Concluído)
 *   `desenho_python/core/numeros.py` ➔ C# Util
-*   `desenho_python/core/biblioteca_pecas.py` ➔ C# Service
 *   `desenho_python/core/geradores_pecas.py` ➔ C# Service/Solver
 *   `desenho_python/core/desenhar.py` ➔ C# GeometryEngine + SkiaRenderer
 *   `desenho_python/core/relatorio_pedido.py` ➔ C# QuestPDF Component
 *   `desenho_python/core/relatorio_dobra.py` ➔ C# QuestPDF Component
 *   `desenho_python/api.py` ➔ C# ViewModels
-*   `desenho_python/main.py` ➔ C# `App.xaml.cs` e `MainWindow.xaml`
+*   `desenho_python/main.py` ➔ C# `App.xaml.cs` e `MainWindow.xaml` (Concluído)
