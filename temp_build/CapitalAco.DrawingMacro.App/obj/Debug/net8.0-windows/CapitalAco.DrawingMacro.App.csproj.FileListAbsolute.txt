@@ -1,4 +1,0 @@
-G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\obj\Debug\net8.0-windows\CapitalAco.DrawingMacro.App.csproj.AssemblyReference.cache
-G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\obj\Debug\net8.0-windows\CapitalAco.DrawingMacro.App_MarkupCompile.cache
-G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho_macro\temp_build\CapitalAco.DrawingMacro.App\obj\Debug\net8.0-windows\CapitalAco.DrawingMacro.App.csproj.AssemblyReference.cache
-G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho_macro\temp_build\CapitalAco.DrawingMacro.App\obj\Debug\net8.0-windows\CapitalAco.DrawingMacro.App_MarkupCompile.cache

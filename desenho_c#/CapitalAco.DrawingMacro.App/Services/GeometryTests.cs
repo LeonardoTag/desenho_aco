@@ -87,11 +87,12 @@ namespace CapitalAco.DrawingMacro.App.Services
 
             var plano = geo.GerarDadosPlanificacao(polar);
             
-            // Corte total = reto1 + reto2 + BA
+            // Corte total = reto1 + reto2 - 2*setback + BA
+            // setback = tan(45 graus) * (1.2 + 2.0/2) = 1 * 2.2 = 2.2 (por aba)
             // BA = 90 * (pi / 180) * (1.2 + 0.165 * 2.0) = 1.570796 * 1.53 = 2.4033
-            // Corte total = 49.0 + 49.0 + 2.4033 = 100.4033...
+            // Corte total = 49.0 + 49.0 - 2*2.2 + 2.4033 = 96.0033...
             // O mapeamento de posições arredonda para milímetros
-            int corteEsperado = (int)Math.Round(49.0 + 49.0 + 2.4033); // 100
+            int corteEsperado = (int)Math.Round(49.0 + 49.0 - 2 * 2.2 + 2.4033); // 96
             Assert(plano.CorteTotal == corteEsperado, $"Corte total esperado {corteEsperado}, obtido {plano.CorteTotal}");
             Log.Information("Corte total do perfil L 50x50 na chapa #14: {Corte} mm.", plano.CorteTotal);
         }

@@ -1,0 +1,34 @@
+2026-06-24 15:41:44 [INF] === Capital Aço Detalhador — Sessão Inicializada ===
+2026-06-24 15:41:44 [INF] Diretório Base: C:\Users\leona\Downloads\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\win-x64\
+2026-06-24 15:41:44 [INF] Arquivo de Log configurado em: C:\Users\leona\Downloads\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\win-x64\logs\app_log_2026-06-24.txt
+2026-06-24 15:41:44 [INF] Pré-carregamento: 23 especificações de chapa lidas de chapas.csv com sucesso.
+2026-06-24 15:41:44 [INF] Pré-carregamento: 3 modelos de peça carregados da biblioteca JSON com sucesso.
+2026-06-24 15:41:44 [INF] >>> INICIANDO TESTES GEOMÉTRICOS E MATEMÁTICOS DE REGRESSÃO (FASE 3) <<<
+2026-06-24 15:41:44 [INF] Testando NumericUtils...
+2026-06-24 15:41:44 [INF]   [OK] ParseNumero '12.5'
+2026-06-24 15:41:44 [INF]   [OK] ParseNumero '12,5'
+2026-06-24 15:41:44 [INF]   [OK] ParseNumero '1.250,55'
+2026-06-24 15:41:44 [INF]   [OK] ParseNumero vazio
+2026-06-24 15:41:44 [INF]   [OK] FormatarNumero '12,5'
+2026-06-24 15:41:44 [INF]   [OK] FormatarNumero '12'
+2026-06-24 15:41:44 [INF]   [OK] FormatarCompacto '10'
+2026-06-24 15:41:44 [INF]   [OK] FormatarCompacto '10,25'
+2026-06-24 15:41:44 [INF] Testando formulas de dobra...
+2026-06-24 15:41:44 [INF]   [OK] GetBendAllowance esperado 2,403318379996192, obtido 2,403318379996192
+2026-06-24 15:41:44 [INF]   [OK] MedidaCentroDeExterna esperado 49, obtido 49
+2026-06-24 15:41:44 [INF]   [OK] MedidaCentroDeInterna esperado 51, obtido 51
+2026-06-24 15:41:44 [INF] Testando planificacao de perfil em L (90 graus)...
+2026-06-24 15:41:44 [INF]   [OK] Polar Comprimento 1 esperado 49.0, obtido 49
+2026-06-24 15:41:44 [INF]   [OK] Polar Comprimento 2 esperado 49.0, obtido 49
+2026-06-24 15:41:44 [ERR] >>> FALHA CRÍTICA NOS TESTES GEOMÉTRICOS OU DE PDF <<<
+System.InvalidOperationException: Falha no teste: Corte total esperado 100, obtido 96
+   at CapitalAco.DrawingMacro.App.Services.GeometryTests.Assert(Boolean condicao, String mensagem) in C:\Users\leona\Downloads\desenho_c#\CapitalAco.DrawingMacro.App\Services\GeometryTests.cs:line 164
+   at CapitalAco.DrawingMacro.App.Services.GeometryTests.TestarPlanificacaoPerfilL(IGeometryService geo) in C:\Users\leona\Downloads\desenho_c#\CapitalAco.DrawingMacro.App\Services\GeometryTests.cs:line 95
+   at CapitalAco.DrawingMacro.App.Services.GeometryTests.ExecutarTestes(IGeometryService geometryService, IGeradorPecaService geradorPecaService, IPdfGeneratorService pdfGeneratorService) in C:\Users\leona\Downloads\desenho_c#\CapitalAco.DrawingMacro.App\Services\GeometryTests.cs:line 19
+2026-06-24 15:41:44 [ERR] Erro crítico no pré-carregamento dos arquivos de dados ou na validação matemática
+System.InvalidOperationException: Falha no teste: Corte total esperado 100, obtido 96
+   at CapitalAco.DrawingMacro.App.Services.GeometryTests.Assert(Boolean condicao, String mensagem) in C:\Users\leona\Downloads\desenho_c#\CapitalAco.DrawingMacro.App\Services\GeometryTests.cs:line 164
+   at CapitalAco.DrawingMacro.App.Services.GeometryTests.TestarPlanificacaoPerfilL(IGeometryService geo) in C:\Users\leona\Downloads\desenho_c#\CapitalAco.DrawingMacro.App\Services\GeometryTests.cs:line 95
+   at CapitalAco.DrawingMacro.App.Services.GeometryTests.ExecutarTestes(IGeometryService geometryService, IGeradorPecaService geradorPecaService, IPdfGeneratorService pdfGeneratorService) in C:\Users\leona\Downloads\desenho_c#\CapitalAco.DrawingMacro.App\Services\GeometryTests.cs:line 19
+   at CapitalAco.DrawingMacro.App.App.ExecutarPreFlightCheck() in C:\Users\leona\Downloads\desenho_c#\CapitalAco.DrawingMacro.App\App.xaml.cs:line 93
+2026-06-24 15:41:51 [INF] === Capital Aço Detalhador — Aplicação Finalizada ===

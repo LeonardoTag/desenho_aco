@@ -39,6 +39,18 @@ namespace CapitalAco.DrawingMacro.App.Services
             QuestPDF.Settings.License = LicenseType.Community;
         }
 
+        // QuestPDF 2024.3.0 removeu o suporte a .Canvas(...) (lança NotImplementedException em runtime).
+        // Renderizamos via SkiaSharp.SKSvgCanvas e injetamos o resultado com .Svg(...).
+        private static string RenderizarComoSvg(float width, float height, Action<SKCanvas> desenhar)
+        {
+            using var stream = new MemoryStream();
+            using (var canvas = SKSvgCanvas.Create(new SKRect(0, 0, width, height), stream))
+            {
+                desenhar(canvas);
+            }
+            return System.Text.Encoding.UTF8.GetString(stream.ToArray());
+        }
+
         public string GerarRelatorioDobra(InstrucoesPolares polar, string nomePeca, string chapaCodigo, double comprimento)
         {
             var config = _configService.ObterConfiguracao();
@@ -83,18 +95,16 @@ namespace CapitalAco.DrawingMacro.App.Services
                         col.Item().Row(drawRow =>
                         {
                             // Preview 3D do Perfil
-                            drawRow.RelativeItem(4).Height(240).Border(1).BorderColor(Colors.Grey.Lighten2).Canvas((canvas, size) =>
-                            {
-                                SkiaRenderer.RenderizarPeca((SKCanvas)canvas, new SKSize(size.Width, size.Height), polar, dimensoes, true, _geometryService);
-                            });
+                            drawRow.RelativeItem(4).Height(240).Border(1).BorderColor(Colors.Grey.Lighten2).Svg(size =>
+                                RenderizarComoSvg(size.Width, size.Height, canvas =>
+                                    SkiaRenderer.RenderizarPeca(canvas, new SKSize(size.Width, size.Height), polar, dimensoes, true, _geometryService)));
 
                             drawRow.ConstantItem(15);
 
                             // Planificação
-                            drawRow.RelativeItem(5).Height(240).Border(1).BorderColor(Colors.Grey.Lighten2).Canvas((canvas, size) =>
-                            {
-                                SkiaRenderer.RenderizarPlanificacao((SKCanvas)canvas, new SKSize(size.Width, size.Height), dadosPlan);
-                            });
+                            drawRow.RelativeItem(5).Height(240).Border(1).BorderColor(Colors.Grey.Lighten2).Svg(size =>
+                                RenderizarComoSvg(size.Width, size.Height, canvas =>
+                                    SkiaRenderer.RenderizarPlanificacao(canvas, new SKSize(size.Width, size.Height), dadosPlan)));
                         });
 
                         col.Item().PaddingTop(15).Row(infoRow =>
@@ -178,20 +188,20 @@ namespace CapitalAco.DrawingMacro.App.Services
                         {
                             col.Item().PaddingBottom(10).Border(0.5f).BorderColor(Colors.Grey.Lighten1).Height(95).Row(row =>
                             {
-                                // 1. Imagem de Preview à esquerda (Canvas Skia)
-                                row.RelativeItem(5).Padding(3).Canvas((canvas, size) =>
+                                // 1. Imagem de Preview à esquerda (Skia via SVG)
+                                row.RelativeItem(5).Padding(3).Svg(size => RenderizarComoSvg(size.Width, size.Height, canvas =>
                                 {
                                     try
                                     {
                                         var polar = _geometryService.ConverterInstrucoesParaCoordenadasPolares(item.ChapaCodigo, item.Comprimento, item.Segmentos);
                                         var dim = _geometryService.CalcularDimensoesAcabadas(polar);
-                                        SkiaRenderer.RenderizarPeca((SKCanvas)canvas, new SKSize(size.Width, size.Height), polar, dim, false, _geometryService);
+                                        SkiaRenderer.RenderizarPeca(canvas, new SKSize(size.Width, size.Height), polar, dim, false, _geometryService);
                                     }
                                     catch
                                     {
-                                        ((SKCanvas)canvas).Clear(SKColors.White);
+                                        canvas.Clear(SKColors.White);
                                     }
-                                });
+                                }));
 
                                 // Divisor
                                 row.ConstantItem(1).LineVertical(0.5f).LineColor(Colors.Grey.Lighten2);
@@ -233,7 +243,7 @@ namespace CapitalAco.DrawingMacro.App.Services
                                 // Checkbox de controle de fábrica
                                 row.ConstantItem(60).PaddingRight(5).AlignMiddle().AlignCenter().Column(c =>
                                 {
-                                    c.Item().Border(1).BorderColor(Colors.Grey.Darken1).Width(15).Height(15).Canvas((canvas, size) => { });
+                                    c.Item().Border(1).BorderColor(Colors.Grey.Darken1).Width(15).Height(15).Svg(size => RenderizarComoSvg(size.Width, size.Height, canvas => { }));
                                     c.Item().PaddingTop(3).AlignCenter().Text("Cortado").FontSize(7);
                                 });
                             });
