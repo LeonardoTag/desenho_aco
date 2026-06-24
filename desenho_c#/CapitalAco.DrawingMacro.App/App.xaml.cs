@@ -54,6 +54,13 @@ namespace CapitalAco.DrawingMacro.App
             services.AddSingleton<IGeradorPecaService, GeradorPecaService>();
             services.AddSingleton<IPdfGeneratorService, PdfGeneratorService>();
 
+            // Registrar ViewModels
+            services.AddSingleton<MainViewModel>();
+            services.AddSingleton<EditorPecaViewModel>();
+            services.AddSingleton<BibliotecaViewModel>();
+            services.AddSingleton<PedidoViewModel>();
+            services.AddSingleton<ConfiguracaoViewModel>();
+
             // Registrar Views
             services.AddSingleton<MainWindow>();
         }

@@ -1,0 +1,90 @@
+<UserControl x:Class="CapitalAco.DrawingMacro.App.Views.ConfiguracaoView"
+             xmlns="http://schemas.microsoft.com/winfx/2000/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2000/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="1200"
+             Background="#2C3E50"
+             Foreground="White">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Painel Esquerdo: Relatórios -->
+            <Border Background="#34495E" CornerRadius="8" Padding="15" Margin="5">
+                <StackPanel>
+                    <TextBlock Text="CONFIGURAÇÕES GERAIS DE RELATÓRIO" FontSize="15" FontWeight="Bold" Foreground="#3498DB" Margin="0,0,0,15"/>
+
+                    <TextBlock Text="Responsável / Emissor do Relatório:" FontSize="12" Foreground="#BDC3C7" Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding Responsavel, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,15" Height="26" VerticalContentAlignment="Center" Background="#2C3E50" Foreground="White" BorderBrush="#7F8C8D"/>
+
+                    <TextBlock Text="Observação Geral Padrão (Ficha de Pedido):" FontSize="12" Foreground="#BDC3C7" Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding ObservacaoPadrao, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="True" Height="150" VerticalContentAlignment="Top" Padding="5" Background="#2C3E50" Foreground="White" BorderBrush="#7F8C8D"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Painel Direito: Parâmetros Boiadeira -->
+            <Border Grid.Column="1" Background="#34495E" CornerRadius="8" Padding="15" Margin="5">
+                <StackPanel>
+                    <TextBlock Text="PARÂMETROS PADRÃO - PERFIL BOIADEIRA" FontSize="15" FontWeight="Bold" Foreground="#E67E22" Margin="0,0,0,15"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Linha 0 -->
+                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,15">
+                            <TextBlock Text="Altura Lateral Aba (Y) (mm):" FontSize="11" Foreground="#BDC3C7" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding BoiadeiraAltura, UpdateSourceTrigger=PropertyChanged}" Height="26" VerticalContentAlignment="Center" Background="#2C3E50" Foreground="White" BorderBrush="#7F8C8D"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,15">
+                            <TextBlock Text="Largura Total Peça (X) (mm):" FontSize="11" Foreground="#BDC3C7" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding BoiadeiraLargura, UpdateSourceTrigger=PropertyChanged}" Height="26" VerticalContentAlignment="Center" Background="#2C3E50" Foreground="White" BorderBrush="#7F8C8D"/>
+                        </StackPanel>
+
+                        <!-- Linha 1 -->
+                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,10,15">
+                            <TextBlock Text="Primeiro Gomo (mm):" FontSize="11" Foreground="#BDC3C7" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding BoiadeiraPrimeiroGomo, UpdateSourceTrigger=PropertyChanged}" Height="26" VerticalContentAlignment="Center" Background="#2C3E50" Foreground="White" BorderBrush="#7F8C8D"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,15">
+                            <TextBlock Text="Altura Gomo Superior (mm):" FontSize="11" Foreground="#BDC3C7" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding BoiadeiraGomoSuperior, UpdateSourceTrigger=PropertyChanged}" Height="26" VerticalContentAlignment="Center" Background="#2C3E50" Foreground="White" BorderBrush="#7F8C8D"/>
+                        </StackPanel>
+
+                        <!-- Linha 2 -->
+                        <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,10,15">
+                            <TextBlock Text="Altura Gomo Inferior (mm):" FontSize="11" Foreground="#BDC3C7" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding BoiadeiraGomoInferior, UpdateSourceTrigger=PropertyChanged}" Height="26" VerticalContentAlignment="Center" Background="#2C3E50" Foreground="White" BorderBrush="#7F8C8D"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,0,0,15">
+                            <TextBlock Text="Quantidade de Gomos (N):" FontSize="11" Foreground="#BDC3C7" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding BoiadeiraNumGomos, UpdateSourceTrigger=PropertyChanged}" Height="26" VerticalContentAlignment="Center" Background="#2C3E50" Foreground="White" BorderBrush="#7F8C8D"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Botão Salvar Global -->
+        <Border Grid.Row="1" Background="#34495E" CornerRadius="8" Padding="10" Margin="5,10,5,5">
+            <Button Content="Salvar Todas as Configurações" Command="{Binding SalvarConfiguracoesCommand}" Background="#27AE60" Foreground="White" BorderThickness="0" Height="40" FontSize="15" FontWeight="Bold"/>
+        </Border>
+    </Grid>
+</UserControl>

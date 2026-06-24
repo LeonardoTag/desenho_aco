@@ -1,28 +1,14 @@
 using System.Windows;
-using CapitalAco.DrawingMacro.App.Services;
+using CapitalAco.DrawingMacro.App.ViewModels;
 
 namespace CapitalAco.DrawingMacro.App
 {
     public partial class MainWindow : Window
     {
-        public MainWindow(ICsvService csvService, IBibliotecaPecasService bibliotecaService)
+        public MainWindow(MainViewModel viewModel)
         {
             InitializeComponent();
-
-            try
-            {
-                // Carrega e vincula dados para verificação visual da Fase 2
-                lstChapas.ItemsSource = csvService.CarregarChapas();
-                lstBiblioteca.ItemsSource = bibliotecaService.ListarModelos();
-            }
-            catch (System.Exception ex)
-            {
-                MessageBox.Show(
-                    $"Erro ao carregar dados na interface: {ex.Message}",
-                    "Erro de Carregamento",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
+            DataContext = viewModel;
         }
     }
 }

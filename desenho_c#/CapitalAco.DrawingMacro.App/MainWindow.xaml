@@ -1,7 +1,8 @@
 <Window x:Class="CapitalAco.DrawingMacro.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2000/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2000/xaml"
-        Title="Capital Aço Detalhador" Height="720" Width="1280"
+        xmlns:views="clr-namespace:CapitalAco.DrawingMacro.App.Views"
+        Title="Capital Aço Detalhador" Height="750" Width="1300"
         WindowStartupLocation="CenterScreen"
         Background="#1E2022">
     <Grid Margin="20">
@@ -15,41 +16,18 @@
             <TextBlock Text="Sistema de Detalhamento de Dobras e Geração de Pedidos (.NET 8)" Foreground="#95A5A6" FontSize="14" Margin="0,5,0,0" FontFamily="Segoe UI"/>
         </StackPanel>
 
-        <TabControl Grid.Row="1" Background="#2C3E50" BorderBrush="#34495E">
-            <TabItem Header="Fase 2 - Carga de Dados" Background="#34495E" Foreground="White" Padding="12,5">
-                <Grid Margin="15">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <GroupBox Header="Chapas Carregadas (CSV)" Grid.Column="0" Margin="10" Foreground="White" BorderBrush="#7F8C8D">
-                        <ListBox x:Name="lstChapas" Background="#34495E" Foreground="White" BorderThickness="0" Margin="5">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Margin="5">
-                                        <TextBlock Text="{Binding Codigo, StringFormat='Chapa: {0}'}" FontSize="14" FontWeight="Bold"/>
-                                        <TextBlock Text="{Binding Espessura, StringFormat='Espessura: {0} mm | Raio de Dobra: {1} mm | Dobra Mínima: {2} mm | Tipo: {3}'}" FontSize="12" Foreground="#BDC3C7"/>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </GroupBox>
-
-                    <GroupBox Header="Biblioteca de Peças (JSON)" Grid.Column="1" Margin="10" Foreground="White" BorderBrush="#7F8C8D">
-                        <ListBox x:Name="lstBiblioteca" Background="#34495E" Foreground="White" BorderThickness="0" Margin="5">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Margin="5">
-                                        <TextBlock Text="{Binding Nome}" FontSize="14" FontWeight="Bold"/>
-                                        <TextBlock Text="{Binding Chapa, StringFormat='Chapa: {0} | Comprimento: {1} mm'}" FontSize="12" Foreground="#BDC3C7"/>
-                                        <TextBlock Text="{Binding Segmentos.Count, StringFormat='Segmentos detalhados: {0}'}" FontSize="11" Foreground="#95A5A6"/>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </GroupBox>
-                </Grid>
+        <TabControl Grid.Row="1" Background="#2C3E50" BorderBrush="#34495E" SelectedIndex="{Binding SelectedTabIndex}">
+            <TabItem Header="Editor de Peça" Background="#34495E" Foreground="White" Padding="12,5">
+                <views:EditorPecaView DataContext="{Binding Editor}"/>
+            </TabItem>
+            <TabItem Header="Biblioteca de Peças" Background="#34495E" Foreground="White" Padding="12,5">
+                <views:BibliotecaView DataContext="{Binding Biblioteca}"/>
+            </TabItem>
+            <TabItem Header="Ordem de Produção" Background="#34495E" Foreground="White" Padding="12,5">
+                <views:PedidoView DataContext="{Binding Pedido}"/>
+            </TabItem>
+            <TabItem Header="Configurações" Background="#34495E" Foreground="White" Padding="12,5">
+                <views:ConfiguracaoView DataContext="{Binding Configuracao}"/>
             </TabItem>
         </TabControl>
     </Grid>

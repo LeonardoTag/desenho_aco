@@ -61,18 +61,18 @@ Para garantir 100% de paridade visual e matemática entre o desenho exibido na t
     - [x] Implementação da geração de imagens via SkiaSharp (anotações de cotas e ângulos)
     - [x] Recriação da Ordem de Produção (antigo `relatorio_pedido.py`) com QuestPDF
     - [x] Recriação do Detalhamento de Dobra (antigo `relatorio_dobra.py`) com QuestPDF
-- [ ] **Fase 5: Interface Gráfica (WPF/XAML) e ViewModels**
-    - [ ] Design da interface moderna baseada em Grid/Tabs e estilos consistentes (Dark/Light mode via HSL)
-    - [ ] Implementação de ViewModels usando CommunityToolkit.Mvvm
-    - [ ] Tela de desenhar peça interativa (atualização de preview em tempo real)
-    - [ ] Integração com Biblioteca de Peças e Configurações
+- [x] **Fase 5: Interface Gráfica (WPF/XAML) e ViewModels**
+    - [x] Design da interface moderna baseada em Grid/Tabs e estilos consistentes (Dark/Light mode via HSL)
+    - [x] Implementação de ViewModels usando CommunityToolkit.Mvvm
+    - [x] Tela de desenhar peça interativa (atualização de preview em tempo real)
+    - [x] Integração com Biblioteca de Peças e Configurações
 
 ---
 
 ## 4. Pendências e Próximos Passos (Backlog)
 
 ### Próximo Passo Imediato
-**Fase 5 - Interface Gráfica (WPF/XAML) e ViewModels:** Desenvolver a interface visual em XAML e as ViewModels conectando as ações do usuário (Editor, Biblioteca, Gerador Boiadeira, Configurações) com os serviços portados.
+**Homologação e Conclusão:** O sistema C# (.NET 8 WPF) está 100% migrado, com todas as fases concluídas, testes de integridade matemáticos e de PDF passando no pre-flight checks, e todas as interfaces visuais e ViewModels implementadas. Solicitar o commit final de homologação ao usuário.
 
 ### Arquivos Python a Migrar:
 *   `desenho_python/config_manager.py` ➔ C# Service (Concluído)
@@ -82,5 +82,5 @@ Para garantir 100% de paridade visual e matemática entre o desenho exibido na t
 *   `desenho_python/core/desenhar.py` ➔ C# GeometryEngine (Concluído) + SkiaRenderer (Concluído)
 *   `desenho_python/core/relatorio_pedido.py` ➔ C# QuestPDF Component (Concluído)
 *   `desenho_python/core/relatorio_dobra.py` ➔ C# QuestPDF Component (Concluído)
-*   `desenho_python/api.py` ➔ C# ViewModels
+*   `desenho_python/api.py` ➔ C# ViewModels (Concluído)
 *   `desenho_python/main.py` ➔ C# `App.xaml.cs` e `MainWindow.xaml` (Concluído)
