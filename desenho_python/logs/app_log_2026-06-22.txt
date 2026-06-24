@@ -1,0 +1,582 @@
+2026-06-22 16:03:29,419 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-22 ===
+2026-06-22 16:03:29,432 [INFO] Iniciando aplicativo WebView em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity
+2026-06-22 16:03:29,736 [INFO] Pré-verificação concluída com sucesso. Inicializando pywebview.
+2026-06-22 16:03:32,547 [DEBUG] Using WinForms / Chromium
+2026-06-22 16:03:32,767 [DEBUG] Common path for local URLs: G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\web
+2026-06-22 16:03:32,768 [DEBUG] HTTP server root path: G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\web
+2026-06-22 16:03:38,132 [DEBUG] before_load event fired. injecting pywebview object
+2026-06-22 16:03:38,137 [DEBUG] Loading JS files from C:\Users\leona\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\webview\js
+2026-06-22 16:03:38,269 [DEBUG] _pywebviewready event fired
+2026-06-22 16:03:38,290 [DEBUG] loaded event fired
+2026-06-22 16:03:58,758 [ERROR] Erro ao gerar preview da peça
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 121, in gerar_preview
+    imagem = desenhar.renderizar_imagem(
+        instrucoes,
+    ...<2 lines>...
+        destino="preview",
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 2472, in renderizar_imagem
+    _, medidas, dobras = gerar_corte_medidas_angulos(instrucoes)
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1074, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 16:03:58,864 [ERROR] Erro ao calcular largura de corte
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 157, in calcular_largura_corte
+    return desenhar.calcular_largura_corte(instrucoes)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1151, in calcular_largura_corte
+    return calcular_soma_medidas_internas(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1135, in calcular_soma_medidas_internas
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1074, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 16:03:58,883 [ERROR] Erro ao calcular peso
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 141, in calcular_peso
+    peso = desenhar.calcular_peso_kg(
+        instrucoes,
+    ...<2 lines>...
+        arredondar=True,
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1162, in calcular_peso_kg
+    soma_internas = calcular_largura_corte(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1151, in calcular_largura_corte
+    return calcular_soma_medidas_internas(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1135, in calcular_soma_medidas_internas
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1074, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 16:03:58,911 [ERROR] Erro ao verificar avisos
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 170, in verificar_avisos
+    avisos_dobra = desenhar.verificar_dobras_abaixo_minima(instrucoes, chapa_codigo)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 597, in verificar_dobras_abaixo_minima
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1074, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 16:04:16,572 [ERROR] Erro ao gerar preview da peça
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 121, in gerar_preview
+    imagem = desenhar.renderizar_imagem(
+        instrucoes,
+    ...<2 lines>...
+        destino="preview",
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 2472, in renderizar_imagem
+    _, medidas, dobras = gerar_corte_medidas_angulos(instrucoes)
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1074, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 16:04:16,583 [ERROR] Erro ao calcular largura de corte
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 157, in calcular_largura_corte
+    return desenhar.calcular_largura_corte(instrucoes)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1151, in calcular_largura_corte
+    return calcular_soma_medidas_internas(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1135, in calcular_soma_medidas_internas
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1074, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 16:04:16,597 [ERROR] Erro ao calcular peso
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 141, in calcular_peso
+    peso = desenhar.calcular_peso_kg(
+        instrucoes,
+    ...<2 lines>...
+        arredondar=True,
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1162, in calcular_peso_kg
+    soma_internas = calcular_largura_corte(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1151, in calcular_largura_corte
+    return calcular_soma_medidas_internas(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1135, in calcular_soma_medidas_internas
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1074, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 16:04:16,627 [ERROR] Erro ao verificar avisos
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 170, in verificar_avisos
+    avisos_dobra = desenhar.verificar_dobras_abaixo_minima(instrucoes, chapa_codigo)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 597, in verificar_dobras_abaixo_minima
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1074, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 17:18:41,742 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-22 ===
+2026-06-22 17:18:42,392 [INFO] Iniciando aplicativo WebView em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity
+2026-06-22 17:18:42,809 [INFO] Pré-verificação concluída com sucesso. Inicializando pywebview.
+2026-06-22 17:18:49,734 [DEBUG] Using WinForms / Chromium
+2026-06-22 17:18:49,982 [DEBUG] Common path for local URLs: G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\web
+2026-06-22 17:18:49,983 [DEBUG] HTTP server root path: G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\web
+2026-06-22 17:19:00,996 [DEBUG] before_load event fired. injecting pywebview object
+2026-06-22 17:19:00,999 [DEBUG] Loading JS files from C:\Users\leona\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\webview\js
+2026-06-22 17:19:01,112 [DEBUG] _pywebviewready event fired
+2026-06-22 17:19:01,127 [DEBUG] loaded event fired
+2026-06-22 17:19:49,252 [ERROR] Erro ao gerar preview da peça
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 121, in gerar_preview
+    imagem = desenhar.renderizar_imagem(
+        instrucoes,
+    ...<2 lines>...
+        destino="preview",
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 2472, in renderizar_imagem
+    _, medidas, dobras = gerar_corte_medidas_angulos(instrucoes)
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1074, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 17:19:51,616 [ERROR] Erro ao calcular largura de corte
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 157, in calcular_largura_corte
+    return desenhar.calcular_largura_corte(instrucoes)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1151, in calcular_largura_corte
+    return calcular_soma_medidas_internas(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1135, in calcular_soma_medidas_internas
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1074, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 17:19:51,628 [ERROR] Erro ao calcular peso
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 141, in calcular_peso
+    peso = desenhar.calcular_peso_kg(
+        instrucoes,
+    ...<2 lines>...
+        arredondar=True,
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1162, in calcular_peso_kg
+    soma_internas = calcular_largura_corte(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1151, in calcular_largura_corte
+    return calcular_soma_medidas_internas(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1135, in calcular_soma_medidas_internas
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1074, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 17:19:51,642 [ERROR] Erro ao verificar avisos
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 170, in verificar_avisos
+    avisos_dobra = desenhar.verificar_dobras_abaixo_minima(instrucoes, chapa_codigo)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 597, in verificar_dobras_abaixo_minima
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1074, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 17:32:18,491 [WARNING] Failed to delete user data folder: [WinError 32] O arquivo já está sendo usado por outro processo: 'C:\\Users\\leona\\AppData\\Local\\Temp\\tmpdas81j4f\\EBWebView\\lockfile'
+2026-06-22 17:41:46,693 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-22 ===
+2026-06-22 17:41:46,707 [INFO] Iniciando aplicativo WebView em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity
+2026-06-22 17:41:46,768 [INFO] Pré-verificação concluída com sucesso. Inicializando pywebview.
+2026-06-22 17:41:47,913 [DEBUG] Using WinForms / Chromium
+2026-06-22 17:41:48,002 [DEBUG] Common path for local URLs: G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\web
+2026-06-22 17:41:48,003 [DEBUG] HTTP server root path: G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\web
+2026-06-22 17:41:50,723 [DEBUG] before_load event fired. injecting pywebview object
+2026-06-22 17:41:50,729 [DEBUG] Loading JS files from C:\Users\leona\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\webview\js
+2026-06-22 17:41:50,779 [DEBUG] _pywebviewready event fired
+2026-06-22 17:41:50,786 [DEBUG] loaded event fired
+2026-06-22 17:42:02,949 [ERROR] Erro ao gerar preview da peça
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 121, in gerar_preview
+    imagem = desenhar.renderizar_imagem(
+        instrucoes,
+    ...<2 lines>...
+        destino="preview",
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 2525, in renderizar_imagem
+    _, medidas, dobras = gerar_corte_medidas_angulos(instrucoes)
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1115, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 17:42:03,015 [ERROR] Erro ao calcular largura de corte
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 157, in calcular_largura_corte
+    return desenhar.calcular_largura_corte(instrucoes)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1192, in calcular_largura_corte
+    return calcular_soma_medidas_internas(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1176, in calcular_soma_medidas_internas
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1115, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 17:42:03,023 [ERROR] Erro ao calcular peso
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 141, in calcular_peso
+    peso = desenhar.calcular_peso_kg(
+        instrucoes,
+    ...<2 lines>...
+        arredondar=True,
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1203, in calcular_peso_kg
+    soma_internas = calcular_largura_corte(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1192, in calcular_largura_corte
+    return calcular_soma_medidas_internas(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1176, in calcular_soma_medidas_internas
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1115, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 17:42:03,031 [ERROR] Erro ao verificar avisos
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 170, in verificar_avisos
+    avisos_dobra = desenhar.verificar_dobras_abaixo_minima(instrucoes, chapa_codigo)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 625, in verificar_dobras_abaixo_minima
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1115, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 19:56:58,092 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-22 ===
+2026-06-22 19:56:58,124 [INFO] Iniciando aplicativo WebView em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity
+2026-06-22 19:56:58,268 [INFO] Pré-verificação concluída com sucesso. Inicializando pywebview.
+2026-06-22 19:57:01,718 [DEBUG] Using WinForms / Chromium
+2026-06-22 19:57:01,896 [DEBUG] Common path for local URLs: G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\web
+2026-06-22 19:57:01,897 [DEBUG] HTTP server root path: G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\web
+2026-06-22 19:57:04,223 [DEBUG] before_load event fired. injecting pywebview object
+2026-06-22 19:57:04,225 [DEBUG] Loading JS files from C:\Users\leona\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\webview\js
+2026-06-22 19:57:04,608 [DEBUG] _pywebviewready event fired
+2026-06-22 19:57:04,628 [DEBUG] loaded event fired
+2026-06-22 19:57:23,026 [ERROR] Erro ao gerar preview da peça
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 121, in gerar_preview
+    imagem = desenhar.renderizar_imagem(
+        instrucoes,
+    ...<2 lines>...
+        destino="preview",
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 2530, in renderizar_imagem
+    _, medidas, dobras = gerar_corte_medidas_angulos(instrucoes)
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1120, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 19:57:23,091 [ERROR] Erro ao calcular largura de corte
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 157, in calcular_largura_corte
+    return desenhar.calcular_largura_corte(instrucoes)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1197, in calcular_largura_corte
+    return calcular_soma_medidas_internas(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1181, in calcular_soma_medidas_internas
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1120, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 19:57:23,106 [ERROR] Erro ao calcular peso
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 141, in calcular_peso
+    peso = desenhar.calcular_peso_kg(
+        instrucoes,
+    ...<2 lines>...
+        arredondar=True,
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1208, in calcular_peso_kg
+    soma_internas = calcular_largura_corte(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1197, in calcular_largura_corte
+    return calcular_soma_medidas_internas(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1181, in calcular_soma_medidas_internas
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1120, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 19:57:23,129 [ERROR] Erro ao verificar avisos
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 170, in verificar_avisos
+    avisos_dobra = desenhar.verificar_dobras_abaixo_minima(instrucoes, chapa_codigo)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 625, in verificar_dobras_abaixo_minima
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1120, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 19:57:41,085 [ERROR] Erro ao gerar preview da peça
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 121, in gerar_preview
+    imagem = desenhar.renderizar_imagem(
+        instrucoes,
+    ...<2 lines>...
+        destino="preview",
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 2530, in renderizar_imagem
+    _, medidas, dobras = gerar_corte_medidas_angulos(instrucoes)
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1120, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 19:57:41,117 [ERROR] Erro ao calcular largura de corte
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 157, in calcular_largura_corte
+    return desenhar.calcular_largura_corte(instrucoes)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1197, in calcular_largura_corte
+    return calcular_soma_medidas_internas(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1181, in calcular_soma_medidas_internas
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1120, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 19:57:41,143 [ERROR] Erro ao calcular peso
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 141, in calcular_peso
+    peso = desenhar.calcular_peso_kg(
+        instrucoes,
+    ...<2 lines>...
+        arredondar=True,
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1208, in calcular_peso_kg
+    soma_internas = calcular_largura_corte(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1197, in calcular_largura_corte
+    return calcular_soma_medidas_internas(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1181, in calcular_soma_medidas_internas
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1120, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 19:57:41,182 [ERROR] Erro ao verificar avisos
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 170, in verificar_avisos
+    avisos_dobra = desenhar.verificar_dobras_abaixo_minima(instrucoes, chapa_codigo)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 625, in verificar_dobras_abaixo_minima
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1120, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 20:05:18,634 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-22 ===
+2026-06-22 20:05:18,670 [INFO] Iniciando aplicativo WebView em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity
+2026-06-22 20:05:18,860 [INFO] Pré-verificação concluída com sucesso. Inicializando pywebview.
+2026-06-22 20:05:20,313 [DEBUG] Using WinForms / Chromium
+2026-06-22 20:05:20,435 [DEBUG] Common path for local URLs: G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\web
+2026-06-22 20:05:20,435 [DEBUG] HTTP server root path: G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\web
+2026-06-22 20:05:22,881 [DEBUG] before_load event fired. injecting pywebview object
+2026-06-22 20:05:22,887 [DEBUG] Loading JS files from C:\Users\leona\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\webview\js
+2026-06-22 20:05:22,953 [DEBUG] _pywebviewready event fired
+2026-06-22 20:05:22,970 [DEBUG] loaded event fired
+2026-06-22 20:07:17,021 [ERROR] Erro ao gerar preview da peça
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 121, in gerar_preview
+    imagem = desenhar.renderizar_imagem(
+        instrucoes,
+    ...<2 lines>...
+        destino="preview",
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 2530, in renderizar_imagem
+    _, medidas, dobras = gerar_corte_medidas_angulos(instrucoes)
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1120, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 20:07:17,131 [ERROR] Erro ao calcular largura de corte
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 157, in calcular_largura_corte
+    return desenhar.calcular_largura_corte(instrucoes)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1197, in calcular_largura_corte
+    return calcular_soma_medidas_internas(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1181, in calcular_soma_medidas_internas
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1120, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 20:07:17,149 [ERROR] Erro ao calcular peso
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 141, in calcular_peso
+    peso = desenhar.calcular_peso_kg(
+        instrucoes,
+    ...<2 lines>...
+        arredondar=True,
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1208, in calcular_peso_kg
+    soma_internas = calcular_largura_corte(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1197, in calcular_largura_corte
+    return calcular_soma_medidas_internas(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1181, in calcular_soma_medidas_internas
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1120, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 20:07:17,169 [ERROR] Erro ao verificar avisos
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 170, in verificar_avisos
+    avisos_dobra = desenhar.verificar_dobras_abaixo_minima(instrucoes, chapa_codigo)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 625, in verificar_dobras_abaixo_minima
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1120, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 20:07:26,953 [ERROR] Erro ao gerar preview da peça
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 121, in gerar_preview
+    imagem = desenhar.renderizar_imagem(
+        instrucoes,
+    ...<2 lines>...
+        destino="preview",
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 2530, in renderizar_imagem
+    _, medidas, dobras = gerar_corte_medidas_angulos(instrucoes)
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1120, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 20:07:26,978 [ERROR] Erro ao calcular largura de corte
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 157, in calcular_largura_corte
+    return desenhar.calcular_largura_corte(instrucoes)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1197, in calcular_largura_corte
+    return calcular_soma_medidas_internas(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1181, in calcular_soma_medidas_internas
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1120, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 20:07:27,001 [ERROR] Erro ao calcular peso
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 141, in calcular_peso
+    peso = desenhar.calcular_peso_kg(
+        instrucoes,
+    ...<2 lines>...
+        arredondar=True,
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1208, in calcular_peso_kg
+    soma_internas = calcular_largura_corte(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1197, in calcular_largura_corte
+    return calcular_soma_medidas_internas(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1181, in calcular_soma_medidas_internas
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1120, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 20:07:27,033 [ERROR] Erro ao verificar avisos
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 170, in verificar_avisos
+    avisos_dobra = desenhar.verificar_dobras_abaixo_minima(instrucoes, chapa_codigo)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 625, in verificar_dobras_abaixo_minima
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1120, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 20:11:12,237 [ERROR] Erro ao gerar preview da peça
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 121, in gerar_preview
+    imagem = desenhar.renderizar_imagem(
+        instrucoes,
+    ...<2 lines>...
+        destino="preview",
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 2530, in renderizar_imagem
+    _, medidas, dobras = gerar_corte_medidas_angulos(instrucoes)
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1120, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 20:11:12,256 [ERROR] Erro ao calcular largura de corte
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 157, in calcular_largura_corte
+    return desenhar.calcular_largura_corte(instrucoes)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1197, in calcular_largura_corte
+    return calcular_soma_medidas_internas(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1181, in calcular_soma_medidas_internas
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1120, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 20:11:12,272 [ERROR] Erro ao calcular peso
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 141, in calcular_peso
+    peso = desenhar.calcular_peso_kg(
+        instrucoes,
+    ...<2 lines>...
+        arredondar=True,
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1208, in calcular_peso_kg
+    soma_internas = calcular_largura_corte(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1197, in calcular_largura_corte
+    return calcular_soma_medidas_internas(instrucoes)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1181, in calcular_soma_medidas_internas
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1120, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-22 20:11:12,310 [ERROR] Erro ao verificar avisos
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 170, in verificar_avisos
+    avisos_dobra = desenhar.verificar_dobras_abaixo_minima(instrucoes, chapa_codigo)
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 625, in verificar_dobras_abaixo_minima
+    _, medidas, _ = gerar_corte_medidas_angulos(instrucoes)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\desenhar.py", line 1120, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range

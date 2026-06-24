@@ -1,0 +1,47 @@
+2026-06-23 00:11:53,388 [INFO] === Capital Aço — Construção de Perfil v1.2.0 — sessão 2026-06-23 ===
+2026-06-23 00:11:53,394 [INFO] Iniciando aplicativo WebView em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity
+2026-06-23 00:11:53,532 [INFO] Pré-verificação concluída com sucesso. Inicializando pywebview.
+2026-06-23 08:04:43,603 [INFO] === Capital Aço — Construção de Perfil v1.2.0 — sessão 2026-06-23 ===
+2026-06-23 08:04:43,628 [INFO] Iniciando aplicativo WebView em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity
+2026-06-23 08:04:43,794 [INFO] Pré-verificação concluída com sucesso. Inicializando pywebview.
+2026-06-23 09:09:05,730 [INFO] === Capital Aço — Construção de Perfil v1.2.0 — sessão 2026-06-23 ===
+2026-06-23 09:09:05,758 [INFO] Iniciando aplicativo WebView em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity
+2026-06-23 09:09:05,988 [INFO] Pré-verificação concluída com sucesso. Inicializando pywebview.
+2026-06-23 09:51:21,441 [INFO] === Capital Aço — Construção de Perfil v1.2.0 — sessão 2026-06-23 ===
+2026-06-23 09:51:21,480 [INFO] Iniciando aplicativo WebView em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity
+2026-06-23 09:51:21,706 [INFO] Pré-verificação concluída com sucesso. Inicializando pywebview.
+2026-06-23 13:39:03,977 [INFO] === Capital Aço — Construção de Perfil v1.2.0 — sessão 2026-06-23 ===
+2026-06-23 13:39:04,015 [INFO] Iniciando aplicativo WebView em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity
+2026-06-23 13:39:04,329 [INFO] Pré-verificação concluída com sucesso. Inicializando pywebview.
+2026-06-23 13:48:16,430 [INFO] === Capital Aço — Construção de Perfil v1.2.0 — sessão 2026-06-23 ===
+2026-06-23 13:48:16,452 [INFO] Iniciando aplicativo WebView em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity
+2026-06-23 13:48:16,664 [INFO] Pré-verificação concluída com sucesso. Inicializando pywebview.
+2026-06-23 15:13:54,379 [WARNING] Failed to delete user data folder: [WinError 32] O arquivo já está sendo usado por outro processo: 'C:\\Users\\leona\\AppData\\Local\\Temp\\tmp3c4m3uzi\\EBWebView\\Default\\shared_proto_db\\metadata\\000003.log'
+2026-06-23 16:16:42,143 [INFO] === Capital Aço — Construção de Perfil v1.2.2 — sessão 2026-06-23 ===
+2026-06-23 16:16:42,157 [INFO] Iniciando aplicativo WebView em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity
+2026-06-23 16:16:42,324 [INFO] Pré-verificação concluída com sucesso. Inicializando pywebview.
+2026-06-23 17:10:26,343 [INFO] === Capital Aço — Construção de Perfil v1.2.2 — sessão 2026-06-23 ===
+2026-06-23 17:10:26,353 [INFO] Iniciando aplicativo WebView em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity
+2026-06-23 17:10:26,551 [INFO] Pré-verificação concluída com sucesso. Inicializando pywebview.
+2026-06-23 17:24:44,730 [ERROR] Erro ao gerar relatório de dobra
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\api.py", line 228, in gerar_relatorio_dobra
+    gerar_pdf_detalhamento_dobra(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        instrucoes=instrucoes,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        comprimento_peca=float(instrucoes_conv["comprimento"]),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho - antigravity\core\relatorio_dobra.py", line 438, in gerar_pdf_detalhamento_dobra
+    c.save()
+    ~~~~~~^^
+  File "C:\Users\leona\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\reportlab\pdfgen\canvas.py", line 1302, in save
+    self._doc.SaveToFile(self._filename, self)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leona\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\reportlab\pdfbase\pdfdoc.py", line 217, in SaveToFile
+    f.close()
+    ~~~~~~~^^
+OSError: [Errno 22] Invalid argument

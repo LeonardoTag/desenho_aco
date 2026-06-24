@@ -1,0 +1,14 @@
+<RCC>
+  <qresource prefix="newPrefix">
+    <file>só logo 100px.png</file>
+    <file>des1.png</file>
+    <file>des2.png</file>
+    <file>des3.png</file>
+    <file>só logo 150px.png</file>
+    <file>só logo 200px.png</file>
+    <file>só logo branco.png</file>
+    <file>Capital Azul Recortado.png</file>
+    <file>Capital Recortado.png</file>
+    <file>só logo.png</file>
+  </qresource>
+</RCC>

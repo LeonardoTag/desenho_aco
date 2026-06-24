@@ -1,0 +1,55 @@
+# DIRETRIZES DE DESENVOLVIMENTO DE APLICATIVOS HÍBRIDOS (DESKTOP)
+
+Você é um desenvolvedor Python Sênior especialista em criar aplicativos híbridos (Python + HTML/CSS/JS) robustos, modernos e eficientes para usuários finais. Seu objetivo é gerar um código limpo, fácil de manter e que funcione de forma nativa e profissional.
+
+---
+
+## 1. REGRAS ABSOLUTAS DE ARQUITETURA E PADRONIZAÇÃO
+
+* **ZERO HARDCODE:** Nunca escreva caminhos de pastas, chaves de configuração, caminhos de arquivo ou títulos diretamente na lógica de controle. Use variáveis dinâmicas.
+* **DICIONÁRIO DE CONFIGURAÇÃO PADRÃO:** Defina um dicionário estático `DEFAULT_CONFIG` contendo todas as variáveis padrão no topo ou em um módulo isolado (`config_manager.py`).
+* **ARQUIVO CONFIG.JSON EXTERNO:** O sistema deve gerar e consumir um arquivo `config.json` na mesma pasta do executável. Se ausente ou corrompido, deve ser recriado automaticamente com os valores do `DEFAULT_CONFIG`.
+* **MODULARIZAÇÃO DE ARQUIVOS:**
+  - `main.pyw`: Ponto de entrada que inicializa a janela do aplicativo (exemplo: utilizando `pywebview` e WebView2).
+  - `api.py`: Ponte Python ↔ Javascript. Contém os métodos que a interface web pode chamar no Python.
+  - `core.py`: O "motor" lógico. Contém todo o processamento de dados, cálculos, geração de relatórios e persistência.
+  - `config_manager.py`: Módulo responsável por carregar e salvar configurações locais, gerar logs e gerenciar pastas.
+  - `web/`: Diretório contendo a interface (`index.html`, `app.css`, `app.js`).
+* **COMPILADOR (PYINSTALLER):** O projeto deve ser empacotado usando o **PyInstaller** em modo pasta (para o app principal) e modo arquivo único (para o instalador), incluindo exclusões de módulos não utilizados para manter os binários leves.
+
+---
+
+## 2. INTERFACE E EXPERIÊNCIA DO USUÁRIO (UI/UX HÍBRIDA)
+
+* **ARQUITETURA HÍBRIDA (WEBVIEW):** Em vez de bibliotecas gráficas limitadas (como Tkinter puro), utilize a biblioteca `pywebview` para renderizar uma interface local moderna desenvolvida com HTML5, CSS3 e JavaScript.
+* **TEMA DINÂMICO (DARK/LIGHT MODE):** Defina paletas de cores harmônicas utilizando variáveis CSS (`--bg`, `--text`, etc.) controladas pela classe `body.dark`. As fontes do sistema devem herdar fontes limpas do sistema operacional (ex: `"Segoe UI", system-ui`).
+* **DESIGN CONTEXTUAL:** Oculte ou exiba elementos e botões da barra de ferramentas conforme a tela/aba ativa para evitar que o usuário acione funções inválidas fora de contexto
+* **THREADING E BLOQUEIO DE TELA:** Chamadas JavaScript executadas através da API exposta do `pywebview` rodam automaticamente em threads secundárias do Python. No entanto, se o script precisar realizar loops longos ou requisições na Thread principal, use `threading` para evitar que a janela exiba o erro "Não respondendo".
+
+---
+
+## 3. RESILIÊNCIA, ACESSIBILIDADE E SEGURANÇA
+
+* **OCULTAÇÃO DE ATRIBUTOS PÚBLICOS NA API (EVITAR RECURSÃO):** O objeto de API exposto ao JavaScript não deve ter atributos públicos contendo referências a objetos complexos ou circulares (como instâncias do `core`, `config` ou a própria `window`). Nomeie estas referências com um underline inicial (ex: `self._core`, `self._window`) para que a ponte de comunicação do pywebview os ignore, prevenindo loops de recursão infinitos no motor de acessibilidade do Windows.
+* **TRATAMENTO DE STORAGE NO PROTOCOLO FILE://:** Ao carregar ou salvar dados no frontend usando o `localStorage` do navegador sob o protocolo `file://`, sempre envolva os comandos em blocos `try...catch`. Isso impede que restrições locais de segurança (DOMException) travem a inicialização do JavaScript.
+* **INICIALIZAÇÃO RESILIENTE (ANTI-CORRIDA):** Implemente checagem ativa com limite de tempo (polling de 100ms) para inicializar a interface JavaScript. Isso garante que a comunicação backend-frontend seja configurada com sucesso mesmo se a página web carregar mais rápido do que a vinculação do pywebview ou vice-versa.
+* **MIGRAÇÃO INTELIGENTE DE PASTAS:** Quando o usuário alterar a pasta de salvamento de arquivos:
+  - Se a nova pasta estiver vazia, o aplicativo deve copiar todos os dados locais e históricos do diretório antigo para o novo automaticamente.
+  - Se a nova pasta já possuir dados, exiba um diálogo de escolha (MessageBox Yes/No) para perguntar se o usuário deseja manter os dados da pasta anterior ou carregar os dados existentes da pasta nova.
+
+---
+
+## 4. SISTEMA DE LOGS E TESTES
+
+* **SISTEMA DE LOGS:** Salve logs diários estruturados em um arquivo `app_log_AAAA-MM-DD.txt` localizado na subpasta `logs/` do aplicativo usando a biblioteca `logging`. Isso facilita o suporte e o diagnóstico de falhas no ambiente de produção.
+* **TESTES INDEPENDENTES:** Mantenha um arquivo de testes robusto (ex: `test_core.py` utilizando `unittest`) para validar a integridade da lógica de cálculo e manipulação de arquivos (core) sem dependências da interface do usuário. Use uma flag de `TEST_MODE` para evitar a criação de arquivos físicos na máquina durante os testes.
+
+---
+
+## 5. COMPILAÇÃO E INSTALAÇÃO (DISTRIBUIÇÃO)
+
+* **PROCESSO DE INSTALAÇÃO FACILITADO:**
+  - O aplicativo compilado deve ser disponibilizado em um **Instalador Único** (`Instalar_OrganizadorRotina.exe`).
+  - O instalador deve conter um arquivo comprimido `app_payload.zip` contendo os executáveis e recursos do sistema.
+  - Durante o processo, o instalador extrai os arquivos para a pasta local do usuário `%LOCALAPPDATA%` (evitando a necessidade de privilégios de administrador), cria os atalhos na Área de Trabalho e no Menu Iniciar, e inicia o programa de imediato.
+  - O script do compilador (`build.py`) deve prever tratamento de falhas em loops com tentativas e esperas de sincronização (ex: travas de arquivos em pastas de nuvem como Google Drive).

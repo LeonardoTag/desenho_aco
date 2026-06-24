@@ -1,0 +1,12 @@
+# Lista de Tarefas
+
+- Checar se a ordem de produção está sendo aberta quando é clicado no botão igual ao detalhamento de dobra.
+- O problema de não conseguir continuar desenhando após mudar o grau de dobra no modo rápido permanece, após inserir o grau e apertar enter, o programa já vai para o modo de inserir medidas ao invés de voltar para o modo de desenhar a peça.
+- Quero que da mesma forma que o detalhamento de dobra já é aberto em pdf, a ordem de produção também seja.
+- Deixe a tela de desenhar a peça mais alta (Hoje ela é bem larga, ótimo, mas falta altura para peças que tenham detalhes mais altos. O modo de exibição ficou excelente dessa forma dinâmica no entanto, mantenha esta feature.)
+- Conferir encaixe de desenhos e estr.utura geral no pdf de ordem de produção. Mudar título para ordem de produção. Inserir detalhes da emissão e etc na ordem de produção.
+- Preciso que adicione uma forma (discreta, que não atrapalhe o fluxo do programa atual) de adicionar "segmentos" curvos, que serão feitos calandrados. Para desenhar esses segmentos curvos, deve aceitar e conseguir fazer por qualquer duas das três seguintes informações: Raio (Interno ou externo), Comprimento da curva e ângulo. No detalhamento de dobra ele deve indicar as medidas de início e fim de calandragem.
+- Crie mais um gerador de peças: Tubo calandrado. (360°), e implemente. Ele deve solicitar diâmetro (externo ou interno), comprimento e espessura de chapa.
+- Aprimore a lógica de posicionamento de cotas e graus de dobra nos desenhos. As cotas estão até que boas, bem posicionadas, mas os graus de dobra estão em geral muito longe das dobras que eles indicam e às vezes colidem com as cotas ou se cruzam com outros graus, eles deveriam ficar mais próximos e, de preferência, sempre no lado "de fora" da dobra, ou seja, no lado com maior ângulo entre os segmentos.
+- Mudar o texto de "Guardar Peça" para "Adicionar Peça"
+- Adicionar um botão dentro da aba de "Biblioteca" que leia: "Adicionar peça atual à biblioteca", para salvar a peça que está atualmente no editor na biblioteca.

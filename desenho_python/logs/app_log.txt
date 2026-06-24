@@ -1,0 +1,332 @@
+2026-06-06 19:51:10,481 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-06 ===
+2026-06-06 19:51:10,486 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-06 19:51:10,592 [INFO] Pré-verificação concluída com sucesso.
+2026-06-06 20:03:18,929 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-06 ===
+2026-06-06 20:03:18,936 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-06 20:03:19,030 [INFO] Pré-verificação concluída com sucesso.
+2026-06-06 20:03:44,024 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-06 ===
+2026-06-06 20:03:44,033 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-06 20:03:44,143 [INFO] Pré-verificação concluída com sucesso.
+2026-06-06 20:06:37,657 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-06 ===
+2026-06-06 20:06:37,664 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-06 20:06:37,768 [INFO] Pré-verificação concluída com sucesso.
+2026-06-06 20:09:36,553 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-06 ===
+2026-06-06 20:09:36,562 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-06 20:09:36,682 [INFO] Pré-verificação concluída com sucesso.
+2026-06-06 20:16:29,396 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-06 ===
+2026-06-06 20:16:29,411 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-06 20:16:29,505 [INFO] Pré-verificação concluída com sucesso.
+2026-06-06 20:20:08,429 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-06 ===
+2026-06-06 20:20:08,437 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-06 20:20:08,523 [INFO] Pré-verificação concluída com sucesso.
+2026-06-06 20:21:26,179 [INFO] Modelo guardado na biblioteca: BOIADEIRA 230 #14
+2026-06-06 20:23:40,975 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-06 ===
+2026-06-06 20:23:40,979 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-06 20:23:41,079 [INFO] Pré-verificação concluída com sucesso.
+2026-06-06 20:34:12,188 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-06 ===
+2026-06-06 20:34:12,193 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-06 20:34:12,288 [INFO] Pré-verificação concluída com sucesso.
+2026-06-06 20:38:09,827 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-06 ===
+2026-06-06 20:38:09,837 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-06 20:38:09,931 [INFO] Pré-verificação concluída com sucesso.
+2026-06-06 20:38:34,560 [INFO] Peça salva no pedido: Peça 1: chapa #14, 3 segmento(s), 200 mm
+2026-06-06 20:38:39,453 [INFO] Folha de pedido gerada: G:/Meu Drive/1- Capital Aço/AUTOMAÇÕES PYTHON/desenho/files/FOLHA_PEDIDO_20260606_203836.pdf
+2026-06-06 20:42:48,772 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-06 ===
+2026-06-06 20:42:48,776 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-06 20:42:48,853 [INFO] Pré-verificação concluída com sucesso.
+2026-06-06 20:42:56,139 [INFO] Modelo carregado: BOIADEIRA 230 #14
+2026-06-06 20:43:17,716 [INFO] Modelo carregado: BOIADEIRA 230 #14
+2026-06-06 20:43:30,083 [INFO] Modelo carregado: BOIADEIRA 230 #14
+2026-06-06 20:43:58,017 [INFO] Peça salva no pedido: Peça 1: chapa #14, 3 segmento(s), 500 mm
+2026-06-06 20:44:02,817 [INFO] Folha de pedido gerada: G:/Meu Drive/1- Capital Aço/AUTOMAÇÕES PYTHON/desenho/files/FOLHA_PEDIDO_20260606_204359.pdf
+2026-06-06 20:50:41,153 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-06 ===
+2026-06-06 20:50:41,163 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-06 20:50:41,275 [INFO] Pré-verificação concluída com sucesso.
+2026-06-06 20:51:46,372 [INFO] Peça salva no pedido: Peça 1: chapa #14, 3 segmento(s), 500 mm
+2026-06-06 20:51:50,765 [INFO] Folha de pedido gerada: G:/Meu Drive/1- Capital Aço/AUTOMAÇÕES PYTHON/desenho/files/FOLHA_PEDIDO_20260606_205147.pdf
+2026-06-06 20:52:44,740 [INFO] Peça salva no pedido: Peça 2: chapa #14, 52 segmento(s), 500 mm — incompleta
+2026-06-06 20:53:43,407 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-06 ===
+2026-06-06 20:53:43,411 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-06 20:53:43,556 [INFO] Pré-verificação concluída com sucesso.
+2026-06-07 10:36:14,540 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-07 ===
+2026-06-07 10:36:14,550 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-07 10:36:14,658 [INFO] Pré-verificação concluída com sucesso.
+2026-06-07 10:40:34,932 [INFO] Modelo carregado: BOIADEIRA 230 #14
+2026-06-07 10:40:35,640 [INFO] Modelo carregado: BOIADEIRA 230 #14
+2026-06-07 10:49:29,130 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-07 ===
+2026-06-07 10:49:29,153 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-07 10:49:29,153 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-07 10:49:31,330 [ERROR] Pré-verificação falhou: ['Sem permissão de escrita em: G:\\Meu Drive\\1- Capital Aço\\AUTOMAÇÕES PYTHON\\desenho\\data']
+2026-06-07 10:49:31,919 [ERROR] Pré-verificação falhou: ['Sem permissão de escrita em: G:\\Meu Drive\\1- Capital Aço\\AUTOMAÇÕES PYTHON\\desenho\\logs']
+2026-06-07 10:49:33,748 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-07 ===
+2026-06-07 10:49:33,752 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-07 10:49:33,855 [INFO] Pré-verificação concluída com sucesso.
+2026-06-07 10:51:29,576 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-07 ===
+2026-06-07 10:51:29,582 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-07 10:51:29,680 [INFO] Pré-verificação concluída com sucesso.
+2026-06-07 10:58:43,551 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-07 ===
+2026-06-07 10:58:43,555 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-07 10:58:43,666 [INFO] Pré-verificação concluída com sucesso.
+2026-06-07 11:23:25,120 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-07 ===
+2026-06-07 11:23:25,145 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-07 11:23:25,308 [INFO] Pré-verificação concluída com sucesso.
+2026-06-07 11:23:30,697 [INFO] Modelo carregado: BOIADEIRA 230 #14
+2026-06-07 11:23:56,806 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-07 ===
+2026-06-07 11:23:56,818 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-07 11:23:56,959 [INFO] Pré-verificação concluída com sucesso.
+2026-06-07 11:28:29,497 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-07 ===
+2026-06-07 11:28:29,506 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-07 11:28:29,604 [INFO] Pré-verificação concluída com sucesso.
+2026-06-07 11:30:17,400 [INFO] Modelo carregado: BOIADEIRA 230 #14
+2026-06-07 11:47:48,858 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-07 ===
+2026-06-07 11:47:48,876 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-07 11:47:49,041 [INFO] Pré-verificação concluída com sucesso.
+2026-06-07 11:55:42,856 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-07 ===
+2026-06-07 11:55:42,870 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-07 11:55:42,978 [INFO] Pré-verificação concluída com sucesso.
+2026-06-07 11:55:53,607 [INFO] Modelo carregado: BOIADEIRA 230 #14
+2026-06-07 11:56:49,384 [INFO] Peça salva no pedido: Peça 1: chapa #8, 5 segmento(s), 2430 mm x10
+2026-06-07 11:56:54,137 [INFO] Folha de pedido gerada: G:/Meu Drive/1- Capital Aço/AUTOMAÇÕES PYTHON/desenho/files/FOLHA_PEDIDO_20260607_115649.pdf
+2026-06-07 11:57:41,479 [INFO] Modelo carregado: BOIADEIRA 230 #14
+2026-06-08 07:34:47,646 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-08 ===
+2026-06-08 07:34:47,652 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-08 07:34:47,823 [INFO] Pré-verificação concluída com sucesso.
+2026-06-08 07:42:51,046 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-08 ===
+2026-06-08 07:42:51,057 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-08 07:42:51,143 [INFO] Pré-verificação concluída com sucesso.
+2026-06-08 08:40:17,926 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-08 ===
+2026-06-08 08:40:17,950 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-08 08:40:18,190 [INFO] Pré-verificação concluída com sucesso.
+2026-06-08 08:40:32,638 [INFO] Modelo carregado: BOIADEIRA 230 #14
+2026-06-08 08:49:08,018 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-08 ===
+2026-06-08 08:49:08,032 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-08 08:49:08,146 [INFO] Pré-verificação concluída com sucesso.
+2026-06-08 08:49:16,996 [INFO] Modelo carregado: BOIADEIRA 230 #14
+2026-06-08 08:49:25,616 [INFO] Modelo carregado: BOIADEIRA 230 #14
+2026-06-08 08:49:32,742 [INFO] Detalhamento de dobra gerado: G:/Meu Drive/1- Capital Aço/AUTOMAÇÕES PYTHON/desenho/files/DETALHAMENTO_DOBRA_20260608_084929.pdf
+2026-06-08 08:58:45,339 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-08 ===
+2026-06-08 08:58:45,346 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-08 08:58:45,413 [INFO] Pré-verificação concluída com sucesso.
+2026-06-08 08:58:50,387 [ERROR] Erro ao gerar prévia do desenho
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho\ui.py", line 2444, in _atualizar_preview
+    imagem = desenhar.renderizar_imagem(
+        instrucoes,
+        tamanho=tamanho,
+        margem_canvas=_cfg()["margem_canvas"],
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho\core\desenhar.py", line 2217, in renderizar_imagem
+    _, medidas, dobras = gerar_corte_medidas_angulos(instrucoes)
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho\core\desenhar.py", line 966, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-08 09:00:51,524 [INFO] Peça salva no pedido: Peça 1: chapa #16, 7 segmento(s), 2300 mm
+2026-06-08 09:00:54,534 [INFO] Detalhamento de dobra gerado: G:/Meu Drive/1- Capital Aço/AUTOMAÇÕES PYTHON/desenho/files/DETALHAMENTO_DOBRA_20260608_090052.pdf
+2026-06-08 09:03:52,796 [INFO] Modelo guardado na biblioteca: AMI
+2026-06-08 09:03:59,432 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-08 ===
+2026-06-08 09:03:59,438 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-08 09:03:59,554 [INFO] Pré-verificação concluída com sucesso.
+2026-06-08 09:04:03,649 [INFO] Modelo carregado: AMI
+2026-06-08 09:04:07,243 [INFO] Detalhamento de dobra gerado: G:/Meu Drive/1- Capital Aço/AUTOMAÇÕES PYTHON/desenho/files/DETALHAMENTO_DOBRA_20260608_090404.pdf
+2026-06-08 09:18:12,227 [INFO] Modelo carregado: BOIADEIRA 230 #14
+2026-06-08 09:18:16,368 [INFO] Detalhamento de dobra gerado: G:/Meu Drive/1- Capital Aço/AUTOMAÇÕES PYTHON/desenho/files/DETALHAMENTO_DOBRA_20260608_091813.pdf
+2026-06-08 12:09:44,042 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-08 ===
+2026-06-08 12:09:44,052 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-08 12:09:44,131 [INFO] Pré-verificação concluída com sucesso.
+2026-06-08 12:14:20,995 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-08 ===
+2026-06-08 12:14:21,002 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-08 12:14:21,123 [INFO] Pré-verificação concluída com sucesso.
+2026-06-08 12:14:48,718 [INFO] Peça gerada: Boiadeira 230 #14 (12 segmentos, gomo 30.0 mm, ângulo 63.4°)
+2026-06-08 12:18:43,876 [INFO] Modelo guardado na biblioteca: teste
+2026-06-08 12:32:17,143 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-08 ===
+2026-06-08 12:32:17,150 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-08 12:32:17,257 [INFO] Pré-verificação concluída com sucesso.
+2026-06-08 12:50:11,886 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-08 ===
+2026-06-08 12:50:11,899 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-08 12:50:12,124 [INFO] Pré-verificação concluída com sucesso.
+2026-06-08 12:50:27,648 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-08 ===
+2026-06-08 12:50:27,654 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-08 12:50:27,777 [INFO] Pré-verificação concluída com sucesso.
+2026-06-08 12:51:25,715 [INFO] Peça gerada: Boiadeira 210 #14 (11 segmentos, gomo 30.0 mm, ângulo 49.9°)
+2026-06-08 12:52:28,767 [INFO] Peça gerada: Boiadeira 210 #14 (11 segmentos, gomo 35.0 mm, ângulo 63.4°)
+2026-06-08 12:53:57,858 [INFO] Peça gerada: Boiadeira 210 #11 (11 segmentos, gomo 30.0 mm, ângulo 48.2°)
+2026-06-08 12:54:09,392 [INFO] Detalhamento de dobra gerado: G:/Meu Drive/1- Capital Aço/AUTOMAÇÕES PYTHON/desenho/files/DETALHAMENTO_DOBRA_20260608_125404.pdf
+2026-06-08 14:05:55,407 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-08 ===
+2026-06-08 14:05:55,430 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-08 14:05:55,606 [INFO] Pré-verificação concluída com sucesso.
+2026-06-08 14:07:55,115 [INFO] Peça gerada: Boiadeira 210 #14 (11 segmentos, gomo 30.0 mm, ângulo 49.5°)
+2026-06-08 14:09:48,227 [INFO] Peça gerada: Boiadeira 210 #11 (11 segmentos, gomo 30.0 mm, ângulo 47.6°)
+2026-06-08 14:10:22,995 [INFO] Detalhamento de dobra gerado: G:/Meu Drive/1- Capital Aço/AUTOMAÇÕES PYTHON/desenho/files/DETALHAMENTO_DOBRA_20260608_141018.pdf
+2026-06-08 14:46:44,077 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-08 ===
+2026-06-08 14:46:44,094 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-08 14:46:44,250 [INFO] Pré-verificação concluída com sucesso.
+2026-06-08 15:05:03,002 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-08 ===
+2026-06-08 15:05:03,019 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-08 15:05:03,439 [INFO] Pré-verificação concluída com sucesso.
+2026-06-08 15:05:27,526 [INFO] Peça gerada: Boiadeira 210 #11 (11 segmentos, gomo 30.0 mm, ângulo 47.6°)
+2026-06-08 15:05:41,282 [INFO] Detalhamento de dobra gerado: G:/Meu Drive/1- Capital Aço/AUTOMAÇÕES PYTHON/desenho/files/DETALHAMENTO_DOBRA_20260608_150538.pdf
+2026-06-08 15:32:00,821 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-08 ===
+2026-06-08 15:32:00,838 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-08 15:32:01,428 [INFO] Pré-verificação concluída com sucesso.
+2026-06-08 15:33:44,032 [INFO] Iniciando geração do perfil boiadeira: largura=610.0, gomos=5, chapa=#14
+2026-06-08 15:33:49,942 [INFO] Perfil boiadeira gerado: largura acabada=610.002 mm, altura=19.75 mm
+2026-06-08 15:33:50,232 [INFO] Peça gerada: Boiadeira 610 #14 (23 segmentos, gomo sup 65.0 mm, inf 35.0 mm, ângulo 66.3°)
+2026-06-08 15:34:00,833 [INFO] Detalhamento de dobra gerado: G:/Meu Drive/1- Capital Aço/AUTOMAÇÕES PYTHON/desenho/files/DETALHAMENTO_DOBRA_20260608_153357.pdf
+2026-06-08 15:35:22,341 [INFO] Modelo guardado na biblioteca: Boiadeira 610 #14
+2026-06-08 15:35:28,122 [INFO] Modelo carregado: AMI
+2026-06-08 15:35:35,157 [INFO] Modelo carregado: BOIADEIRA 230 #14
+2026-06-08 15:35:41,220 [INFO] Modelo carregado: Boiadeira 610 #14
+2026-06-08 17:04:23,319 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-08 ===
+2026-06-08 17:04:23,332 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-08 17:04:23,459 [INFO] Pré-verificação concluída com sucesso.
+2026-06-08 17:04:42,203 [INFO] Modelo carregado: Boiadeira 610 #14
+2026-06-08 17:04:57,453 [INFO] Detalhamento de dobra gerado: G:/Meu Drive/1- Capital Aço/AUTOMAÇÕES PYTHON/desenho/files/DETALHAMENTO_DOBRA_20260608_170449.pdf
+2026-06-08 17:06:16,737 [INFO] Modelo carregado: BOIADEIRA 230 #14
+2026-06-08 17:06:21,740 [INFO] Detalhamento de dobra gerado: G:/Meu Drive/1- Capital Aço/AUTOMAÇÕES PYTHON/desenho/files/DETALHAMENTO_DOBRA_20260608_170618.pdf
+2026-06-08 17:07:21,793 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-08 ===
+2026-06-08 17:07:21,802 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-08 17:07:21,927 [INFO] Pré-verificação concluída com sucesso.
+2026-06-08 17:07:32,213 [INFO] Modelo carregado: Boiadeira 610 #14
+2026-06-08 17:07:36,859 [INFO] Modelo carregado: BOIADEIRA 230 #14
+2026-06-08 17:07:41,957 [INFO] Detalhamento de dobra gerado: G:/Meu Drive/1- Capital Aço/AUTOMAÇÕES PYTHON/desenho/files/DETALHAMENTO_DOBRA_20260608_170738.pdf
+2026-06-08 17:15:26,628 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-08 ===
+2026-06-08 17:15:26,638 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-08 17:15:26,796 [INFO] Pré-verificação concluída com sucesso.
+2026-06-08 17:15:39,015 [INFO] Modelo carregado: BOIADEIRA 230 #14
+2026-06-08 17:15:44,773 [INFO] Detalhamento de dobra gerado: G:/Meu Drive/1- Capital Aço/AUTOMAÇÕES PYTHON/desenho/files/DETALHAMENTO_DOBRA_20260608_171540.pdf
+2026-06-08 17:20:03,296 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-08 ===
+2026-06-08 17:20:03,308 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-08 17:20:03,502 [INFO] Pré-verificação concluída com sucesso.
+2026-06-08 17:20:13,599 [INFO] Modelo carregado: BOIADEIRA 230 #14
+2026-06-08 17:20:19,023 [INFO] Detalhamento de dobra gerado: G:/Meu Drive/1- Capital Aço/AUTOMAÇÕES PYTHON/desenho/files/DETALHAMENTO_DOBRA_20260608_172016.pdf
+2026-06-08 17:22:05,721 [INFO] Detalhamento de dobra gerado: G:/Meu Drive/1- Capital Aço/AUTOMAÇÕES PYTHON/desenho/files/DETALHAMENTO_DOBRA_20260608_172201.pdf
+2026-06-08 17:23:08,644 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-08 ===
+2026-06-08 17:23:08,651 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-08 17:23:08,808 [INFO] Pré-verificação concluída com sucesso.
+2026-06-08 17:24:16,623 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-08 ===
+2026-06-08 17:24:16,637 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-08 17:24:16,767 [INFO] Pré-verificação concluída com sucesso.
+2026-06-08 17:49:54,793 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-08 ===
+2026-06-08 17:49:54,822 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-08 17:49:55,020 [INFO] Pré-verificação concluída com sucesso.
+2026-06-09 09:09:21,271 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-09 ===
+2026-06-09 09:09:21,940 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-09 09:09:22,064 [INFO] Pré-verificação concluída com sucesso.
+2026-06-09 09:09:45,048 [ERROR] Erro ao gerar prévia do desenho
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho\ui.py", line 2855, in _atualizar_preview
+    imagem = desenhar.renderizar_imagem(
+        instrucoes,
+        tamanho=tamanho,
+        margem_canvas=_cfg()["margem_canvas"],
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho\core\desenhar.py", line 2472, in renderizar_imagem
+    _, medidas, dobras = gerar_corte_medidas_angulos(instrucoes)
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho\core\desenhar.py", line 1074, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-09 09:10:25,950 [INFO] Detalhamento de dobra gerado: G:/Meu Drive/1- Capital Aço/AUTOMAÇÕES PYTHON/desenho/files/DETALHAMENTO_DOBRA_20260609_091023.pdf
+2026-06-09 09:11:02,863 [INFO] Peça salva no pedido: Peça 1: chapa #5/16, 5 segmento(s), 100 mm
+2026-06-09 09:11:05,388 [ERROR] Erro ao gerar prévia do desenho
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho\ui.py", line 2855, in _atualizar_preview
+    imagem = desenhar.renderizar_imagem(
+        instrucoes,
+        tamanho=tamanho,
+        margem_canvas=_cfg()["margem_canvas"],
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho\core\desenhar.py", line 2472, in renderizar_imagem
+    _, medidas, dobras = gerar_corte_medidas_angulos(instrucoes)
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho\core\desenhar.py", line 1074, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-09 09:11:06,952 [ERROR] Erro ao gerar prévia do desenho
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho\ui.py", line 2855, in _atualizar_preview
+    imagem = desenhar.renderizar_imagem(
+        instrucoes,
+        tamanho=tamanho,
+        margem_canvas=_cfg()["margem_canvas"],
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho\core\desenhar.py", line 2472, in renderizar_imagem
+    _, medidas, dobras = gerar_corte_medidas_angulos(instrucoes)
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho\core\desenhar.py", line 1074, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-09 09:11:09,447 [ERROR] Erro ao gerar prévia do desenho
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho\ui.py", line 2855, in _atualizar_preview
+    imagem = desenhar.renderizar_imagem(
+        instrucoes,
+        tamanho=tamanho,
+        margem_canvas=_cfg()["margem_canvas"],
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho\core\desenhar.py", line 2472, in renderizar_imagem
+    _, medidas, dobras = gerar_corte_medidas_angulos(instrucoes)
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho\core\desenhar.py", line 1074, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-09 09:12:38,626 [ERROR] Erro ao gerar prévia do desenho
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho\ui.py", line 2855, in _atualizar_preview
+    imagem = desenhar.renderizar_imagem(
+        instrucoes,
+        tamanho=tamanho,
+        margem_canvas=_cfg()["margem_canvas"],
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho\core\desenhar.py", line 2472, in renderizar_imagem
+    _, medidas, dobras = gerar_corte_medidas_angulos(instrucoes)
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho\core\desenhar.py", line 1074, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-09 09:13:04,160 [INFO] Detalhamento de dobra gerado: G:/Meu Drive/1- Capital Aço/AUTOMAÇÕES PYTHON/desenho/files/DETALHAMENTO_DOBRA_20260609_091301.pdf
+2026-06-09 09:13:31,440 [INFO] Peça salva no pedido: Peça 2: chapa #5/16, 6 segmento(s), 100 mm
+2026-06-09 09:13:33,504 [ERROR] Erro ao gerar prévia do desenho
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho\ui.py", line 2855, in _atualizar_preview
+    imagem = desenhar.renderizar_imagem(
+        instrucoes,
+        tamanho=tamanho,
+        margem_canvas=_cfg()["margem_canvas"],
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho\core\desenhar.py", line 2472, in renderizar_imagem
+    _, medidas, dobras = gerar_corte_medidas_angulos(instrucoes)
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho\core\desenhar.py", line 1074, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
+2026-06-09 09:14:19,556 [INFO] Detalhamento de dobra gerado: G:/Meu Drive/1- Capital Aço/AUTOMAÇÕES PYTHON/desenho/files/DETALHAMENTO_DOBRA_20260609_091417.pdf
+2026-06-16 13:57:01,261 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-16 ===
+2026-06-16 13:57:01,890 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-16 13:57:02,302 [INFO] Pré-verificação concluída com sucesso.
+2026-06-16 13:57:17,525 [INFO] === Capital Aço — Construção de Perfil v1.1.0 — sessão 2026-06-16 ===
+2026-06-16 13:57:17,533 [INFO] Iniciando aplicativo em G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho
+2026-06-16 13:57:18,169 [INFO] Pré-verificação concluída com sucesso.
+2026-06-16 13:57:26,641 [ERROR] Erro ao gerar prévia do desenho
+Traceback (most recent call last):
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho\ui.py", line 2855, in _atualizar_preview
+    imagem = desenhar.renderizar_imagem(
+        instrucoes,
+        tamanho=tamanho,
+        margem_canvas=_cfg()["margem_canvas"],
+    )
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho\core\desenhar.py", line 2472, in renderizar_imagem
+    _, medidas, dobras = gerar_corte_medidas_angulos(instrucoes)
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "G:\Meu Drive\1- Capital Aço\AUTOMAÇÕES PYTHON\desenho\core\desenhar.py", line 1074, in gerar_corte_medidas_angulos
+    round(medida + seccoes_corte[n + 1] / 2, _casas_decimais_calculo())
+                   ~~~~~~~~~~~~~^^^^^^^
+IndexError: list index out of range
