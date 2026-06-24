@@ -79,20 +79,19 @@ namespace CapitalAco.DrawingMacro.App.Services
             var polar = geo.ConverterInstrucoesParaCoordenadasPolares("#14", 3000.0, segmentos);
             
             // Comprimento reto recalculado no centro:
-            // dh1 = 50 - 0 (ponta) - desconto(dobra)
-            // desconto = tan(45) * (1.2 + 2/2) = 1.0 * 2.2 = 2.2
-            // dh1 = 50 - 2.2 = 47.8
-            // dh2 = 50 - 2.2 = 47.8
-            Assert(Math.Abs(polar.CoordenadasPolares[0].Comprimento - 47.8) < 1e-6, $"Polar Comprimento 1 esperado 47.8, obtido {polar.CoordenadasPolares[0].Comprimento}");
-            Assert(Math.Abs(polar.CoordenadasPolares[1].Comprimento - 47.8) < 1e-6, $"Polar Comprimento 2 esperado 47.8, obtido {polar.CoordenadasPolares[1].Comprimento}");
+            // Para 90 graus, medida_centro_de_externa = medida - espessura/2
+            // dh1 = 50 - 2.0/2 = 49.0 (apenas grau_saida=90, sem grau_entrada)
+            // dh2 = 50 - 2.0/2 = 49.0 (apenas grau_entrada=90, sem grau_saida)
+            Assert(Math.Abs(polar.CoordenadasPolares[0].Comprimento - 49.0) < 1e-6, $"Polar Comprimento 1 esperado 49.0, obtido {polar.CoordenadasPolares[0].Comprimento}");
+            Assert(Math.Abs(polar.CoordenadasPolares[1].Comprimento - 49.0) < 1e-6, $"Polar Comprimento 2 esperado 49.0, obtido {polar.CoordenadasPolares[1].Comprimento}");
 
             var plano = geo.GerarDadosPlanificacao(polar);
             
             // Corte total = reto1 + reto2 + BA
             // BA = 90 * (pi / 180) * (1.2 + 0.165 * 2.0) = 1.570796 * 1.53 = 2.4033
-            // Corte total = 47.8 + 47.8 + 2.4033 = 98.0033...
+            // Corte total = 49.0 + 49.0 + 2.4033 = 100.4033...
             // O mapeamento de posições arredonda para milímetros
-            int corteEsperado = (int)Math.Round(47.8 + 47.8 + 2.4033); // 98
+            int corteEsperado = (int)Math.Round(49.0 + 49.0 + 2.4033); // 100
             Assert(plano.CorteTotal == corteEsperado, $"Corte total esperado {corteEsperado}, obtido {plano.CorteTotal}");
             Log.Information("Corte total do perfil L 50x50 na chapa #14: {Corte} mm.", plano.CorteTotal);
         }
