@@ -50,6 +50,8 @@ namespace CapitalAco.DrawingMacro.App
             services.AddSingleton<IConfigService, ConfigService>();
             services.AddSingleton<ICsvService, CsvService>();
             services.AddSingleton<IBibliotecaPecasService, BibliotecaPecasService>();
+            services.AddSingleton<IGeometryService, GeometryService>();
+            services.AddSingleton<IGeradorPecaService, GeradorPecaService>();
 
             // Registrar Views
             services.AddSingleton<MainWindow>();
@@ -60,6 +62,8 @@ namespace CapitalAco.DrawingMacro.App
             var csvService = ServiceProvider.GetRequiredService<ICsvService>();
             var bibliotecaService = ServiceProvider.GetRequiredService<IBibliotecaPecasService>();
             var configService = ServiceProvider.GetRequiredService<IConfigService>();
+            var geometryService = ServiceProvider.GetRequiredService<IGeometryService>();
+            var geradorPecaService = ServiceProvider.GetRequiredService<IGeradorPecaService>();
 
             try
             {
@@ -73,10 +77,13 @@ namespace CapitalAco.DrawingMacro.App
                 // Carregar biblioteca
                 var biblioteca = bibliotecaService.ListarModelos();
                 Log.Information("Pré-carregamento: {Count} modelos de peça carregados da biblioteca JSON com sucesso.", biblioteca.Count);
+
+                // Executar Testes de Regressão da Fase 3
+                GeometryTests.ExecutarTestes(geometryService, geradorPecaService);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Erro crítico no pré-carregamento dos arquivos de dados (chapas.csv / biblioteca_pecas.json)");
+                Log.Error(ex, "Erro crítico no pré-carregamento dos arquivos de dados ou na validação matemática");
                 MessageBox.Show(
                     $"Não foi possível iniciar o aplicativo.\nErro: {ex.Message}\nConsulte o arquivo de log para mais detalhes.",
                     "Erro de Inicialização",

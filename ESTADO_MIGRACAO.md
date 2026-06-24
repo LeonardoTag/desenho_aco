@@ -51,12 +51,12 @@ Para garantir 100% de paridade visual e matemática entre o desenho exibido na t
     - [x] Configuração do Serilog (logging diário local)
     - [x] Criação dos Models (`Chapa`, `ModeloPeca`, `Segmento`, `Configuracao`)
     - [x] Carregamento inicial de `chapas.csv` e `biblioteca_pecas.json`
-- [ ] **Fase 3: Camada Core - Matemática e Geometria**
-    - [ ] Portabilidade de `NumericUtils` e manipulação de strings/valores decimais
-    - [ ] Implementação das fórmulas geométricas base (Azimutes, deduções e compensações de dobras)
-    - [ ] Conversão de instruções convencionais para polares e cartesianas discretas
-    - [ ] Portabilidade do algoritmo solver Nelder-Mead e gerador Boiadeira
-    - [ ] Criação de testes unitários para validar a exatidão matemática contra o Python
+- [x] **Fase 3: Camada Core - Matemática e Geometria**
+    - [x] Portabilidade de `NumericUtils` e manipulação de strings/valores decimais
+    - [x] Implementação das fórmulas geométricas base (Azimutes, deduções e compensações de dobras)
+    - [x] Conversão de instruções convencionais para polares e cartesianas discretas
+    - [x] Portabilidade do algoritmo solver Nelder-Mead e gerador Boiadeira
+    - [x] Criação de testes unitários para validar a exatidão matemática contra o Python
 - [ ] **Fase 4: Geração de Relatórios e PDFs (QuestPDF)**
     - [ ] Implementação da geração de imagens via SkiaSharp (anotações de cotas e ângulos)
     - [ ] Recriação da Ordem de Produção (antigo `relatorio_pedido.py`) com QuestPDF
@@ -72,14 +72,14 @@ Para garantir 100% de paridade visual e matemática entre o desenho exibido na t
 ## 4. Pendências e Próximos Passos (Backlog)
 
 ### Próximo Passo Imediato
-**Fase 3 - Matemática e Geometria:** Implementar as lógicas de geometria base, conversão polar/cartesiana e o otimizador Nelder-Mead no C#.
+**Fase 4 - Relatórios e PDFs (QuestPDF):** Implementar o renderizador de peças via SkiaSharp e recriar os PDFs de detalhamento de dobra e ordens de produção com QuestPDF.
 
 ### Arquivos Python a Migrar:
 *   `desenho_python/config_manager.py` ➔ C# Service (Concluído)
 *   `desenho_python/core/biblioteca_pecas.py` ➔ C# Service (Concluído)
-*   `desenho_python/core/numeros.py` ➔ C# Util
-*   `desenho_python/core/geradores_pecas.py` ➔ C# Service/Solver
-*   `desenho_python/core/desenhar.py` ➔ C# GeometryEngine + SkiaRenderer
+*   `desenho_python/core/numeros.py` ➔ C# Util (Concluído)
+*   `desenho_python/core/geradores_pecas.py` ➔ C# Service/Solver (Concluído)
+*   `desenho_python/core/desenhar.py` ➔ C# GeometryEngine (Concluído) + SkiaRenderer (Pendente)
 *   `desenho_python/core/relatorio_pedido.py` ➔ C# QuestPDF Component
 *   `desenho_python/core/relatorio_dobra.py` ➔ C# QuestPDF Component
 *   `desenho_python/api.py` ➔ C# ViewModels
