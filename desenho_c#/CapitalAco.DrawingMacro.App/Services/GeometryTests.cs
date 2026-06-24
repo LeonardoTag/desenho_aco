@@ -7,7 +7,7 @@ namespace CapitalAco.DrawingMacro.App.Services
 {
     public static class GeometryTests
     {
-        public static void ExecutarTestes(IGeometryService geometryService, IGeradorPecaService geradorPecaService)
+        public static void ExecutarTestes(IGeometryService geometryService, IGeradorPecaService geradorPecaService, IPdfGeneratorService pdfGeneratorService)
         {
             Log.Information(">>> INICIANDO TESTES GEOMÉTRICOS E MATEMÁTICOS DE REGRESSÃO (FASE 3) <<<");
 
@@ -17,12 +17,13 @@ namespace CapitalAco.DrawingMacro.App.Services
                 TestarCompensacaoDobra(geometryService);
                 TestarPlanificacaoPerfilL(geometryService);
                 TestarGeradorBoiadeira(geradorPecaService, geometryService);
+                TestarPdfGenerator(pdfGeneratorService, geometryService, geradorPecaService);
 
-                Log.Information(">>> TODOS OS TESTES GEOMÉTRICOS PASSARAM COM EXCELÊNCIA <<<");
+                Log.Information(">>> TODOS OS TESTES GEOMÉTRICOS E INTEGRAÇÃO DE PDF PASSARAM COM EXCELÊNCIA <<<");
             }
             catch (Exception ex)
             {
-                Log.Error(ex, ">>> FALHA CRÍTICA NOS TESTES GEOMÉTRICOS DE REGRESSÃO <<<");
+                Log.Error(ex, ">>> FALHA CRÍTICA NOS TESTES GEOMÉTRICOS OU DE PDF <<<");
                 throw;
             }
         }
@@ -125,6 +126,35 @@ namespace CapitalAco.DrawingMacro.App.Services
             Assert(Math.Abs(dim.Value.Altura - 20.0) <= 0.5, $"Altura acabada esperada 20.0, obtida {dim.Value.Altura}");
 
             Log.Information("Perfil Boiadeira 230 gerado com sucesso. Dimensoes acabadas: X={X} mm, Y={Y} mm.", dim.Value.Largura, dim.Value.Altura);
+        }
+
+        private static void TestarPdfGenerator(IPdfGeneratorService pdfGeo, IGeometryService geo, IGeradorPecaService gerador)
+        {
+            Log.Information("Testando geração de PDFs (QuestPDF + Skia)...");
+
+            // 1. Relatório de Dobra (Ficha de Produção)
+            var boiadeira = gerador.GerarPerfilBoiadeira(20.0, 230.0, "#14", 30.0, 30.0, 30.0, 2, 3000.0);
+            var polar = geo.ConverterInstrucoesParaCoordenadasPolares(boiadeira.Chapa, boiadeira.Comprimento ?? 3000.0, boiadeira.Segmentos);
+            var caminhoDobra = pdfGeo.GerarRelatorioDobra(polar, boiadeira.Nome, boiadeira.Chapa, boiadeira.Comprimento ?? 3000.0);
+            Assert(File.Exists(caminhoDobra), $"PDF de detalhamento de dobra não foi criado fisicamente em {caminhoDobra}");
+
+            // 2. Relatório de Pedido (Ordem de Produção)
+            var itens = new List<PecaPedidoItem>
+            {
+                new PecaPedidoItem
+                {
+                    ChapaCodigo = boiadeira.Chapa,
+                    Comprimento = boiadeira.Comprimento ?? 3000.0,
+                    Quantidade = 5,
+                    NomePeca = boiadeira.Nome,
+                    Segmentos = boiadeira.Segmentos,
+                    Observacao = "Produzir com atenção redobrada nos gomos."
+                }
+            };
+            var caminhoPedido = pdfGeo.GerarRelatorioPedido(itens, "Ordem de teste automatizado.");
+            Assert(File.Exists(caminhoPedido), $"PDF de ordem de produção não foi criado fisicamente em {caminhoPedido}");
+
+            Log.Information("PDFs gerados com sucesso:\n  - Dobra: {Dobra}\n  - Pedido: {Pedido}", caminhoDobra, caminhoPedido);
         }
 
         private static void Assert(bool condicao, string mensagem)

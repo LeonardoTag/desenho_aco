@@ -57,10 +57,10 @@ Para garantir 100% de paridade visual e matemática entre o desenho exibido na t
     - [x] Conversão de instruções convencionais para polares e cartesianas discretas
     - [x] Portabilidade do algoritmo solver Nelder-Mead e gerador Boiadeira
     - [x] Criação de testes unitários para validar a exatidão matemática contra o Python
-- [ ] **Fase 4: Geração de Relatórios e PDFs (QuestPDF)**
-    - [ ] Implementação da geração de imagens via SkiaSharp (anotações de cotas e ângulos)
-    - [ ] Recriação da Ordem de Produção (antigo `relatorio_pedido.py`) com QuestPDF
-    - [ ] Recriação do Detalhamento de Dobra (antigo `relatorio_dobra.py`) com QuestPDF
+- [x] **Fase 4: Geração de Relatórios e PDFs (QuestPDF)**
+    - [x] Implementação da geração de imagens via SkiaSharp (anotações de cotas e ângulos)
+    - [x] Recriação da Ordem de Produção (antigo `relatorio_pedido.py`) com QuestPDF
+    - [x] Recriação do Detalhamento de Dobra (antigo `relatorio_dobra.py`) com QuestPDF
 - [ ] **Fase 5: Interface Gráfica (WPF/XAML) e ViewModels**
     - [ ] Design da interface moderna baseada em Grid/Tabs e estilos consistentes (Dark/Light mode via HSL)
     - [ ] Implementação de ViewModels usando CommunityToolkit.Mvvm
@@ -72,15 +72,15 @@ Para garantir 100% de paridade visual e matemática entre o desenho exibido na t
 ## 4. Pendências e Próximos Passos (Backlog)
 
 ### Próximo Passo Imediato
-**Fase 4 - Relatórios e PDFs (QuestPDF):** Implementar o renderizador de peças via SkiaSharp e recriar os PDFs de detalhamento de dobra e ordens de produção com QuestPDF.
+**Fase 5 - Interface Gráfica (WPF/XAML) e ViewModels:** Desenvolver a interface visual em XAML e as ViewModels conectando as ações do usuário (Editor, Biblioteca, Gerador Boiadeira, Configurações) com os serviços portados.
 
 ### Arquivos Python a Migrar:
 *   `desenho_python/config_manager.py` ➔ C# Service (Concluído)
 *   `desenho_python/core/biblioteca_pecas.py` ➔ C# Service (Concluído)
 *   `desenho_python/core/numeros.py` ➔ C# Util (Concluído)
 *   `desenho_python/core/geradores_pecas.py` ➔ C# Service/Solver (Concluído)
-*   `desenho_python/core/desenhar.py` ➔ C# GeometryEngine (Concluído) + SkiaRenderer (Pendente)
-*   `desenho_python/core/relatorio_pedido.py` ➔ C# QuestPDF Component
-*   `desenho_python/core/relatorio_dobra.py` ➔ C# QuestPDF Component
+*   `desenho_python/core/desenhar.py` ➔ C# GeometryEngine (Concluído) + SkiaRenderer (Concluído)
+*   `desenho_python/core/relatorio_pedido.py` ➔ C# QuestPDF Component (Concluído)
+*   `desenho_python/core/relatorio_dobra.py` ➔ C# QuestPDF Component (Concluído)
 *   `desenho_python/api.py` ➔ C# ViewModels
 *   `desenho_python/main.py` ➔ C# `App.xaml.cs` e `MainWindow.xaml` (Concluído)

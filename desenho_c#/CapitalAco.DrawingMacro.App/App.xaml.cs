@@ -52,6 +52,7 @@ namespace CapitalAco.DrawingMacro.App
             services.AddSingleton<IBibliotecaPecasService, BibliotecaPecasService>();
             services.AddSingleton<IGeometryService, GeometryService>();
             services.AddSingleton<IGeradorPecaService, GeradorPecaService>();
+            services.AddSingleton<IPdfGeneratorService, PdfGeneratorService>();
 
             // Registrar Views
             services.AddSingleton<MainWindow>();
@@ -78,8 +79,10 @@ namespace CapitalAco.DrawingMacro.App
                 var biblioteca = bibliotecaService.ListarModelos();
                 Log.Information("Pré-carregamento: {Count} modelos de peça carregados da biblioteca JSON com sucesso.", biblioteca.Count);
 
-                // Executar Testes de Regressão da Fase 3
-                GeometryTests.ExecutarTestes(geometryService, geradorPecaService);
+                var pdfGeneratorService = ServiceProvider.GetRequiredService<IPdfGeneratorService>();
+
+                // Executar Testes de Regressão da Fase 3 e Integração da Fase 4
+                GeometryTests.ExecutarTestes(geometryService, geradorPecaService, pdfGeneratorService);
             }
             catch (Exception ex)
             {
