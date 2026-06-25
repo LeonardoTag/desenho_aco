@@ -384,5 +384,50 @@ namespace CapitalAco.DrawingMacro.App.Services
                 Descricao = $"Perfil Boiadeira gerado proceduralmente com largura acabada de {larguraTotal:F1} mm e altura {alturaAba:F1} mm."
             };
         }
+
+        public ModeloPeca GerarTuboRedondo(double diametro, string tipoDiametro, string chapa, double? comprimento = null)
+        {
+            if (diametro <= 0) throw new ArgumentException("Informe um diâmetro maior que zero.");
+
+            string chapaCodigo = chapa.StartsWith("#") ? chapa : $"#{chapa.TrimStart('#')}";
+            var chapaInfo = _csvService.CarregarChapas().FirstOrDefault(c => string.Equals(c.Codigo, chapaCodigo, StringComparison.OrdinalIgnoreCase))
+                ?? throw new InvalidOperationException($"Chapa não encontrada na lista: {chapaCodigo}");
+
+            var config = _configService.ObterConfiguracao();
+            double comp = comprimento ?? config.BoiadeiraComprimentoPadrao;
+            if (comp <= 0) throw new ArgumentException("Informe um comprimento maior que zero.");
+
+            double raio = diametro / 2.0;
+            double rInterno = tipoDiametro == "interno" ? raio : raio - chapaInfo.Espessura;
+            if (rInterno <= 0) throw new ArgumentException("O diâmetro informado é pequeno demais para a espessura da chapa selecionada.");
+            double rNeutro = rInterno + chapaInfo.KFactor * chapaInfo.Espessura;
+            double comprimentoDesenvolvido = rNeutro * 2.0 * Math.PI;
+
+            var segmento = new Segmento
+            {
+                Direcao = "E",
+                Angulo = 90.0,
+                Medida = comprimentoDesenvolvido,
+                TipoMedida = "e",
+                EhCurvo = true,
+                CurvaInfo = new Segmento.InformacaoCurva
+                {
+                    Raio = raio,
+                    ComprimentoCurva = comprimentoDesenvolvido,
+                    AnguloCurva = 360.0,
+                    TipoRaio = tipoDiametro
+                }
+            };
+
+            return new ModeloPeca
+            {
+                Id = Guid.NewGuid(),
+                Nome = $"Tubo Redondo Ø{diametro:F0} {chapaCodigo}",
+                Chapa = chapaCodigo,
+                Comprimento = comp,
+                Segmentos = new List<Segmento> { segmento },
+                Descricao = $"Tubo calandrado fechado (360°) com diâmetro {tipoDiametro} de {diametro:F1} mm."
+            };
+        }
     }
 }

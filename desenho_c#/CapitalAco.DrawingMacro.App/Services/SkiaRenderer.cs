@@ -85,10 +85,26 @@ namespace CapitalAco.DrawingMacro.App.Services
             double utilW = canvasW * (1 - 2 * margem);
             double utilH = canvasH * (1 - 2 * margem);
 
-            double minX = absolutas.Min(p => p.X);
-            double maxX = absolutas.Max(p => p.X);
-            double minY = absolutas.Min(p => p.Y);
-            double maxY = absolutas.Max(p => p.Y);
+            // Para segmentos curvos, o arco pode se afastar do segmento de centro (corda) além dos pontos absolutos
+            // (no caso de um tubo calandrado a 360°, a corda tem comprimento zero), então inflamos a caixa delimitadora
+            // pelo raio neutro da curva antes de calcular a escala, para a curva inteira caber no desenho.
+            var pontosParaEscala = new List<(double X, double Y)>(absolutas);
+            for (int i = 0; i < polar.SegmentosOriginal.Count && i < absolutas.Count; i++)
+            {
+                var seg = polar.SegmentosOriginal[i];
+                if (!seg.EhCurvo || seg.CurvaInfo == null) continue;
+
+                double rInternoBbox = seg.CurvaInfo.TipoRaio == "interno" ? seg.CurvaInfo.Raio : seg.CurvaInfo.Raio - polar.Espessura;
+                double rNeutroBbox = rInternoBbox + polar.KFactor * polar.Espessura;
+                var (cx, cy) = absolutas[i];
+                pontosParaEscala.Add((cx - rNeutroBbox, cy - rNeutroBbox));
+                pontosParaEscala.Add((cx + rNeutroBbox, cy + rNeutroBbox));
+            }
+
+            double minX = pontosParaEscala.Min(p => p.X);
+            double maxX = pontosParaEscala.Max(p => p.X);
+            double minY = pontosParaEscala.Min(p => p.Y);
+            double maxY = pontosParaEscala.Max(p => p.Y);
 
             double dimX = maxX - minX;
             double dimY = maxY - minY;
@@ -184,10 +200,41 @@ namespace CapitalAco.DrawingMacro.App.Services
                 IsAntialias = true
             };
 
+            var azimutesOriginais = geometryService.ObterAzimutesDeSegmentos(polar.SegmentosOriginal);
+            using var perfilPath = new SKPath();
+            perfilPath.MoveTo(coordenadasNoCanvas[0]);
             for (int i = 0; i < coordenadasNoCanvas.Count - 1; i++)
             {
-                canvas.DrawLine(coordenadasNoCanvas[i], coordenadasNoCanvas[i + 1], perfilPaint);
+                var p1 = coordenadasNoCanvas[i + 1];
+                var segOriginal = i < polar.SegmentosOriginal.Count ? polar.SegmentosOriginal[i] : null;
+
+                if (segOriginal is { EhCurvo: true, CurvaInfo: not null } && i < azimutesOriginais.Count)
+                {
+                    var info = segOriginal.CurvaInfo;
+                    double rInterno = info.TipoRaio == "interno" ? info.Raio : info.Raio - polar.Espessura;
+                    double rNeutro = rInterno + polar.KFactor * polar.Espessura;
+                    float raioCanvas = (float)Math.Max(0.5, rNeutro * escala);
+
+                    if (info.AnguloCurva >= 359.5)
+                    {
+                        // Tubo calandrado fechado (360°): corda de comprimento zero, desenhamos o círculo completo.
+                        perfilPath.AddCircle(coordenadasNoCanvas[i].X, coordenadasNoCanvas[i].Y, raioCanvas);
+                        perfilPath.MoveTo(p1);
+                    }
+                    else
+                    {
+                        bool sentidoHorario = DeterminarSentidoHorarioCurva(i, azimutesOriginais);
+                        var tamanhoArco = info.AnguloCurva > 180.0 ? SKPathArcSize.Large : SKPathArcSize.Small;
+                        var direcao = sentidoHorario ? SKPathDirection.Clockwise : SKPathDirection.CounterClockwise;
+                        perfilPath.ArcTo(new SKPoint(raioCanvas, raioCanvas), 0, tamanhoArco, direcao, p1);
+                    }
+                }
+                else
+                {
+                    perfilPath.LineTo(p1);
+                }
             }
+            canvas.DrawPath(perfilPath, perfilPaint);
 
             // 6. Desenhar cotas, medidas internas e graus de dobra, se solicitado
             if (mostrarMedidas)
@@ -196,6 +243,29 @@ namespace CapitalAco.DrawingMacro.App.Services
                 DesenharCotas(canvas, coordenadasNoCanvas, polar.SegmentosOriginal, absolutas, medidas, geometryService, fonteCota);
                 DesenharGrausDobra(canvas, coordenadasNoCanvas, absolutas, polar, geometryService, escala, fonteAngulo);
             }
+        }
+
+        // Replica o critério de sentido (horário/anti-horário) usado no GeometryService ao converter a curva em corda,
+        // para que o arco desenhado gire para o mesmo lado calculado na planificação.
+        private static bool DeterminarSentidoHorarioCurva(int n, List<double> azimutes)
+        {
+            double diff;
+            if (n > 0)
+            {
+                diff = azimutes[n] - azimutes[n - 1];
+            }
+            else if (azimutes.Count > 1)
+            {
+                diff = azimutes[1] - azimutes[0];
+            }
+            else
+            {
+                return true;
+            }
+
+            diff %= 360.0;
+            if (diff < 0) diff += 360.0;
+            return diff < 180.0;
         }
 
         private static void DesenharCotas(
@@ -281,8 +351,17 @@ namespace CapitalAco.DrawingMacro.App.Services
                 TextAlign = SKTextAlign.Center
             };
 
+            using var anguloRetoPaint = new SKPaint
+            {
+                Color = AnguloTextoCor,
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = 1.3f,
+                IsAntialias = true
+            };
+
             double espessuraLinhaPx = Math.Max(2.5, polar.Espessura * escala);
             double distBase = Math.Max(espessuraLinhaPx * 0.8 + fonteAngulo * 0.5, fonteAngulo * 1.1);
+            double tamAnguloReto = Math.Max(5.0, Math.Max(fonteAngulo * 0.38, espessuraLinhaPx * 0.42));
 
             for (int idx = 0; idx < angulosDobra.Count; idx++)
             {
@@ -324,21 +403,29 @@ namespace CapitalAco.DrawingMacro.App.Services
                     dirY = -by / comp;
                 }
 
-                string texto = FormatarAnguloDobra(angulosDobra[idx]);
-                float tx = (float)(p1.X + dirX * distBase);
-                float ty = (float)(p1.Y + dirY * distBase + fonteAngulo * 0.3);
-                canvas.DrawText(texto, tx, ty, textPaint);
+                double angulo = angulosDobra[idx];
+                if (Math.Abs(angulo - 90.0) < 0.5)
+                {
+                    // Dobras de 90° são indicadas por um símbolo de esquadro (ângulo reto), não por texto.
+                    var a = new SKPoint((float)(p1.X - tInX * tamAnguloReto), (float)(p1.Y - tInY * tamAnguloReto));
+                    var b = new SKPoint((float)(p1.X + tOutX * tamAnguloReto), (float)(p1.Y + tOutY * tamAnguloReto));
+                    var c = new SKPoint((float)(a.X + tOutX * tamAnguloReto), (float)(a.Y + tOutY * tamAnguloReto));
+                    canvas.DrawLine(a, c, anguloRetoPaint);
+                    canvas.DrawLine(c, b, anguloRetoPaint);
+                }
+                else
+                {
+                    string texto = FormatarAnguloDobra(angulo);
+                    float tx = (float)(p1.X + dirX * distBase);
+                    float ty = (float)(p1.Y + dirY * distBase + fonteAngulo * 0.3);
+                    canvas.DrawText(texto, tx, ty, textPaint);
+                }
             }
         }
 
         private static string FormatarAnguloDobra(double angulo)
         {
-            double arred = Math.Round(angulo, 1);
-            if (Math.Abs(arred - Math.Round(arred)) < 0.05)
-            {
-                return $"{(long)Math.Round(arred)}°";
-            }
-            return $"{arred.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}°";
+            return $"{(long)Math.Round(angulo)}°";
         }
 
         public static void RenderizarPlanificacao(SKCanvas canvas, SKSize size, DadosPlanificacao plano, float fonteAngulo = 10f, float fonteSentido = 10f, float fonteCota = 10f)

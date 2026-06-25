@@ -16,5 +16,7 @@ namespace CapitalAco.DrawingMacro.App.Services
             double? toleranciaLargura = null,
             double? toleranciaAltura = null,
             double? toleranciaTopo = null);
+
+        ModeloPeca GerarTuboRedondo(double diametro, string tipoDiametro, string chapa, double? comprimento = null);
     }
 }

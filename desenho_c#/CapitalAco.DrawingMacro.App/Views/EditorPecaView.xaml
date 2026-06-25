@@ -220,6 +220,18 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Image Grid.Row="0" Source="{Binding PreviewImage}" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="0" Text="Comece a desenhar para visualizar a prévia." HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#7F8C8D" FontSize="14" FontStyle="Italic">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding TemDesenho}" Value="False">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
                     <TextBlock Grid.Row="1" Text="{Binding DimensoesTotaisTexto}" HorizontalAlignment="Center" Foreground="#F1C40F" FontSize="12" FontWeight="Bold" Margin="0,4,0,2"/>
                 </Grid>
             </Border>
@@ -245,8 +257,8 @@
                     <TextBlock Text="Nome da Peça:" FontSize="10" Foreground="#BDC3C7"/>
                     <TextBox Text="{Binding NomePeca, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,8"/>
 
-                    <TextBlock Text="Comprimento (mm):" FontSize="10" Foreground="#BDC3C7"/>
-                    <TextBox Text="{Binding ComprimentoPeca, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,8"/>
+                    <TextBlock Text="Comprimento (mm) — tecla C:" FontSize="10" Foreground="#BDC3C7"/>
+                    <TextBox x:Name="ComprimentoTextBox" Text="{Binding ComprimentoPeca, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" Margin="0,2,0,8"/>
 
                     <TextBlock Text="Chapa:" FontSize="10" Foreground="#BDC3C7"/>
                     <ComboBox x:Name="ChapaComboBox" ItemsSource="{Binding Chapas}" SelectedItem="{Binding ChapaSelecionada}" DisplayMemberPath="Codigo" Margin="0,2,0,8"/>
@@ -261,7 +273,7 @@
             <!-- Adicionar ao Pedido -->
             <Border Grid.Row="1" Background="#34495E" CornerRadius="8" Padding="10" Margin="0,0,0,10">
                 <StackPanel>
-                    <TextBlock Text="ADICIONAR AO PEDIDO" FontSize="13" FontWeight="Bold" Foreground="#27AE60" Margin="0,0,0,8"/>
+                    <TextBlock Text="ADICIONAR À ORDEM DE PRODUÇÃO (Shift+Enter)" FontSize="13" FontWeight="Bold" Foreground="#27AE60" Margin="0,0,0,8"/>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="65"/>
@@ -292,42 +304,65 @@
                     <TextBlock Text="Gerador:" FontSize="9" Foreground="#BDC3C7"/>
                     <ComboBox ItemsSource="{Binding GeradoresDisponiveis}" SelectedItem="{Binding GeradorSelecionado}" Margin="0,2,0,10"/>
 
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <StackPanel Margin="2">
-                            <TextBlock Text="Aba (Y):" FontSize="9" Foreground="#BDC3C7"/>
-                            <TextBox Text="{Binding BoiadeiraAltura}" FontSize="11"/>
-                        </StackPanel>
-                        <StackPanel Grid.Column="1" Margin="2">
-                            <TextBlock Text="Largura (X):" FontSize="9" Foreground="#BDC3C7"/>
-                            <TextBox Text="{Binding BoiadeiraLargura}" FontSize="11"/>
-                        </StackPanel>
-                        <StackPanel Grid.Row="1" Margin="2">
-                            <TextBlock Text="1° Gomo:" FontSize="9" Foreground="#BDC3C7"/>
-                            <TextBox Text="{Binding BoiadeiraPrimeiroGomo}" FontSize="11"/>
-                        </StackPanel>
-                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="2">
-                            <TextBlock Text="Gomo Sup:" FontSize="9" Foreground="#BDC3C7"/>
-                            <TextBox Text="{Binding BoiadeiraGomoSuperior}" FontSize="11"/>
-                        </StackPanel>
-                        <StackPanel Grid.Row="2" Margin="2">
-                            <TextBlock Text="Gomo Inf:" FontSize="9" Foreground="#BDC3C7"/>
-                            <TextBox Text="{Binding BoiadeiraGomoInferior}" FontSize="11"/>
-                        </StackPanel>
-                        <StackPanel Grid.Row="2" Grid.Column="1" Margin="2">
-                            <TextBlock Text="N° Gomos:" FontSize="9" Foreground="#BDC3C7"/>
-                            <TextBox Text="{Binding BoiadeiraNumGomos}" FontSize="11"/>
-                        </StackPanel>
-                    </Grid>
-                    <Button Content="Resolver Otimização" Command="{Binding GerarBoiadeiraCommand}" Margin="0,8,0,0" Background="#E67E22" Foreground="White" BorderThickness="0" Height="26"/>
+                    <StackPanel Visibility="{Binding GeradorEhBoiadeira, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Margin="2">
+                                <TextBlock Text="Aba (Y):" FontSize="9" Foreground="#BDC3C7"/>
+                                <TextBox Text="{Binding BoiadeiraAltura}" FontSize="11"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="2">
+                                <TextBlock Text="Largura (X):" FontSize="9" Foreground="#BDC3C7"/>
+                                <TextBox Text="{Binding BoiadeiraLargura}" FontSize="11"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="1" Margin="2">
+                                <TextBlock Text="1° Gomo:" FontSize="9" Foreground="#BDC3C7"/>
+                                <TextBox Text="{Binding BoiadeiraPrimeiroGomo}" FontSize="11"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="1" Grid.Column="1" Margin="2">
+                                <TextBlock Text="Gomo Sup:" FontSize="9" Foreground="#BDC3C7"/>
+                                <TextBox Text="{Binding BoiadeiraGomoSuperior}" FontSize="11"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="2" Margin="2">
+                                <TextBlock Text="Gomo Inf:" FontSize="9" Foreground="#BDC3C7"/>
+                                <TextBox Text="{Binding BoiadeiraGomoInferior}" FontSize="11"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="2" Grid.Column="1" Margin="2">
+                                <TextBlock Text="N° Gomos:" FontSize="9" Foreground="#BDC3C7"/>
+                                <TextBox Text="{Binding BoiadeiraNumGomos}" FontSize="11"/>
+                            </StackPanel>
+                        </Grid>
+                        <Button Content="Resolver Otimização" Command="{Binding GerarBoiadeiraCommand}" Margin="0,8,0,0" Background="#E67E22" Foreground="White" BorderThickness="0" Height="26"/>
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding GeradorEhTuboRedondo, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Margin="2">
+                                <TextBlock Text="Diâmetro (mm):" FontSize="9" Foreground="#BDC3C7"/>
+                                <TextBox Text="{Binding TuboDiametro}" FontSize="11"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="2">
+                                <TextBlock Text="Tipo Diâmetro:" FontSize="9" Foreground="#BDC3C7"/>
+                                <ComboBox SelectedValue="{Binding TuboTipoDiametro}" SelectedValuePath="Content" FontSize="11">
+                                    <ComboBoxItem Content="externo"/>
+                                    <ComboBoxItem Content="interno"/>
+                                </ComboBox>
+                            </StackPanel>
+                        </Grid>
+                        <Button Content="Gerar Tubo Redondo" Command="{Binding GerarTuboRedondoCommand}" Margin="0,8,0,0" Background="#E67E22" Foreground="White" BorderThickness="0" Height="26"/>
+                    </StackPanel>
                 </StackPanel>
             </Border>
         </Grid>

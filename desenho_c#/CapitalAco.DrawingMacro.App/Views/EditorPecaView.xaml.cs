@@ -1,5 +1,9 @@
+using System;
+using System.ComponentModel;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 using CapitalAco.DrawingMacro.App.ViewModels;
 
 namespace CapitalAco.DrawingMacro.App.Views
@@ -9,6 +13,34 @@ namespace CapitalAco.DrawingMacro.App.Views
         public EditorPecaView()
         {
             InitializeComponent();
+            DataContextChanged += OnDataContextChanged;
+        }
+
+        private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (e.OldValue is EditorPecaViewModel oldVm) oldVm.PropertyChanged -= Vm_PropertyChanged;
+            if (e.NewValue is EditorPecaViewModel newVm) newVm.PropertyChanged += Vm_PropertyChanged;
+        }
+
+        // Ao entrar nas fases de Ângulo/Medida do Modo Rápido, foca e seleciona o campo correspondente
+        // para que o usuário possa digitar imediatamente, sem precisar usar o mouse.
+        private void Vm_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName != nameof(EditorPecaViewModel.FaseRapida) || sender is not EditorPecaViewModel vm) return;
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (vm.EstaNaFaseGrau)
+                {
+                    GrauRapidoTextBox.Focus();
+                    GrauRapidoTextBox.SelectAll();
+                }
+                else if (vm.EstaNaFaseMedidas)
+                {
+                    MedidaRapidaTextBox.Focus();
+                    MedidaRapidaTextBox.SelectAll();
+                }
+            }), DispatcherPriority.Input);
         }
 
         private void EditorPecaView_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -18,6 +50,14 @@ namespace CapitalAco.DrawingMacro.App.Views
             bool focoEmGrauOuMedida = ReferenceEquals(Keyboard.FocusedElement, GrauRapidoTextBox)
                 || ReferenceEquals(Keyboard.FocusedElement, MedidaRapidaTextBox);
             bool focoEmCampoDeTexto = Keyboard.FocusedElement is TextBox or ComboBox;
+
+            // Shift+Enter: adiciona a peça atual à ordem de produção, de qualquer lugar do editor.
+            if (e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.Shift)
+            {
+                vm.AdicionarAoPedidoCommand.Execute(null);
+                e.Handled = true;
+                return;
+            }
 
             // Ctrl+Backspace: desfaz o último passo do Modo Rápido, mesmo durante a digitação da medida/ângulo.
             if (e.Key == Key.Back && Keyboard.Modifiers == ModifierKeys.Control)
@@ -38,10 +78,19 @@ namespace CapitalAco.DrawingMacro.App.Views
                 return;
             }
 
+            // "C": foca e seleciona o campo de comprimento (atalho global, exceto durante digitação em outro campo de texto).
+            if (e.Key == Key.C && Keyboard.Modifiers == ModifierKeys.None && !focoEmCampoDeTexto)
+            {
+                ComprimentoTextBox.Focus();
+                ComprimentoTextBox.SelectAll();
+                e.Handled = true;
+                return;
+            }
+
             if (!vm.ModoRapidoAtivo) return;
 
-            // Enter confirma a fase atual do Modo Rápido (esqueleto, ângulo ou medida).
-            if (e.Key == Key.Enter && (!focoEmCampoDeTexto || focoEmGrauOuMedida))
+            // Enter (sem Shift) confirma a fase atual do Modo Rápido (esqueleto, ângulo ou medida).
+            if (e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.None && (!focoEmCampoDeTexto || focoEmGrauOuMedida))
             {
                 if (vm.EstaNaFaseDesenho) vm.ConfirmarEsqueletoRapido();
                 else if (vm.EstaNaFaseGrau) vm.ConfirmarGrauPersonalizado();

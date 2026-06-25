@@ -502,7 +502,21 @@ namespace CapitalAco.DrawingMacro.App.Services
                 absolutas = CoordenadasExternasPerfil(absolutas, instrucoes.Espessura);
             }
 
-            var (dim, _) = GerarDimensoesTotaisEPontoInicial(absolutas);
+            // Segmentos curvos podem se afastar da corda (no caso de um tubo calandrado a 360°, a corda mede zero),
+            // então inflamos a caixa delimitadora pelo raio externo da curva antes de medir.
+            var pontosParaDimensao = new List<(double X, double Y)>(absolutas);
+            for (int i = 0; i < instrucoes.SegmentosOriginal.Count && i < absolutas.Count; i++)
+            {
+                var seg = instrucoes.SegmentosOriginal[i];
+                if (!seg.EhCurvo || seg.CurvaInfo == null) continue;
+
+                double rExterno = seg.CurvaInfo.TipoRaio == "interno" ? seg.CurvaInfo.Raio + instrucoes.Espessura : seg.CurvaInfo.Raio;
+                var (cx, cy) = absolutas[i];
+                pontosParaDimensao.Add((cx - rExterno, cy - rExterno));
+                pontosParaDimensao.Add((cx + rExterno, cy + rExterno));
+            }
+
+            var (dim, _) = GerarDimensoesTotaisEPontoInicial(pontosParaDimensao);
             return new DimensoesAcabadas { Largura = Math.Round(dim.Largura, 1), Altura = Math.Round(dim.Altura, 1) };
         }
 

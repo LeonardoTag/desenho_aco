@@ -35,10 +35,14 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         private string _nomePeca = "Peça Nova";
 
         [ObservableProperty]
-        private double _comprimentoPeca = 3000.0;
+        private double? _comprimentoPeca = null;
 
         [ObservableProperty]
         private Chapa? _chapaSelecionada;
+
+        // Indica se há algo desenhado para mostrar; quando false, a prévia exibe a mensagem de "comece a desenhar"
+        [ObservableProperty]
+        private bool _temDesenho;
 
         // Coleções
         public ObservableCollection<Chapa> Chapas { get; } = new();
@@ -103,10 +107,26 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         private double? _proximoGrauPersonalizado;
 
         // Galeria de Geradores de Peças
-        public ObservableCollection<string> GeradoresDisponiveis { get; } = new() { "Boiadeira" };
+        public ObservableCollection<string> GeradoresDisponiveis { get; } = new() { "Boiadeira", "Tubo Redondo" };
 
         [ObservableProperty]
         private string _geradorSelecionado = "Boiadeira";
+
+        public bool GeradorEhBoiadeira => GeradorSelecionado == "Boiadeira";
+        public bool GeradorEhTuboRedondo => GeradorSelecionado == "Tubo Redondo";
+
+        partial void OnGeradorSelecionadoChanged(string value)
+        {
+            OnPropertyChanged(nameof(GeradorEhBoiadeira));
+            OnPropertyChanged(nameof(GeradorEhTuboRedondo));
+        }
+
+        // Parâmetros do Gerador Tubo Redondo (calandrado 360°)
+        [ObservableProperty]
+        private double _tuboDiametro = 100.0;
+
+        [ObservableProperty]
+        private string _tuboTipoDiametro = "externo";
 
         // Parâmetros do Gerador Boiadeira
         [ObservableProperty]
@@ -162,13 +182,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             // Inicializar chapas
             CarregarChapas();
 
-            // Segmentos default (um perfil em L simples de teste)
-            Segmentos.Add(new Segmento { Direcao = "S", Angulo = 90, Medida = 50, TipoMedida = "e" });
-            Segmentos.Add(new Segmento { Direcao = "E", Angulo = 90, Medida = 50, TipoMedida = "e" });
-
             Segmentos.CollectionChanged += Segmentos_CollectionChanged;
-            
-            AtualizarPreview();
         }
 
         private void CarregarChapas()
@@ -188,12 +202,12 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         }
 
         partial void OnChapaSelecionadaChanged(Chapa? value) => AtualizarPreview();
-        partial void OnComprimentoPecaChanged(double value) => AtualizarPreview();
+        partial void OnComprimentoPecaChanged(double? value) => AtualizarPreview();
 
         public void CarregarPecaDoModelo(ModeloPeca peca)
         {
             NomePeca = peca.Nome;
-            ComprimentoPeca = peca.Comprimento ?? 3000.0;
+            ComprimentoPeca = peca.Comprimento;
             ChapaSelecionada = Chapas.FirstOrDefault(c => string.Equals(c.Codigo, peca.Chapa, StringComparison.OrdinalIgnoreCase)) ?? ChapaSelecionada;
 
             Segmentos.CollectionChanged -= Segmentos_CollectionChanged;
@@ -210,6 +224,12 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         [RelayCommand]
         private void AdicionarSegmento()
         {
+            if (DirecaoInvalidaAposUltimoSegmento(SegDirecao, SegEhCurvo))
+            {
+                MessageBox.Show("Não é possível adicionar um segmento na mesma direção ou na direção oposta ao anterior (dobra de 0° ou 180°).", "Direção inválida", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             var novo = new Segmento
             {
                 Direcao = SegDirecao,
@@ -236,7 +256,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         [RelayCommand]
         private void RemoverSegmento(Segmento? seg)
         {
-            if (seg != null && Segmentos.Count > 1)
+            if (seg != null)
             {
                 Segmentos.Remove(seg);
             }
@@ -246,8 +266,20 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         private void LimparSegmentos()
         {
             Segmentos.Clear();
-            // Mantém sempre pelo menos um de segurança
-            Segmentos.Add(new Segmento { Direcao = "E", Angulo = 90, Medida = 50, TipoMedida = "e" });
+        }
+
+        // Direção igual (0°) ou oposta (180°) ao último segmento reto não é uma dobra válida.
+        private bool DirecaoInvalidaAposUltimoSegmento(string novaDirecao, bool novoEhCurvo)
+        {
+            if (novoEhCurvo || Segmentos.Count == 0) return false;
+
+            var anterior = Segmentos[^1];
+            if (anterior.EhCurvo) return false;
+
+            if (anterior.Direcao == novaDirecao) return true;
+
+            var opostos = new Dictionary<string, string> { ["N"] = "S", ["S"] = "N", ["E"] = "W", ["W"] = "E" };
+            return opostos.TryGetValue(anterior.Direcao, out var oposta) && oposta == novaDirecao;
         }
 
         public bool EstaNaFaseDesenho => FaseRapida == FaseModoRapido.Desenho;
@@ -279,8 +311,14 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         {
             if (!ModoRapidoAtivo || FaseRapida != FaseModoRapido.Desenho) return;
 
+            if (DirecaoInvalidaAposUltimoSegmento(direcao, false))
+            {
+                StatusModoRapido = "Direção inválida: seria uma dobra de 0° ou 180°. Escolha outra direção.";
+                return;
+            }
+
+            // O ângulo personalizado (via G) persiste para os próximos segmentos até ser alterado novamente.
             double angulo = _proximoGrauPersonalizado ?? 90.0;
-            _proximoGrauPersonalizado = null;
 
             var config = _configService.ObterConfiguracao();
             Segmentos.Add(new Segmento
@@ -466,9 +504,37 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         }
 
         [RelayCommand]
+        private void GerarTuboRedondo()
+        {
+            if (ChapaSelecionada == null) return;
+
+            try
+            {
+                var tubo = _geradorPecaService.GerarTuboRedondo(TuboDiametro, TuboTipoDiametro, ChapaSelecionada.Codigo, ComprimentoPeca);
+
+                NomePeca = tubo.Nome;
+
+                Segmentos.CollectionChanged -= Segmentos_CollectionChanged;
+                Segmentos.Clear();
+                foreach (var seg in tubo.Segmentos)
+                {
+                    Segmentos.Add(seg);
+                }
+                Segmentos.CollectionChanged += Segmentos_CollectionChanged;
+
+                AtualizarPreview();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Falha no Gerador de Tubo Redondo", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        [RelayCommand]
         private void SalvarNaBiblioteca()
         {
             if (ChapaSelecionada == null) return;
+            if (!ValidarPecaPronta()) return;
 
             try
             {
@@ -487,10 +553,33 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             }
         }
 
+        // Garante que a peça tenha ao menos um segmento e que o perfil não colida consigo mesmo.
+        private bool ValidarPecaPronta()
+        {
+            if (Segmentos.Count == 0)
+            {
+                MessageBox.Show("Desenhe ao menos um segmento antes de continuar.", "Peça incompleta", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            if (ChapaSelecionada != null)
+            {
+                double comprimentoCheck = ComprimentoPeca ?? _configService.ObterConfiguracao().ComprimentoPreviewPlaceholder;
+                if (_geometryService.PerfilCruzaASiMesmo(ChapaSelecionada.Codigo, comprimentoCheck, Segmentos.ToList()))
+                {
+                    MessageBox.Show("O perfil desenhado cruza a si mesmo (dobras colidem). Corrija o desenho antes de continuar.", "Perfil inválido", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         [RelayCommand]
         private void AdicionarAoPedido()
         {
             if (ChapaSelecionada == null) return;
+            if (!ValidarPecaPronta()) return;
 
             List<(double Quantidade, double Comprimento)> lotes;
 
@@ -520,7 +609,12 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             }
             else
             {
-                lotes = new List<(double Quantidade, double Comprimento)> { (PedidoQuantidade, ComprimentoPeca) };
+                if (ComprimentoPeca is not double comprimentoDefinido || comprimentoDefinido <= 0)
+                {
+                    MessageBox.Show("Defina o comprimento da peça antes de adicionar à ordem de produção.", "Comprimento obrigatório", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                lotes = new List<(double Quantidade, double Comprimento)> { (PedidoQuantidade, comprimentoDefinido) };
             }
 
             var segmentosAtuais = Segmentos.ToList();
@@ -583,11 +677,18 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         private void GerarFichaDobra()
         {
             if (ChapaSelecionada == null) return;
+            if (!ValidarPecaPronta()) return;
+
+            if (ComprimentoPeca is not double comprimentoDefinido || comprimentoDefinido <= 0)
+            {
+                MessageBox.Show("Defina o comprimento da peça antes de gerar a ficha de dobra.", "Comprimento obrigatório", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
             try
             {
-                var polar = _geometryService.ConverterInstrucoesParaCoordenadasPolares(ChapaSelecionada.Codigo, ComprimentoPeca, Segmentos.ToList());
-                var caminho = _pdfGeneratorService.GerarRelatorioDobra(polar, NomePeca, ChapaSelecionada.Codigo, ComprimentoPeca);
+                var polar = _geometryService.ConverterInstrucoesParaCoordenadasPolares(ChapaSelecionada.Codigo, comprimentoDefinido, Segmentos.ToList());
+                var caminho = _pdfGeneratorService.GerarRelatorioDobra(polar, NomePeca, ChapaSelecionada.Codigo, comprimentoDefinido);
 
                 if (File.Exists(caminho))
                 {
@@ -607,16 +708,25 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         public void AtualizarPreview()
         {
             if (ChapaSelecionada == null || Segmentos.Count == 0)
+            {
+                TemDesenho = false;
+                PreviewImage = null;
+                DimensoesTotaisTexto = string.Empty;
+                Avisos.Clear();
                 return;
+            }
 
             try
             {
-                // Converter para polares
+                var config = _configService.ObterConfiguracao();
+
+                // Converter para polares (usa o placeholder de comprimento apenas para gerar a prévia, sem alterar o valor digitado)
                 var listSegs = Segmentos.ToList();
-                var polar = _geometryService.ConverterInstrucoesParaCoordenadasPolares(ChapaSelecionada.Codigo, ComprimentoPeca, listSegs);
+                double comprimentoPreview = ComprimentoPeca ?? config.ComprimentoPreviewPlaceholder;
+                var polar = _geometryService.ConverterInstrucoesParaCoordenadasPolares(ChapaSelecionada.Codigo, comprimentoPreview, listSegs);
+                TemDesenho = true;
 
                 // Renderizar preview 520x400, usando os tamanhos de fonte configurados
-                var config = _configService.ObterConfiguracao();
                 float fonteCota = (float)config.DesenhoFonteBaseMinima;
                 float fonteAngulo = (float)Math.Max(config.DesenhoFonteBaseMinima - 1.0, 8.0);
                 PreviewImage = SkiaRenderer.RenderToImageSource(polar, 520, 400, _geometryService, fonteCota, fonteAngulo);
@@ -638,7 +748,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
                 }
 
                 // 2. Auto-interseção
-                if (_geometryService.PerfilCruzaASiMesmo(ChapaSelecionada.Codigo, ComprimentoPeca, listSegs))
+                if (_geometryService.PerfilCruzaASiMesmo(ChapaSelecionada.Codigo, comprimentoPreview, listSegs))
                 {
                     Avisos.Add("ATENÇÃO: O perfil cruza a si mesmo!");
                 }
