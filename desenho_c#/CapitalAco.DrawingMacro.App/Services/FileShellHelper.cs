@@ -28,5 +28,21 @@ namespace CapitalAco.DrawingMacro.App.Services
                 UseShellExecute = true
             });
         }
+
+        // Usa o verbo "print" do shell do Windows, que envia o arquivo diretamente para a impressora
+        // padrão através do aplicativo associado a PDFs (sem abrir uma janela de visualização para o usuário).
+        public static void ImprimirArquivo(string caminhoArquivo)
+        {
+            if (!File.Exists(caminhoArquivo)) return;
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = caminhoArquivo,
+                Verb = "print",
+                UseShellExecute = true,
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden
+            });
+        }
     }
 }

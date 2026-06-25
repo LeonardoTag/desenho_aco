@@ -1,6 +1,27 @@
 # Status das mudanças do todo.txt
 
-Última atualização: 2026-06-25 (rodada 2).
+Última atualização: 2026-06-25 (rodada 4).
+
+## Rodada 4 (concluída)
+
+| # | Item do todo.txt | Status | Onde |
+|---|---|---|---|
+| 1 | Aumentar visualização do perfil, reduzindo painéis laterais | Concluído | `EditorPecaView.xaml`: colunas mudaram de `1.4*/1.6*/1.3*` para `1.0*/2.4*/1.0*` (painel central bem maior); resolução de render aumentada de 520x400 para 780x600 em `EditorPecaViewModel.AtualizarPreview` para não ficar borrada no tamanho maior |
+| 2 | Avisos de medida mínima mais chamativos + alerta em tela | Concluído | `EditorPecaView.xaml`: painel de avisos com fundo/borda vermelhos, texto maior e em negrito, ícone ⚠ no início de cada aviso. `EditorPecaViewModel.AtualizarPreview`: `MessageBox` de alerta na primeira vez que cada problema aparece (dedupe por nº do segmento, não pelo texto exato, para não disparar a cada tecla digitada) |
+| 3 | Ctrl+1/2/3/4 para alternar entre as abas | Concluído | `MainWindow.xaml` (`Window.InputBindings`) + `MainViewModel.IrParaAbaCommand` |
+
+## Rodada 3 (concluída)
+
+| # | Item do todo.txt | Status | Onde |
+|---|---|---|---|
+| 1 | Nomear peça automaticamente quando o nome não é definido | Concluído | `EditorPecaViewModel.cs`: `SugerirNomePeca` classifica o formato pela quantidade de segmentos e proporção entre eles (1=Chapa Plana, 2=Cantoneira, 3=U/"U Manco" se assimétrico, 5=U Enrijecido se as pontas forem lábios curtos ou Cartola caso contrário, curvo=Calandrado, resto=genérico "Perfil com N Dobras"). A sugestão atualiza `NomePeca` em tempo real enquanto o usuário não digitar/aceitar um nome próprio (campo manual, carregado da biblioteca ou de um gerador passam a "travar" o nome) |
+| 2 | Ícone com fundo escuro deixava a logo invisível | Concluído | Recriado `Assets/logo.ico`: fundo branco com cantos arredondados (estilo ícone moderno) atrás da logo (que tem fundo transparente e traços escuros/quase pretos — por isso "desaparecia" sobre temas escuros do Windows). Conferido visualmente via preview PNG antes de gravar o `.ico` final |
+
+## Observação da rodada 3
+- Nomenclatura automática é heurística (best-effort), baseada só na forma/proporção dos segmentos — não há regra estrutural rígida do Python para portar (não existia lá). Pode ser ajustada depois se algum padrão específico não for reconhecido como esperado.
+- Build verificado em Debug e Release sem erros.
+
+## Rodada 1 (concluída)
 
 ## Rodada 1 (concluída)
 

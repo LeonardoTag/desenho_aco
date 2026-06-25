@@ -44,7 +44,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         }
 
         [RelayCommand]
-        private void GerarPdf()
+        private void VisualizarPdf()
         {
             if (Itens.Count == 0)
             {
@@ -72,6 +72,31 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             catch (Exception ex)
             {
                 MessageBox.Show($"Erro ao gerar PDF da Ordem de Produção: {ex.Message}", "Erro de Geração", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        [RelayCommand]
+        private void ImprimirPedido()
+        {
+            if (Itens.Count == 0)
+            {
+                MessageBox.Show("Adicione pelo menos uma peça ao pedido para imprimir a Ordem de Produção.", "Carrinho Vazio", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            try
+            {
+                var list = Itens.ToList();
+                var caminho = _pdfGenerator.GerarRelatorioPedido(list, Observacao);
+
+                if (File.Exists(caminho))
+                {
+                    FileShellHelper.ImprimirArquivo(caminho);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erro ao imprimir a Ordem de Produção: {ex.Message}", "Erro de Impressão", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

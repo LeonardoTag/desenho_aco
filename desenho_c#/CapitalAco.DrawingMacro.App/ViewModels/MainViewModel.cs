@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace CapitalAco.DrawingMacro.App.ViewModels
 {
@@ -6,6 +7,16 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
     {
         [ObservableProperty]
         private int _selectedTabIndex = 0;
+
+        // Ctrl+1..4 para alternar diretamente entre as abas (ver KeyBindings na MainWindow).
+        [RelayCommand]
+        private void IrParaAba(string indice)
+        {
+            if (int.TryParse(indice, out var i))
+            {
+                SelectedTabIndex = i;
+            }
+        }
 
         public EditorPecaViewModel Editor { get; }
         public BibliotecaViewModel Biblioteca { get; }

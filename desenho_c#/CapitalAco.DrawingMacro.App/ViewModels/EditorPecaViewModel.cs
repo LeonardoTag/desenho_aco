@@ -34,6 +34,19 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         [ObservableProperty]
         private string _nomePeca = "Peça Nova";
 
+        // Enquanto o usuário não digitar (ou aceitar de um gerador/biblioteca) um nome próprio, o nome da
+        // peça é sugerido automaticamente a partir do formato dos segmentos desenhados (ver SugerirNomePeca).
+        private bool _nomeEditadoManualmente;
+        private string _ultimoNomeAutomatico = "Peça Nova";
+
+        partial void OnNomePecaChanged(string value)
+        {
+            if (value != _ultimoNomeAutomatico)
+            {
+                _nomeEditadoManualmente = true;
+            }
+        }
+
         [ObservableProperty]
         private double? _comprimentoPeca = null;
 
@@ -116,6 +129,11 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         private Brush _modoAtualCor = new SolidColorBrush(Color.FromRgb(0x34, 0x49, 0x5E));
 
         private double? _proximoGrauPersonalizado;
+
+        // Controla quais avisos já geraram um alerta em tela, para soar só uma vez por problema novo
+        // (não a cada nova tecla digitada enquanto o mesmo segmento continuar abaixo do mínimo).
+        private readonly HashSet<string> _avisosDobraAlertados = new();
+        private bool _autoIntersecaoAlertada;
 
         // Histórico para Ctrl+Z: cada entrada é uma cópia completa da lista de segmentos capturada
         // imediatamente ANTES de uma mutação (adicionar/remover/limpar/editar medida/gerar/carregar),
@@ -208,6 +226,13 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             CarregarChapas();
 
             Segmentos.CollectionChanged += Segmentos_CollectionChanged;
+
+            // ModoRapidoAtivo é inicializado via inicializador de campo (true por padrão), o que NÃO
+            // dispara o callback OnModoRapidoAtivoChanged (inicializadores de campo atribuem o campo
+            // diretamente, sem passar pelo setter gerado). Por isso a tarja de modo atual e o texto de
+            // status ficavam com os valores padrão de "Modo Clássico" mesmo com o Modo Rápido já marcado,
+            // até o usuário desmarcar/marcar a opção manualmente. Sincroniza aqui, uma única vez, no início.
+            AtualizarStatusModoRapido();
         }
 
         private void CarregarChapas()
@@ -855,8 +880,110 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             FileShellHelper.AbrirPasta(_configService.ObterCaminhoSaidaRelatorios());
         }
 
+        // Enquanto o nome não tiver sido definido manualmente (nem vindo de um gerador ou da biblioteca),
+        // mantém o campo "Nome da Peça" atualizado com uma sugestão baseada no formato atual dos segmentos.
+        private void AtualizarNomeAutomatico()
+        {
+            if (_nomeEditadoManualmente) return;
+
+            _ultimoNomeAutomatico = SugerirNomePeca(Segmentos);
+            NomePeca = _ultimoNomeAutomatico;
+        }
+
+        // Heurística de nomenclatura por formato: reconhece os perfis mais comuns de chapa dobrada pela
+        // quantidade de segmentos, pelo sentido de giro das dobras (distingue U/gancho de Z/zigue-zague)
+        // e pela proporção entre eles, com um nome genérico de reserva para formatos não reconhecidos.
+        //
+        // Cantoneira, U, U Enrijecido e Z são, por definição, perfis de dobra reta (90°); o único caso
+        // que admite ângulo diferente de 90° é o lábio do Z Enrijecido (clássico nas terças Z, justamente
+        // para permitir o encaixe/empilhamento entre peças — ver literatura de perfis formados a frio).
+        // Sem essas dobras a 90° onde exigido, o formato não corresponde a nenhum desses perfis nomeados.
+        private string SugerirNomePeca(IReadOnlyList<Segmento> segmentos)
+        {
+            if (segmentos.Count == 0) return "Peça Nova";
+            if (segmentos.Any(s => s.EhCurvo)) return "Perfil Calandrado";
+
+            string M(double v) => NumericUtils.FormatarCompacto(v);
+            bool Eh90(double angulo) => Math.Abs(angulo - 90.0) < 0.5;
+            string generico() => $"Perfil com {segmentos.Count - 1} Dobras";
+
+            switch (segmentos.Count)
+            {
+                case 1:
+                    return $"Chapa Plana {M(segmentos[0].Medida)}";
+
+                case 2:
+                    if (!Eh90(segmentos[1].Angulo)) return generico();
+                    return $"Perfil Cantoneira {M(segmentos[0].Medida)}x{M(segmentos[1].Medida)}";
+
+                case 3:
+                {
+                    if (!Eh90(segmentos[1].Angulo) || !Eh90(segmentos[2].Angulo)) return generico();
+
+                    // Mesmo sentido de giro nas duas dobras = formato côncavo em gancho (U); sentidos
+                    // opostos = formato em zigue-zague (Z). Antes disso, qualquer perfil de 3 segmentos
+                    // (inclusive Z) era erroneamente chamado de U.
+                    string familia = MesmoSentidoDeGiro(segmentos, 0) ? "U" : "Z";
+
+                    double aba1 = segmentos[0].Medida, alma = segmentos[1].Medida, aba2 = segmentos[2].Medida;
+                    bool simetrico = Math.Abs(aba1 - aba2) < 1.0;
+                    return simetrico
+                        ? $"Perfil {familia} {M(alma)}x{M(aba1)}"
+                        : $"Perfil {familia} Manco {M(aba1)}x{M(alma)}x{M(aba2)}";
+                }
+
+                case 5:
+                {
+                    // O núcleo (aba-alma-aba) tem que ser reto em qualquer um destes perfis, inclusive
+                    // no Z Enrijecido — só o lábio (dobra das pontas) pode escapar de 90° nesse caso.
+                    if (!Eh90(segmentos[2].Angulo) || !Eh90(segmentos[3].Angulo)) return generico();
+
+                    double pontaA = segmentos[0].Medida, pontaB = segmentos[4].Medida;
+                    double meio1 = segmentos[1].Medida, alma = segmentos[2].Medida, meio2 = segmentos[3].Medida;
+                    double mediaMeio = (meio1 + meio2) / 2.0;
+
+                    // Lábios de reforço são tipicamente bem mais curtos que as abas/alma adjacentes;
+                    // sem esse padrão, 5 segmentos formam antes um perfil Cartola.
+                    bool temLabios = mediaMeio > 0 && pontaA < mediaMeio * 0.5 && pontaB < mediaMeio * 0.5;
+                    if (!temLabios) return $"Perfil Cartola {M(alma)}x{M(meio1)}";
+
+                    // O núcleo (aba-alma-aba, ignorando os lábios das pontas) define se é um U ou um Z
+                    // enrijecido — os lábios em si não mudam essa classificação.
+                    string familiaNucleo = MesmoSentidoDeGiro(segmentos, 1) ? "U" : "Z";
+
+                    // No U Enrijecido o lábio é sempre reto (90°); só o Z Enrijecido admite o lábio
+                    // dobrado num ângulo diferente.
+                    bool labiosRetos = Eh90(segmentos[1].Angulo) && Eh90(segmentos[4].Angulo);
+                    if (familiaNucleo == "U" && !labiosRetos) return generico();
+
+                    return $"Perfil {familiaNucleo} Enrijecido {M(alma)}x{M(meio1)}x{M(pontaA)}";
+                }
+
+                default:
+                    return generico();
+            }
+        }
+
+        // Compara o sentido de giro (horário/anti-horário) das dobras entre segmentos[i]→[i+1] e
+        // [i+1]→[i+2], usando os azimutes reais (que já tratam ângulos customizados, não só 90°).
+        private bool MesmoSentidoDeGiro(IReadOnlyList<Segmento> segmentos, int indiceInicial)
+        {
+            var azimutes = _geometryService.ObterAzimutesDeSegmentos(segmentos.ToList());
+
+            bool SentidoHorario(int i)
+            {
+                double diff = (azimutes[i + 1] - azimutes[i]) % 360.0;
+                if (diff < 0) diff += 360.0;
+                return diff < 180.0;
+            }
+
+            return SentidoHorario(indiceInicial) == SentidoHorario(indiceInicial + 1);
+        }
+
         public void AtualizarPreview()
         {
+            AtualizarNomeAutomatico();
+
             if (ChapaSelecionada == null || Segmentos.Count == 0)
             {
                 TemDesenho = false;
@@ -879,7 +1006,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
                 // Renderizar preview 520x400, usando os tamanhos de fonte configurados
                 float fonteCota = (float)config.DesenhoFonteBaseMinima;
                 float fonteAngulo = (float)Math.Max(config.DesenhoFonteBaseMinima - 1.0, 8.0);
-                PreviewImage = SkiaRenderer.RenderToImageSource(polar, 520, 400, _geometryService, fonteCota, fonteAngulo);
+                PreviewImage = SkiaRenderer.RenderToImageSource(polar, 780, 600, _geometryService, fonteCota, fonteAngulo);
 
                 // Dimensões totais acabadas da peça
                 var dimensoes = _geometryService.CalcularDimensoesAcabadas(polar);
@@ -889,18 +1016,38 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
 
                 // Atualizar avisos
                 Avisos.Clear();
+                var novosAlertas = new List<string>();
 
-                // 1. Dobras abaixo da mínima
+                // 1. Dobras abaixo da mínima — alerta só na primeira vez que CADA segmento entra em
+                // violação (a chave é o nº do segmento, não o texto completo, que muda a cada dígito
+                // enquanto o usuário ainda está digitando a medida).
                 var avisosDobra = _geometryService.VerificarDobrasAbaixoMinima(polar, ChapaSelecionada);
+                var chavesAtuais = new HashSet<string>();
                 foreach (var av in avisosDobra)
                 {
-                    Avisos.Add(av);
+                    Avisos.Add($"⚠ {av}");
+                    var chave = av.Split(':')[0];
+                    chavesAtuais.Add(chave);
+                    if (!_avisosDobraAlertados.Contains(chave))
+                    {
+                        novosAlertas.Add(av);
+                    }
                 }
+                _avisosDobraAlertados.Clear();
+                foreach (var chave in chavesAtuais) _avisosDobraAlertados.Add(chave);
 
                 // 2. Auto-interseção
-                if (_geometryService.PerfilCruzaASiMesmo(ChapaSelecionada.Codigo, comprimentoPreview, listSegs))
+                bool autoIntersecao = _geometryService.PerfilCruzaASiMesmo(ChapaSelecionada.Codigo, comprimentoPreview, listSegs);
+                if (autoIntersecao)
                 {
-                    Avisos.Add("ATENÇÃO: O perfil cruza a si mesmo!");
+                    Avisos.Add("⚠ ATENÇÃO: O perfil cruza a si mesmo!");
+                    if (!_autoIntersecaoAlertada) novosAlertas.Add("O perfil desenhado cruza a si mesmo (dobras colidem).");
+                }
+                _autoIntersecaoAlertada = autoIntersecao;
+
+                if (novosAlertas.Count > 0)
+                {
+                    MessageBox.Show(string.Join("\n", novosAlertas), "Atenção: Problema no Desenho", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
             catch (Exception ex)

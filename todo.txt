@@ -4,6 +4,6 @@ Mantenha sempre um arquivo atualizado com a situação das mudanças de acordo c
 
 Existem inúmeras coisas que estão desfuncionais, irei listar coisas a consertar (Pode ser útil conferir como foi resolvido em python):
 
-- O desenho não encaixa direito nos quadro nem no detalhamento de dobra nem na ordem de produção, revise.
-- Deixe tanto o detalhamento de dobra quanto a ordem de produção mais profissionais e mais fáceis de visualizar.
-- Não gostei da solução do 50i, o "i" para indicar a medida interna, faça a medida externa uma letra branca com um "fundo" escuro, e a interna uma letra escura em fundo claro. O ângulo por ser sublinhado.
+- Aumente o tamanho da visualização do perfil no editor de peça, pode reduzir a largura dos paineis laterais.
+- Deixe os avisos de medida interna mínima e etc mais chamativos e faça abrir um alerta na tela.
+- Faça com que o usuário possa ciclar entre as abas do programa utilizando Ctrl+1, Ctrl+2, Ctrl+3 e Ctrl+4.

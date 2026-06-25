@@ -7,6 +7,12 @@
         WindowStartupLocation="CenterScreen"
         Icon="/Assets/logo.ico"
         Background="#F4F5F9">
+    <Window.InputBindings>
+        <KeyBinding Gesture="Ctrl+1" Command="{Binding IrParaAbaCommand}" CommandParameter="0"/>
+        <KeyBinding Gesture="Ctrl+2" Command="{Binding IrParaAbaCommand}" CommandParameter="1"/>
+        <KeyBinding Gesture="Ctrl+3" Command="{Binding IrParaAbaCommand}" CommandParameter="2"/>
+        <KeyBinding Gesture="Ctrl+4" Command="{Binding IrParaAbaCommand}" CommandParameter="3"/>
+    </Window.InputBindings>
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

@@ -7,6 +7,9 @@
              d:DesignHeight="600" d:DesignWidth="1200"
              Background="#ECEEF3"
              Foreground="#1F2430">
+    <UserControl.InputBindings>
+        <KeyBinding Gesture="Ctrl+P" Command="{Binding ImprimirPedidoCommand}"/>
+    </UserControl.InputBindings>
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -70,10 +73,12 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Button Grid.Row="0" Content="Limpar Pedido" Command="{Binding LimparPedidoCommand}" Margin="0,0,0,8" Background="#D35400" Foreground="White" BorderThickness="0" Height="32" FontSize="13" FontWeight="SemiBold"/>
                     <Button Grid.Row="1" Content="Abrir Pasta de Relatórios" Command="{Binding AbrirPastaRelatoriosCommand}" Margin="0,0,0,8" Background="#5B6472" Foreground="White" BorderThickness="0" Height="32" FontSize="13" FontWeight="SemiBold"/>
-                    <Button Grid.Row="2" Content="Gerar Ordem de Produção (PDF)" Command="{Binding GerarPdfCommand}" Background="#27AE60" Foreground="White" BorderThickness="0" Height="40" FontSize="14" FontWeight="Bold"/>
+                    <Button Grid.Row="2" Content="Visualizar Ordem de Produção" Command="{Binding VisualizarPdfCommand}" Margin="0,0,0,8" Background="#27AE60" Foreground="White" BorderThickness="0" Height="40" FontSize="14" FontWeight="Bold"/>
+                    <Button Grid.Row="3" Content="Imprimir Ordem de Produção (Ctrl+P)" Command="{Binding ImprimirPedidoCommand}" Background="#12153F" Foreground="White" BorderThickness="0" Height="40" FontSize="14" FontWeight="Bold"/>
                 </Grid>
             </Grid>
         </Border>
