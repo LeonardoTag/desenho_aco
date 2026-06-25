@@ -3,6 +3,10 @@ namespace CapitalAco.DrawingMacro.App.Models
     public class Chapa
     {
         public string Codigo { get; set; } = string.Empty;
+
+        // Exibição sem o prefixo "#", usada na lista/seleção de chapas para permitir digitar só o número.
+        public string CodigoExibicao => Codigo.TrimStart('#');
+
         public double Espessura { get; set; }
         public double RaioDeDobra { get; set; }
         public double KFactor { get; set; }

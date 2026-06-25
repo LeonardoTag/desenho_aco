@@ -5,8 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="1200"
-             Background="#2C3E50"
-             Foreground="White"
+             Background="#ECEEF3"
+             Foreground="#1F2430"
              Focusable="True"
              PreviewKeyDown="EditorPecaView_PreviewKeyDown">
     <UserControl.Resources>
@@ -19,9 +19,18 @@
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="320"/>
         </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Tarja indicadora do modo atual (clássico/rápido e sub-fase) -->
+        <Border Grid.Row="0" Grid.ColumnSpan="3" Background="{Binding ModoAtualCor}" CornerRadius="6" Padding="10,6" Margin="5,0,5,8">
+            <TextBlock Text="{Binding ModoAtualTexto}" Foreground="White" FontWeight="Bold" FontSize="13" HorizontalAlignment="Center"/>
+        </Border>
 
         <!-- Painel Esquerdo: Entrada de Segmentos -->
-        <Border Grid.Column="0" Background="#34495E" CornerRadius="8" Padding="10" Margin="5">
+        <Border Grid.Row="1" Grid.Column="0" Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="10" Margin="5">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -35,8 +44,8 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Text="ADICIONAR SEGMENTO" FontSize="14" FontWeight="Bold" Foreground="#3498DB" VerticalAlignment="Center"/>
-                    <CheckBox Grid.Column="1" Content="Modo Rápido" IsChecked="{Binding ModoRapidoAtivo}" Foreground="White" VerticalAlignment="Center"/>
+                    <TextBlock Text="ADICIONAR SEGMENTO" FontSize="14" FontWeight="Bold" Foreground="#12153F" VerticalAlignment="Center"/>
+                    <CheckBox Grid.Column="1" Content="Modo Rápido" IsChecked="{Binding ModoRapidoAtivo}" Foreground="#1F2430" VerticalAlignment="Center"/>
                 </Grid>
 
                 <!-- Painel Modo Rápido (teclado: setas/WASD, G = ângulo, Enter = confirmar, Backspace/Ctrl+Backspace = desfazer, E = focar chapa) -->
@@ -52,17 +61,17 @@
                         </Style>
                     </StackPanel.Style>
 
-                    <TextBlock Text="{Binding StatusModoRapido}" TextWrapping="Wrap" FontSize="11" Foreground="#F1C40F" Margin="0,0,0,8"/>
+                    <TextBlock Text="{Binding StatusModoRapido}" TextWrapping="Wrap" FontSize="11" Foreground="#7A5C00" Margin="0,0,0,8"/>
 
                     <UniformGrid Columns="3" Rows="3" Height="110" Visibility="{Binding EstaNaFaseDesenho, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,0,8">
                         <Border/>
-                        <Button Content="▲ N" Command="{Binding AdicionarSegmentoRapidoCommand}" CommandParameter="N" Margin="2" Background="#2980B9" Foreground="White" BorderThickness="0"/>
+                        <Button Content="▲ N" Command="{Binding AdicionarSegmentoRapidoCommand}" CommandParameter="N" Margin="2" Background="#12153F" Foreground="White" BorderThickness="0"/>
                         <Border/>
-                        <Button Content="◄ W" Command="{Binding AdicionarSegmentoRapidoCommand}" CommandParameter="W" Margin="2" Background="#2980B9" Foreground="White" BorderThickness="0"/>
+                        <Button Content="◄ W" Command="{Binding AdicionarSegmentoRapidoCommand}" CommandParameter="W" Margin="2" Background="#12153F" Foreground="White" BorderThickness="0"/>
                         <Border/>
-                        <Button Content="E ►" Command="{Binding AdicionarSegmentoRapidoCommand}" CommandParameter="E" Margin="2" Background="#2980B9" Foreground="White" BorderThickness="0"/>
+                        <Button Content="E ►" Command="{Binding AdicionarSegmentoRapidoCommand}" CommandParameter="E" Margin="2" Background="#12153F" Foreground="White" BorderThickness="0"/>
                         <Border/>
-                        <Button Content="▼ S" Command="{Binding AdicionarSegmentoRapidoCommand}" CommandParameter="S" Margin="2" Background="#2980B9" Foreground="White" BorderThickness="0"/>
+                        <Button Content="▼ S" Command="{Binding AdicionarSegmentoRapidoCommand}" CommandParameter="S" Margin="2" Background="#12153F" Foreground="White" BorderThickness="0"/>
                         <Border/>
                     </UniformGrid>
 
@@ -71,7 +80,7 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Button Content="Ângulo (G)" Command="{Binding EntrarFaseGrauCommand}" Margin="2" Background="#7F8C8D" Foreground="White" BorderThickness="0" Height="26"/>
+                        <Button Content="Ângulo (G)" Command="{Binding EntrarFaseGrauCommand}" Margin="2" Background="#5B6472" Foreground="White" BorderThickness="0" Height="26"/>
                         <Button Grid.Column="1" Content="Concluir Forma (Enter)" Command="{Binding ConfirmarEsqueletoRapidoCommand}" Margin="2" Background="#27AE60" Foreground="White" BorderThickness="0" Height="26"/>
                     </Grid>
 
@@ -120,7 +129,7 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Margin="2">
-                        <TextBlock Text="Direção:" Margin="0,0,0,3" FontSize="11" Foreground="#BDC3C7"/>
+                        <TextBlock Text="Direção:" Margin="0,0,0,3" FontSize="11" Foreground="#5B6472"/>
                         <ComboBox SelectedValue="{Binding SegDirecao}" SelectedValuePath="Content">
                             <ComboBoxItem Content="N"/>
                             <ComboBoxItem Content="E"/>
@@ -130,27 +139,27 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Margin="2">
-                        <TextBlock Text="Ângulo (graus):" Margin="0,0,0,3" FontSize="11" Foreground="#BDC3C7"/>
+                        <TextBlock Text="Ângulo (graus):" Margin="0,0,0,3" FontSize="11" Foreground="#5B6472"/>
                         <TextBox Text="{Binding SegAngulo, UpdateSourceTrigger=PropertyChanged}"/>
                     </StackPanel>
 
                     <StackPanel Grid.Row="1" Margin="2">
-                        <TextBlock Text="Medida (mm):" Margin="0,0,0,3" FontSize="11" Foreground="#BDC3C7"/>
+                        <TextBlock Text="Medida (mm):" Margin="0,0,0,3" FontSize="11" Foreground="#5B6472"/>
                         <TextBox Text="{Binding SegMedida, UpdateSourceTrigger=PropertyChanged}"/>
                     </StackPanel>
 
                     <StackPanel Grid.Row="1" Grid.Column="1" Margin="2">
-                        <TextBlock Text="Tipo de Medida:" Margin="0,0,0,3" FontSize="11" Foreground="#BDC3C7"/>
+                        <TextBlock Text="Tipo de Medida:" Margin="0,0,0,3" FontSize="11" Foreground="#5B6472"/>
                         <ComboBox SelectedValue="{Binding SegTipoMedida}" SelectedValuePath="Content">
                             <ComboBoxItem Content="e" Tag="Externa"/>
                             <ComboBoxItem Content="i" Tag="Interna"/>
                         </ComboBox>
                     </StackPanel>
 
-                    <CheckBox Grid.Row="2" Grid.ColumnSpan="2" Content="Segmento Curvo (Calandra)" IsChecked="{Binding SegEhCurvo}" Margin="2,8,2,2" Foreground="White"/>
+                    <CheckBox Grid.Row="2" Grid.ColumnSpan="2" Content="Segmento Curvo (Calandra)" IsChecked="{Binding SegEhCurvo}" Margin="2,8,2,2" Foreground="#1F2430"/>
 
                     <!-- Detalhes Calandra -->
-                    <Border Grid.Row="3" Grid.ColumnSpan="2" Visibility="{Binding SegEhCurvo, Converter={StaticResource BooleanToVisibilityConverter}}" Background="#2C3E50" Padding="5" Margin="2,5,2,2" CornerRadius="4">
+                    <Border Grid.Row="3" Grid.ColumnSpan="2" Visibility="{Binding SegEhCurvo, Converter={StaticResource BooleanToVisibilityConverter}}" Background="#ECEEF3" Padding="5" Margin="2,5,2,2" CornerRadius="4">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -161,19 +170,19 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             <StackPanel Margin="2">
-                                <TextBlock Text="Raio:" FontSize="10" Foreground="#BDC3C7"/>
+                                <TextBlock Text="Raio:" FontSize="10" Foreground="#5B6472"/>
                                 <TextBox Text="{Binding SegCurvaRaio}" FontSize="11"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Margin="2">
-                                <TextBlock Text="Comprimento:" FontSize="10" Foreground="#BDC3C7"/>
+                                <TextBlock Text="Comprimento:" FontSize="10" Foreground="#5B6472"/>
                                 <TextBox Text="{Binding SegCurvaComprimento}" FontSize="11"/>
                             </StackPanel>
                             <StackPanel Grid.Row="1" Margin="2">
-                                <TextBlock Text="Ângulo Curva:" FontSize="10" Foreground="#BDC3C7"/>
+                                <TextBlock Text="Ângulo Curva:" FontSize="10" Foreground="#5B6472"/>
                                 <TextBox Text="{Binding SegCurvaAngulo}" FontSize="11"/>
                             </StackPanel>
                             <StackPanel Grid.Row="1" Grid.Column="1" Margin="2">
-                                <TextBlock Text="Tipo Raio:" FontSize="10" Foreground="#BDC3C7"/>
+                                <TextBlock Text="Tipo Raio:" FontSize="10" Foreground="#5B6472"/>
                                 <ComboBox SelectedValue="{Binding SegCurvaTipoRaio}" SelectedValuePath="Content" FontSize="11">
                                     <ComboBoxItem Content="externo"/>
                                     <ComboBoxItem Content="interno"/>
@@ -185,10 +194,10 @@
                     <Button Grid.Row="4" Grid.ColumnSpan="2" Content="Adicionar Segmento" Command="{Binding AdicionarSegmentoCommand}" Margin="2,10,2,2" Background="#27AE60" Foreground="White" BorderThickness="0" Height="26"/>
                 </Grid>
 
-                <TextBlock Grid.Row="2" Text="SEGMENTOS ADICIONADOS" FontSize="12" FontWeight="Bold" Foreground="#3498DB" Margin="0,10,0,5"/>
+                <TextBlock Grid.Row="2" Text="SEGMENTOS ADICIONADOS" FontSize="12" FontWeight="Bold" Foreground="#12153F" Margin="0,10,0,5"/>
 
                 <!-- Tabela de Segmentos -->
-                <DataGrid Grid.Row="2" ItemsSource="{Binding Segmentos}" SelectedItem="{Binding SelectedSegmento}" AutoGenerateColumns="False" CanUserAddRows="False" Background="#2C3E50" Foreground="White" RowBackground="#34495E" AlternatingRowBackground="#2C3E50" BorderThickness="0" Margin="0,25,0,0">
+                <DataGrid Grid.Row="2" ItemsSource="{Binding Segmentos}" SelectedItem="{Binding SelectedSegmento}" AutoGenerateColumns="False" CanUserAddRows="False" Background="#ECEEF3" Foreground="#1F2430" RowBackground="#FFFFFF" AlternatingRowBackground="#ECEEF3" BorderThickness="0" Margin="0,25,0,0">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Dir" Binding="{Binding Direcao}" Width="35"/>
                         <DataGridTextColumn Header="Ang" Binding="{Binding Angulo}" Width="45"/>
@@ -200,27 +209,27 @@
 
                 <!-- Ações de Tabela -->
                 <UniformGrid Grid.Row="3" Columns="2" Margin="0,5,0,0">
-                    <Button Content="Limpar Tudo" Command="{Binding LimparSegmentosCommand}" Margin="2" Background="#C0392B" Foreground="White" BorderThickness="0" Height="25"/>
+                    <Button Content="Limpar Tudo" Command="{Binding LimparSegmentosCommand}" Margin="2" Background="#E8333D" Foreground="White" BorderThickness="0" Height="25"/>
                     <Button Content="Remover Sel." Command="{Binding RemoverSegmentoCommand}" CommandParameter="{Binding SelectedSegmento}" Margin="2" Background="#D35400" Foreground="White" BorderThickness="0" Height="25"/>
                 </UniformGrid>
             </Grid>
         </Border>
 
         <!-- Painel Central: Desenho e Preview -->
-        <Grid Grid.Column="1" Margin="5">
+        <Grid Grid.Row="1" Grid.Column="1" Margin="5">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="85"/>
             </Grid.RowDefinitions>
 
-            <Border Background="#34495E" CornerRadius="8" Padding="5" Grid.Row="0">
+            <Border Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="5" Grid.Row="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Image Grid.Row="0" Source="{Binding PreviewImage}" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Row="0" Text="Comece a desenhar para visualizar a prévia." HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#7F8C8D" FontSize="14" FontStyle="Italic">
+                    <TextBlock Grid.Row="0" Text="Comece a desenhar para visualizar a prévia." HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#5B6472" FontSize="14" FontStyle="Italic">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -232,18 +241,18 @@
                             </Style>
                         </TextBlock.Style>
                     </TextBlock>
-                    <TextBlock Grid.Row="1" Text="{Binding DimensoesTotaisTexto}" HorizontalAlignment="Center" Foreground="#F1C40F" FontSize="12" FontWeight="Bold" Margin="0,4,0,2"/>
+                    <TextBlock Grid.Row="1" Text="{Binding DimensoesTotaisTexto}" HorizontalAlignment="Center" Foreground="#7A5C00" FontSize="12" FontWeight="Bold" Margin="0,4,0,2"/>
                 </Grid>
             </Border>
 
             <!-- Avisos e BBox -->
-            <Border Grid.Row="1" Background="#2C3E50" BorderBrush="#E67E22" BorderThickness="1" CornerRadius="8" Padding="5" Margin="0,5,0,0">
+            <Border Grid.Row="1" Background="#ECEEF3" BorderBrush="#E67E22" BorderThickness="1" CornerRadius="8" Padding="5" Margin="0,5,0,0">
                 <ListBox ItemsSource="{Binding Avisos}" Background="Transparent" BorderThickness="0" Foreground="#E67E22" FontSize="11"/>
             </Border>
         </Grid>
 
         <!-- Painel Direito: Configuração da Peça e Gerador -->
-        <Grid Grid.Column="2" Margin="5">
+        <Grid Grid.Row="1" Grid.Column="2" Margin="5">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -251,27 +260,27 @@
             </Grid.RowDefinitions>
 
             <!-- Propriedades da Peça -->
-            <Border Background="#34495E" CornerRadius="8" Padding="10" Margin="0,0,0,10">
+            <Border Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,10">
                 <StackPanel>
-                    <TextBlock Text="PROPRIEDADES DA PEÇA" FontSize="13" FontWeight="Bold" Foreground="#3498DB" Margin="0,0,0,8"/>
-                    <TextBlock Text="Nome da Peça:" FontSize="10" Foreground="#BDC3C7"/>
+                    <TextBlock Text="PROPRIEDADES DA PEÇA" FontSize="13" FontWeight="Bold" Foreground="#12153F" Margin="0,0,0,8"/>
+                    <TextBlock Text="Nome da Peça:" FontSize="10" Foreground="#5B6472"/>
                     <TextBox Text="{Binding NomePeca, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,8"/>
 
-                    <TextBlock Text="Comprimento (mm) — tecla C:" FontSize="10" Foreground="#BDC3C7"/>
-                    <TextBox x:Name="ComprimentoTextBox" Text="{Binding ComprimentoPeca, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" Margin="0,2,0,8"/>
+                    <TextBlock Text="Comprimento (mm) — tecla C:" FontSize="10" Foreground="#5B6472"/>
+                    <TextBox x:Name="ComprimentoTextBox" Text="{Binding ComprimentoPeca, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" IsEnabled="{Binding ComprimentoUnicoHabilitado}" Margin="0,2,0,8"/>
 
-                    <TextBlock Text="Chapa:" FontSize="10" Foreground="#BDC3C7"/>
-                    <ComboBox x:Name="ChapaComboBox" ItemsSource="{Binding Chapas}" SelectedItem="{Binding ChapaSelecionada}" DisplayMemberPath="Codigo" Margin="0,2,0,8"/>
+                    <TextBlock Text="Chapa:" FontSize="10" Foreground="#5B6472"/>
+                    <ComboBox x:Name="ChapaComboBox" ItemsSource="{Binding Chapas}" SelectedItem="{Binding ChapaSelecionada}" DisplayMemberPath="CodigoExibicao" TextSearch.TextPath="CodigoExibicao" Margin="0,2,0,8"/>
 
                     <UniformGrid Columns="2" Margin="0,5,0,0">
-                        <Button Content="Salvar Biblioteca" Command="{Binding SalvarNaBibliotecaCommand}" Margin="2" Background="#2980B9" Foreground="White" BorderThickness="0" Height="26"/>
+                        <Button Content="Salvar Biblioteca" Command="{Binding SalvarNaBibliotecaCommand}" Margin="2" Background="#12153F" Foreground="White" BorderThickness="0" Height="26"/>
                         <Button Content="Ficha Dobra (PDF)" Command="{Binding GerarFichaDobraCommand}" Margin="2" Background="#8E44AD" Foreground="White" BorderThickness="0" Height="26"/>
                     </UniformGrid>
                 </StackPanel>
             </Border>
 
             <!-- Adicionar ao Pedido -->
-            <Border Grid.Row="1" Background="#34495E" CornerRadius="8" Padding="10" Margin="0,0,0,10">
+            <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,10">
                 <StackPanel>
                     <TextBlock Text="ADICIONAR À ORDEM DE PRODUÇÃO (Shift+Enter)" FontSize="13" FontWeight="Bold" Foreground="#27AE60" Margin="0,0,0,8"/>
                     <Grid>
@@ -280,17 +289,17 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Margin="0,0,5,0">
-                            <TextBlock Text="Quantidade:" FontSize="10" Foreground="#BDC3C7"/>
+                            <TextBlock Text="Quantidade:" FontSize="10" Foreground="#5B6472"/>
                             <TextBox Text="{Binding PedidoQuantidade}" Margin="0,2,0,8"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1">
-                            <TextBlock Text="Observação:" FontSize="10" Foreground="#BDC3C7"/>
+                            <TextBlock Text="Observação:" FontSize="10" Foreground="#5B6472"/>
                             <TextBox Text="{Binding PedidoObservacao}" Margin="0,2,0,8"/>
                         </StackPanel>
                     </Grid>
-                    <CheckBox Content="Habilitar múltiplos comprimentos" IsChecked="{Binding MultiplosComprimentosHabilitado}" Foreground="White" Margin="0,0,0,5"/>
+                    <CheckBox Content="Habilitar múltiplos comprimentos" IsChecked="{Binding MultiplosComprimentosHabilitado}" Foreground="#1F2430" Margin="0,0,0,5"/>
                     <StackPanel Visibility="{Binding MultiplosComprimentosHabilitado, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <TextBlock Text="Comprimentos e Quantidades (ex: 10x3000, 10x2000, 50x500):" FontSize="10" Foreground="#BDC3C7"/>
+                        <TextBlock Text="Comprimentos e Quantidades (ex: 10x3000, 10x2000, 50x500):" FontSize="10" Foreground="#5B6472"/>
                         <TextBox Text="{Binding ComprimentosMultiplosTexto, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,8"/>
                     </StackPanel>
                     <Button Content="Adicionar à Ordem" Command="{Binding AdicionarAoPedidoCommand}" Background="#27AE60" Foreground="White" BorderThickness="0" Height="26"/>
@@ -298,10 +307,10 @@
             </Border>
 
             <!-- Galeria de Geradores -->
-            <Border Grid.Row="2" Background="#34495E" CornerRadius="8" Padding="10">
+            <Border Grid.Row="2" Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="10">
                 <StackPanel>
                     <TextBlock Text="GALERIA DE GERADORES" FontSize="13" FontWeight="Bold" Foreground="#E67E22" Margin="0,0,0,8"/>
-                    <TextBlock Text="Gerador:" FontSize="9" Foreground="#BDC3C7"/>
+                    <TextBlock Text="Gerador:" FontSize="9" Foreground="#5B6472"/>
                     <ComboBox ItemsSource="{Binding GeradoresDisponiveis}" SelectedItem="{Binding GeradorSelecionado}" Margin="0,2,0,10"/>
 
                     <StackPanel Visibility="{Binding GeradorEhBoiadeira, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -316,27 +325,27 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             <StackPanel Margin="2">
-                                <TextBlock Text="Aba (Y):" FontSize="9" Foreground="#BDC3C7"/>
+                                <TextBlock Text="Aba (Y):" FontSize="9" Foreground="#5B6472"/>
                                 <TextBox Text="{Binding BoiadeiraAltura}" FontSize="11"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Margin="2">
-                                <TextBlock Text="Largura (X):" FontSize="9" Foreground="#BDC3C7"/>
+                                <TextBlock Text="Largura (X):" FontSize="9" Foreground="#5B6472"/>
                                 <TextBox Text="{Binding BoiadeiraLargura}" FontSize="11"/>
                             </StackPanel>
                             <StackPanel Grid.Row="1" Margin="2">
-                                <TextBlock Text="1° Gomo:" FontSize="9" Foreground="#BDC3C7"/>
+                                <TextBlock Text="1° Gomo:" FontSize="9" Foreground="#5B6472"/>
                                 <TextBox Text="{Binding BoiadeiraPrimeiroGomo}" FontSize="11"/>
                             </StackPanel>
                             <StackPanel Grid.Row="1" Grid.Column="1" Margin="2">
-                                <TextBlock Text="Gomo Sup:" FontSize="9" Foreground="#BDC3C7"/>
+                                <TextBlock Text="Gomo Sup:" FontSize="9" Foreground="#5B6472"/>
                                 <TextBox Text="{Binding BoiadeiraGomoSuperior}" FontSize="11"/>
                             </StackPanel>
                             <StackPanel Grid.Row="2" Margin="2">
-                                <TextBlock Text="Gomo Inf:" FontSize="9" Foreground="#BDC3C7"/>
+                                <TextBlock Text="Gomo Inf:" FontSize="9" Foreground="#5B6472"/>
                                 <TextBox Text="{Binding BoiadeiraGomoInferior}" FontSize="11"/>
                             </StackPanel>
                             <StackPanel Grid.Row="2" Grid.Column="1" Margin="2">
-                                <TextBlock Text="N° Gomos:" FontSize="9" Foreground="#BDC3C7"/>
+                                <TextBlock Text="N° Gomos:" FontSize="9" Foreground="#5B6472"/>
                                 <TextBox Text="{Binding BoiadeiraNumGomos}" FontSize="11"/>
                             </StackPanel>
                         </Grid>
@@ -350,11 +359,11 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Margin="2">
-                                <TextBlock Text="Diâmetro (mm):" FontSize="9" Foreground="#BDC3C7"/>
+                                <TextBlock Text="Diâmetro (mm):" FontSize="9" Foreground="#5B6472"/>
                                 <TextBox Text="{Binding TuboDiametro}" FontSize="11"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Margin="2">
-                                <TextBlock Text="Tipo Diâmetro:" FontSize="9" Foreground="#BDC3C7"/>
+                                <TextBlock Text="Tipo Diâmetro:" FontSize="9" Foreground="#5B6472"/>
                                 <ComboBox SelectedValue="{Binding TuboTipoDiametro}" SelectedValuePath="Content" FontSize="11">
                                     <ComboBoxItem Content="externo"/>
                                     <ComboBoxItem Content="interno"/>

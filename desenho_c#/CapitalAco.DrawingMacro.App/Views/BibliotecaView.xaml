@@ -5,8 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="1200"
-             Background="#2C3E50"
-             Foreground="White">
+             Background="#ECEEF3"
+             Foreground="#1F2430">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -14,27 +14,27 @@
         </Grid.RowDefinitions>
 
         <!-- Filtro/Busca -->
-        <Border Grid.Row="0" Background="#34495E" CornerRadius="8" Padding="10" Margin="5">
+        <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="10" Margin="5">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="Buscar Peça:" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="14" FontWeight="Bold" Foreground="#3498DB"/>
-                    <TextBox Text="{Binding Filtro, UpdateSourceTrigger=PropertyChanged}" Width="300" Height="26" VerticalContentAlignment="Center" Margin="0,0,10,0" Background="#2C3E50" Foreground="White" BorderBrush="#7F8C8D">
+                    <TextBlock Text="Buscar Peça:" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="14" FontWeight="Bold" Foreground="#12153F"/>
+                    <TextBox Text="{Binding Filtro, UpdateSourceTrigger=PropertyChanged}" Width="300" Height="26" VerticalContentAlignment="Center" Margin="0,0,10,0" Background="#ECEEF3" Foreground="#1F2430" BorderBrush="#5B6472">
                         <TextBox.InputBindings>
                             <KeyBinding Key="Enter" Command="{Binding PesquisarCommand}"/>
                         </TextBox.InputBindings>
                     </TextBox>
-                    <Button Content="Pesquisar" Command="{Binding PesquisarCommand}" Width="100" Height="26" Background="#3498DB" Foreground="White" BorderThickness="0" FontWeight="SemiBold"/>
+                    <Button Content="Pesquisar" Command="{Binding PesquisarCommand}" Width="100" Height="26" Background="#12153F" Foreground="White" BorderThickness="0" FontWeight="SemiBold"/>
                 </StackPanel>
-                <Button Grid.Column="1" Content="Atualizar Lista" Command="{Binding CarregarModelosCommand}" Width="120" Height="26" Background="#95A5A6" Foreground="White" BorderThickness="0" FontWeight="SemiBold"/>
+                <Button Grid.Column="1" Content="Atualizar Lista" Command="{Binding CarregarModelosCommand}" Width="120" Height="26" Background="#5B6472" Foreground="White" BorderThickness="0" FontWeight="SemiBold"/>
             </Grid>
         </Border>
 
         <!-- Lista de Peças -->
-        <Border Grid.Row="1" Background="#34495E" CornerRadius="8" Padding="10" Margin="5">
+        <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="10" Margin="5">
             <ListBox ItemsSource="{Binding Modelos}" Background="Transparent" BorderThickness="0" Margin="5" HorizontalContentAlignment="Stretch">
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
@@ -46,23 +46,23 @@
                 </ListBox.ItemContainerStyle>
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <Border Background="#2C3E50" BorderBrush="#7F8C8D" BorderThickness="1" CornerRadius="6" Padding="10" Margin="0,0,0,8">
+                        <Border Background="#ECEEF3" BorderBrush="#5B6472" BorderThickness="1" CornerRadius="6" Padding="10" Margin="0,0,0,8">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding Nome}" FontSize="16" FontWeight="Bold" Foreground="#3498DB"/>
+                                    <TextBlock Text="{Binding Nome}" FontSize="16" FontWeight="Bold" Foreground="#12153F"/>
                                     <WrapPanel Margin="0,5,0,0">
-                                        <TextBlock Text="{Binding Chapa, StringFormat='Chapa: {0}'}" FontSize="12" Foreground="#BDC3C7" Margin="0,0,15,0"/>
-                                        <TextBlock Text="{Binding Comprimento, StringFormat='Comprimento: {0} mm'}" FontSize="12" Foreground="#BDC3C7" Margin="0,0,15,0"/>
-                                        <TextBlock Text="{Binding Segmentos.Count, StringFormat='Dobras: {0}'}" FontSize="12" Foreground="#BDC3C7"/>
+                                        <TextBlock Text="{Binding Chapa, StringFormat='Chapa: {0}'}" FontSize="12" Foreground="#5B6472" Margin="0,0,15,0"/>
+                                        <TextBlock Text="{Binding Comprimento, StringFormat='Comprimento: {0} mm'}" FontSize="12" Foreground="#5B6472" Margin="0,0,15,0"/>
+                                        <TextBlock Text="{Binding Segmentos.Count, StringFormat='Dobras: {0}'}" FontSize="12" Foreground="#5B6472"/>
                                     </WrapPanel>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                     <Button Content="Carregar no Editor" Command="{Binding DataContext.CarregarNoEditorCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Margin="0,0,10,0" Padding="10,5" Background="#27AE60" Foreground="White" BorderThickness="0" FontWeight="SemiBold" Height="30"/>
-                                    <Button Content="Excluir" Command="{Binding DataContext.ExcluirPecaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Padding="10,5" Background="#C0392B" Foreground="White" BorderThickness="0" FontWeight="SemiBold" Height="30"/>
+                                    <Button Content="Excluir" Command="{Binding DataContext.ExcluirPecaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Padding="10,5" Background="#E8333D" Foreground="White" BorderThickness="0" FontWeight="SemiBold" Height="30"/>
                                 </StackPanel>
                             </Grid>
                         </Border>

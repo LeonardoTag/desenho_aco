@@ -104,6 +104,13 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         [ObservableProperty]
         private string _statusModoRapido = string.Empty;
 
+        // Tarja visível com o modo atual (clássico/rápido e sub-fase), para orientar o usuário e dar contexto ao ESC.
+        [ObservableProperty]
+        private string _modoAtualTexto = "MODO CLÁSSICO — edição manual de segmentos";
+
+        [ObservableProperty]
+        private Brush _modoAtualCor = new SolidColorBrush(Color.FromRgb(0x34, 0x49, 0x5E));
+
         private double? _proximoGrauPersonalizado;
 
         // Galeria de Geradores de Peças
@@ -160,6 +167,11 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
 
         [ObservableProperty]
         private string _comprimentosMultiplosTexto = string.Empty;
+
+        // O comprimento único só faz sentido quando os múltiplos comprimentos estão desligados.
+        public bool ComprimentoUnicoHabilitado => !MultiplosComprimentosHabilitado;
+
+        partial void OnMultiplosComprimentosHabilitadoChanged(bool value) => OnPropertyChanged(nameof(ComprimentoUnicoHabilitado));
 
         // Evento para enviar itens ao carrinho do pedido
         public event Action<PecaPedidoItem>? EnviarAoPedido;
@@ -339,7 +351,9 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             if (!ModoRapidoAtivo || FaseRapida != FaseModoRapido.Desenho) return;
             if (Segmentos.Count == 0) return;
 
-            GrauRapidoAtual = _proximoGrauPersonalizado ?? 90.0;
+            // Sempre reinicia em 90° e seleciona o campo: voltar ao padrão é só G + Enter,
+            // e mudar para outro ângulo é só digitar por cima do valor já selecionado.
+            GrauRapidoAtual = 90.0;
             FaseRapida = FaseModoRapido.Grau;
             AtualizarStatusModoRapido();
         }
@@ -436,8 +450,66 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             Segmentos[indice] = seg; // força notificação (refresh do DataGrid + prévia)
         }
 
+        // ESC: sai um nível do modo/sub-fase atual, sem apagar dados já confirmados (diferente do Ctrl+Backspace).
+        [RelayCommand]
+        public void SairDoModoAtual()
+        {
+            if (!ModoRapidoAtivo) return;
+
+            switch (FaseRapida)
+            {
+                case FaseModoRapido.Grau:
+                case FaseModoRapido.Medidas:
+                    FaseRapida = FaseModoRapido.Desenho;
+                    break;
+
+                case FaseModoRapido.Concluido:
+                    FaseRapida = FaseModoRapido.Medidas;
+                    IndiceMedidaRapida = Math.Max(Segmentos.Count - 1, 0);
+                    break;
+
+                case FaseModoRapido.Desenho:
+                    ModoRapidoAtivo = false;
+                    break;
+            }
+
+            AtualizarStatusModoRapido();
+        }
+
+        private void AtualizarModoAtual()
+        {
+            if (!ModoRapidoAtivo)
+            {
+                ModoAtualTexto = "MODO CLÁSSICO — edição manual de segmentos";
+                ModoAtualCor = new SolidColorBrush(Color.FromRgb(0x34, 0x49, 0x5E));
+                return;
+            }
+
+            switch (FaseRapida)
+            {
+                case FaseModoRapido.Desenho:
+                    ModoAtualTexto = "MODO RÁPIDO — Desenhando forma (Esc sai para o Modo Clássico)";
+                    ModoAtualCor = new SolidColorBrush(Color.FromRgb(0x29, 0x80, 0xB9));
+                    break;
+                case FaseModoRapido.Grau:
+                    ModoAtualTexto = "MODO RÁPIDO — Alterando ângulo (Esc cancela)";
+                    ModoAtualCor = new SolidColorBrush(Color.FromRgb(0xF3, 0x9C, 0x12));
+                    break;
+                case FaseModoRapido.Medidas:
+                    ModoAtualTexto = $"MODO RÁPIDO — Inserindo medida {IndiceMedidaRapida + 1}/{Segmentos.Count} (Esc volta)";
+                    ModoAtualCor = new SolidColorBrush(Color.FromRgb(0x8E, 0x44, 0xAD));
+                    break;
+                case FaseModoRapido.Concluido:
+                    ModoAtualTexto = "MODO RÁPIDO — Peça concluída (Esc revisa última medida)";
+                    ModoAtualCor = new SolidColorBrush(Color.FromRgb(0x27, 0xAE, 0x60));
+                    break;
+            }
+        }
+
         private void AtualizarStatusModoRapido()
         {
+            AtualizarModoAtual();
+
             if (!ModoRapidoAtivo)
             {
                 StatusModoRapido = string.Empty;

@@ -5,21 +5,21 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="1200"
-             Background="#2C3E50"
-             Foreground="White">
+             Background="#ECEEF3"
+             Foreground="#1F2430">
     <UserControl.Resources>
         <Style x:Key="FonteLabel" TargetType="TextBlock">
             <Setter Property="FontSize" Value="10"/>
-            <Setter Property="Foreground" Value="#BDC3C7"/>
+            <Setter Property="Foreground" Value="#5B6472"/>
             <Setter Property="Margin" Value="0,0,0,3"/>
         </Style>
         <Style x:Key="FonteBox" TargetType="TextBox">
             <Setter Property="Height" Value="24"/>
             <Setter Property="Margin" Value="2,0,2,8"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Background" Value="#2C3E50"/>
+            <Setter Property="Background" Value="#ECEEF3"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#7F8C8D"/>
+            <Setter Property="BorderBrush" Value="#5B6472"/>
         </Style>
     </UserControl.Resources>
     <Grid Margin="10">
@@ -36,20 +36,20 @@
             </Grid.ColumnDefinitions>
 
             <!-- Painel Esquerdo: Relatórios -->
-            <Border Background="#34495E" CornerRadius="8" Padding="15" Margin="5">
+            <Border Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="15" Margin="5">
                 <StackPanel>
-                    <TextBlock Text="CONFIGURAÇÕES GERAIS DE RELATÓRIO" FontSize="15" FontWeight="Bold" Foreground="#3498DB" Margin="0,0,0,15"/>
+                    <TextBlock Text="CONFIGURAÇÕES GERAIS DE RELATÓRIO" FontSize="15" FontWeight="Bold" Foreground="#12153F" Margin="0,0,0,15"/>
 
-                    <TextBlock Text="Responsável / Emissor do Relatório:" FontSize="12" Foreground="#BDC3C7" Margin="0,0,0,5"/>
-                    <TextBox Text="{Binding Responsavel, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,15" Height="26" VerticalContentAlignment="Center" Background="#2C3E50" Foreground="White" BorderBrush="#7F8C8D"/>
+                    <TextBlock Text="Responsável / Emissor do Relatório:" FontSize="12" Foreground="#5B6472" Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding Responsavel, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,15" Height="26" VerticalContentAlignment="Center" Background="#ECEEF3" Foreground="#1F2430" BorderBrush="#5B6472"/>
 
-                    <TextBlock Text="Observação Geral Padrão (Ficha de Pedido):" FontSize="12" Foreground="#BDC3C7" Margin="0,0,0,5"/>
-                    <TextBox Text="{Binding ObservacaoPadrao, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="True" Height="150" VerticalContentAlignment="Top" Padding="5" Background="#2C3E50" Foreground="White" BorderBrush="#7F8C8D"/>
+                    <TextBlock Text="Observação Geral Padrão (Ficha de Pedido):" FontSize="12" Foreground="#5B6472" Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding ObservacaoPadrao, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="True" Height="150" VerticalContentAlignment="Top" Padding="5" Background="#ECEEF3" Foreground="#1F2430" BorderBrush="#5B6472"/>
                 </StackPanel>
             </Border>
 
             <!-- Painel Direito: Parâmetros Boiadeira -->
-            <Border Grid.Column="1" Background="#34495E" CornerRadius="8" Padding="15" Margin="5">
+            <Border Grid.Column="1" Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="15" Margin="5">
                 <StackPanel>
                     <TextBlock Text="PARÂMETROS PADRÃO - PERFIL BOIADEIRA" FontSize="15" FontWeight="Bold" Foreground="#E67E22" Margin="0,0,0,15"/>
 
@@ -66,32 +66,32 @@
 
                         <!-- Linha 0 -->
                         <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,15">
-                            <TextBlock Text="Altura Lateral Aba (Y) (mm):" FontSize="11" Foreground="#BDC3C7" Margin="0,0,0,5"/>
-                            <TextBox Text="{Binding BoiadeiraAltura, UpdateSourceTrigger=PropertyChanged}" Height="26" VerticalContentAlignment="Center" Background="#2C3E50" Foreground="White" BorderBrush="#7F8C8D"/>
+                            <TextBlock Text="Altura Lateral Aba (Y) (mm):" FontSize="11" Foreground="#5B6472" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding BoiadeiraAltura, UpdateSourceTrigger=PropertyChanged}" Height="26" VerticalContentAlignment="Center" Background="#ECEEF3" Foreground="#1F2430" BorderBrush="#5B6472"/>
                         </StackPanel>
                         <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,15">
-                            <TextBlock Text="Largura Total Peça (X) (mm):" FontSize="11" Foreground="#BDC3C7" Margin="0,0,0,5"/>
-                            <TextBox Text="{Binding BoiadeiraLargura, UpdateSourceTrigger=PropertyChanged}" Height="26" VerticalContentAlignment="Center" Background="#2C3E50" Foreground="White" BorderBrush="#7F8C8D"/>
+                            <TextBlock Text="Largura Total Peça (X) (mm):" FontSize="11" Foreground="#5B6472" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding BoiadeiraLargura, UpdateSourceTrigger=PropertyChanged}" Height="26" VerticalContentAlignment="Center" Background="#ECEEF3" Foreground="#1F2430" BorderBrush="#5B6472"/>
                         </StackPanel>
 
                         <!-- Linha 1 -->
                         <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,10,15">
-                            <TextBlock Text="Primeiro Gomo (mm):" FontSize="11" Foreground="#BDC3C7" Margin="0,0,0,5"/>
-                            <TextBox Text="{Binding BoiadeiraPrimeiroGomo, UpdateSourceTrigger=PropertyChanged}" Height="26" VerticalContentAlignment="Center" Background="#2C3E50" Foreground="White" BorderBrush="#7F8C8D"/>
+                            <TextBlock Text="Primeiro Gomo (mm):" FontSize="11" Foreground="#5B6472" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding BoiadeiraPrimeiroGomo, UpdateSourceTrigger=PropertyChanged}" Height="26" VerticalContentAlignment="Center" Background="#ECEEF3" Foreground="#1F2430" BorderBrush="#5B6472"/>
                         </StackPanel>
                         <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,15">
-                            <TextBlock Text="Altura Gomo Superior (mm):" FontSize="11" Foreground="#BDC3C7" Margin="0,0,0,5"/>
-                            <TextBox Text="{Binding BoiadeiraGomoSuperior, UpdateSourceTrigger=PropertyChanged}" Height="26" VerticalContentAlignment="Center" Background="#2C3E50" Foreground="White" BorderBrush="#7F8C8D"/>
+                            <TextBlock Text="Altura Gomo Superior (mm):" FontSize="11" Foreground="#5B6472" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding BoiadeiraGomoSuperior, UpdateSourceTrigger=PropertyChanged}" Height="26" VerticalContentAlignment="Center" Background="#ECEEF3" Foreground="#1F2430" BorderBrush="#5B6472"/>
                         </StackPanel>
 
                         <!-- Linha 2 -->
                         <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,10,15">
-                            <TextBlock Text="Altura Gomo Inferior (mm):" FontSize="11" Foreground="#BDC3C7" Margin="0,0,0,5"/>
-                            <TextBox Text="{Binding BoiadeiraGomoInferior, UpdateSourceTrigger=PropertyChanged}" Height="26" VerticalContentAlignment="Center" Background="#2C3E50" Foreground="White" BorderBrush="#7F8C8D"/>
+                            <TextBlock Text="Altura Gomo Inferior (mm):" FontSize="11" Foreground="#5B6472" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding BoiadeiraGomoInferior, UpdateSourceTrigger=PropertyChanged}" Height="26" VerticalContentAlignment="Center" Background="#ECEEF3" Foreground="#1F2430" BorderBrush="#5B6472"/>
                         </StackPanel>
                         <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,0,0,15">
-                            <TextBlock Text="Quantidade de Gomos (N):" FontSize="11" Foreground="#BDC3C7" Margin="0,0,0,5"/>
-                            <TextBox Text="{Binding BoiadeiraNumGomos, UpdateSourceTrigger=PropertyChanged}" Height="26" VerticalContentAlignment="Center" Background="#2C3E50" Foreground="White" BorderBrush="#7F8C8D"/>
+                            <TextBlock Text="Quantidade de Gomos (N):" FontSize="11" Foreground="#5B6472" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding BoiadeiraNumGomos, UpdateSourceTrigger=PropertyChanged}" Height="26" VerticalContentAlignment="Center" Background="#ECEEF3" Foreground="#1F2430" BorderBrush="#5B6472"/>
                         </StackPanel>
                     </Grid>
                 </StackPanel>
@@ -99,9 +99,9 @@
         </Grid>
 
         <!-- Painel: Tamanho de Fontes -->
-        <Border Grid.Row="1" Background="#34495E" CornerRadius="8" Padding="15" Margin="5,5,5,0">
+        <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="15" Margin="5,5,5,0">
             <StackPanel>
-                <TextBlock Text="TAMANHO DE FONTES" FontSize="15" FontWeight="Bold" Foreground="#9B59B6" Margin="0,0,0,15"/>
+                <TextBlock Text="TAMANHO DE FONTES" FontSize="15" FontWeight="Bold" Foreground="#7D3C98" Margin="0,0,0,15"/>
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -111,7 +111,7 @@
 
                     <!-- Coluna 1: Desenho/Preview -->
                     <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                        <TextBlock Text="Desenho / Prévia" FontSize="12" FontWeight="Bold" Foreground="#3498DB" Margin="0,0,0,8"/>
+                        <TextBlock Text="Desenho / Prévia" FontSize="12" FontWeight="Bold" Foreground="#12153F" Margin="0,0,0,8"/>
                         <TextBlock Text="Fonte mínima (preview):" Style="{StaticResource FonteLabel}"/>
                         <TextBox Text="{Binding FonteDesenhoBaseMinima, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
                         <TextBlock Text="Fonte mínima (relatório):" Style="{StaticResource FonteLabel}"/>
@@ -158,7 +158,7 @@
         </Border>
 
         <!-- Botão Salvar Global -->
-        <Border Grid.Row="2" Background="#34495E" CornerRadius="8" Padding="10" Margin="5,10,5,5">
+        <Border Grid.Row="2" Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="10" Margin="5,10,5,5">
             <Button Content="Salvar Todas as Configurações" Command="{Binding SalvarConfiguracoesCommand}" Background="#27AE60" Foreground="White" BorderThickness="0" Height="40" FontSize="15" FontWeight="Bold"/>
         </Border>
     </Grid>

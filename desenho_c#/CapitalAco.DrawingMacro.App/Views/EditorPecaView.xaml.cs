@@ -26,7 +26,10 @@ namespace CapitalAco.DrawingMacro.App.Views
         // para que o usuário possa digitar imediatamente, sem precisar usar o mouse.
         private void Vm_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName != nameof(EditorPecaViewModel.FaseRapida) || sender is not EditorPecaViewModel vm) return;
+            // IndiceMedidaRapida muda a cada Enter dentro da própria fase de Medidas (FaseRapida não muda),
+            // então também precisa disparar o reforco/seleção do campo para sobrescrever o valor seguinte.
+            if (e.PropertyName != nameof(EditorPecaViewModel.FaseRapida) && e.PropertyName != nameof(EditorPecaViewModel.IndiceMedidaRapida)) return;
+            if (sender is not EditorPecaViewModel vm) return;
 
             Dispatcher.BeginInvoke(new Action(() =>
             {
@@ -50,6 +53,17 @@ namespace CapitalAco.DrawingMacro.App.Views
             bool focoEmGrauOuMedida = ReferenceEquals(Keyboard.FocusedElement, GrauRapidoTextBox)
                 || ReferenceEquals(Keyboard.FocusedElement, MedidaRapidaTextBox);
             bool focoEmCampoDeTexto = Keyboard.FocusedElement is TextBox or ComboBox;
+
+            // Esc: sai um nível do modo/sub-fase atual do Modo Rápido (não faz nada no Modo Clássico).
+            if (e.Key == Key.Escape)
+            {
+                if (vm.ModoRapidoAtivo)
+                {
+                    vm.SairDoModoAtual();
+                    e.Handled = true;
+                }
+                return;
+            }
 
             // Shift+Enter: adiciona a peça atual à ordem de produção, de qualquer lugar do editor.
             if (e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.Shift)

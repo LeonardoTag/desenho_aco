@@ -5,8 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="1200"
-             Background="#2C3E50"
-             Foreground="White">
+             Background="#ECEEF3"
+             Foreground="#1F2430">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -14,7 +14,7 @@
         </Grid.RowDefinitions>
 
         <!-- Grade de Itens -->
-        <Border Grid.Row="0" Background="#34495E" CornerRadius="8" Padding="15" Margin="5">
+        <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="15" Margin="5">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -22,10 +22,10 @@
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Text="CARRINHO DA ORDEM DE PRODUÇÃO" FontSize="16" FontWeight="Bold" Foreground="#27AE60" Margin="0,0,0,10"/>
                 
-                <DataGrid Grid.Row="1" ItemsSource="{Binding Itens}" AutoGenerateColumns="False" CanUserAddRows="False" Background="#2C3E50" Foreground="White" RowBackground="#34495E" AlternatingRowBackground="#2C3E50" BorderThickness="0" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#5F6A6A" HeadersVisibility="Column">
+                <DataGrid Grid.Row="1" ItemsSource="{Binding Itens}" AutoGenerateColumns="False" CanUserAddRows="False" Background="#ECEEF3" Foreground="#1F2430" RowBackground="#FFFFFF" AlternatingRowBackground="#ECEEF3" BorderThickness="0" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#D7DAE3" HeadersVisibility="Column">
                     <DataGrid.Resources>
                         <Style TargetType="DataGridColumnHeader">
-                            <Setter Property="Background" Value="#1E2022"/>
+                            <Setter Property="Background" Value="#F4F5F9"/>
                             <Setter Property="Foreground" Value="White"/>
                             <Setter Property="FontWeight" Value="Bold"/>
                             <Setter Property="Padding" Value="10,5"/>
@@ -41,7 +41,7 @@
                         <DataGridTemplateColumn Header="Ações" Width="100">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Button Content="Remover" Command="{Binding DataContext.RemoverItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Margin="2" Background="#C0392B" Foreground="White" BorderThickness="0" Height="22" FontWeight="SemiBold" FontSize="11"/>
+                                    <Button Content="Remover" Command="{Binding DataContext.RemoverItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Margin="2" Background="#E8333D" Foreground="White" BorderThickness="0" Height="22" FontWeight="SemiBold" FontSize="11"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
@@ -51,7 +51,7 @@
         </Border>
 
         <!-- Observações e Ações Globais -->
-        <Border Grid.Row="1" Background="#34495E" CornerRadius="8" Padding="15" Margin="5,10,5,5">
+        <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="15" Margin="5,10,5,5">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -60,8 +60,8 @@
 
                 <!-- Observação Geral -->
                 <StackPanel Margin="0,0,20,0">
-                    <TextBlock Text="OBSERVAÇÃO GERAL (IMPRESSA NO RELATÓRIO):" FontSize="12" FontWeight="Bold" Foreground="#BDC3C7" Margin="0,0,0,5"/>
-                    <TextBox Text="{Binding Observacao, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="True" Height="70" Background="#2C3E50" Foreground="White" BorderBrush="#7F8C8D" VerticalContentAlignment="Top" Padding="5"/>
+                    <TextBlock Text="OBSERVAÇÃO GERAL (IMPRESSA NO RELATÓRIO):" FontSize="12" FontWeight="Bold" Foreground="#5B6472" Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding Observacao, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="True" Height="70" Background="#ECEEF3" Foreground="#1F2430" BorderBrush="#5B6472" VerticalContentAlignment="Top" Padding="5"/>
                 </StackPanel>
 
                 <!-- Botões de Ação -->

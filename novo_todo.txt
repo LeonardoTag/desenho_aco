@@ -1,0 +1,4 @@
+- Faça com que os itens da UI sejam dinâmicos com o tamanho da aba.
+- O programa demora um bocado para launch, algum motivo resolvível?
+- Gostaria que houvesse um botão que abrisse a pasta dos arquivos gerados de detalhamento de dobra e ordem de produção para o usuário pode selecionar o arquivo e destinar para onde quiser
+- Gostaria que quando o usuário clicasse para abrir o detalhamento de dobra ou a ordem de produção, o programa copiasse um "link" do arquivo para que se o usuário colasse em algum lugar, colasse o arquivo, como se tivesse dado ctrl+c no arquivo no windows explorer.

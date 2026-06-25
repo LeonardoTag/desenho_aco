@@ -4,29 +4,53 @@
         xmlns:views="clr-namespace:CapitalAco.DrawingMacro.App.Views"
         Title="Capital Aço Detalhador" Height="750" Width="1300"
         WindowStartupLocation="CenterScreen"
-        Background="#1E2022">
+        Background="#F4F5F9">
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Margin="0,0,0,20">
-            <TextBlock Text="CAPITAL AÇO" Foreground="#3498DB" FontSize="28" FontWeight="Bold" FontFamily="Segoe UI"/>
-            <TextBlock Text="Sistema de Detalhamento de Dobras e Geração de Pedidos (.NET 8)" Foreground="#95A5A6" FontSize="14" Margin="0,5,0,0" FontFamily="Segoe UI"/>
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20" VerticalAlignment="Center">
+            <Image Source="/Assets/logo.png" Height="48" Margin="0,0,15,0" VerticalAlignment="Center"/>
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="CAPITAL AÇO" Foreground="#12153F" FontSize="28" FontWeight="Bold" FontFamily="Segoe UI"/>
+                <TextBlock Text="Sistema de Detalhamento de Dobras e Geração de Pedidos (.NET 8)" Foreground="#5B6472" FontSize="14" Margin="0,5,0,0" FontFamily="Segoe UI"/>
+            </StackPanel>
         </StackPanel>
 
-        <TabControl Grid.Row="1" Background="#2C3E50" BorderBrush="#34495E" SelectedIndex="{Binding SelectedTabIndex}">
-            <TabItem Header="Editor de Peça" Background="#34495E" Foreground="White" Padding="12,5">
+        <TabControl Grid.Row="1" Background="#ECEEF3" BorderBrush="#FFFFFF" SelectedIndex="{Binding SelectedTabIndex}">
+            <TabControl.Resources>
+                <Style TargetType="TabItem">
+                    <Setter Property="Padding" Value="14,8"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="TabItem">
+                                <Border x:Name="Bd" Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1,1,1,0" CornerRadius="6,6,0,0" Margin="2,0,2,0" TextElement.Foreground="#1F2430">
+                                    <ContentPresenter ContentSource="Header" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="Bd" Property="Background" Value="#12153F"/>
+                                        <Setter TargetName="Bd" Property="TextElement.Foreground" Value="White"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </TabControl.Resources>
+            <TabItem Header="Editor de Peça">
                 <views:EditorPecaView DataContext="{Binding Editor}"/>
             </TabItem>
-            <TabItem Header="Biblioteca de Peças" Background="#34495E" Foreground="White" Padding="12,5">
+            <TabItem Header="Biblioteca de Peças">
                 <views:BibliotecaView DataContext="{Binding Biblioteca}"/>
             </TabItem>
-            <TabItem Header="Ordem de Produção" Background="#34495E" Foreground="White" Padding="12,5">
+            <TabItem Header="Ordem de Produção">
                 <views:PedidoView DataContext="{Binding Pedido}"/>
             </TabItem>
-            <TabItem Header="Configurações" Background="#34495E" Foreground="White" Padding="12,5">
+            <TabItem Header="Configurações">
                 <views:ConfiguracaoView DataContext="{Binding Configuracao}"/>
             </TabItem>
         </TabControl>
