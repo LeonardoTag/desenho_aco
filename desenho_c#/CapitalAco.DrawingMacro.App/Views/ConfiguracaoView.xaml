@@ -18,13 +18,14 @@
             <Setter Property="Margin" Value="2,0,2,8"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Background" Value="#ECEEF3"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Foreground" Value="#1F2430"/>
             <Setter Property="BorderBrush" Value="#5B6472"/>
         </Style>
     </UserControl.Resources>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
     <Grid Margin="10">
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -162,4 +163,5 @@
             <Button Content="Salvar Todas as Configurações" Command="{Binding SalvarConfiguracoesCommand}" Background="#27AE60" Foreground="White" BorderThickness="0" Height="40" FontSize="15" FontWeight="Bold"/>
         </Border>
     </Grid>
+    </ScrollViewer>
 </UserControl>

@@ -71,8 +71,6 @@ namespace CapitalAco.DrawingMacro.App
             var csvService = ServiceProvider.GetRequiredService<ICsvService>();
             var bibliotecaService = ServiceProvider.GetRequiredService<IBibliotecaPecasService>();
             var configService = ServiceProvider.GetRequiredService<IConfigService>();
-            var geometryService = ServiceProvider.GetRequiredService<IGeometryService>();
-            var geradorPecaService = ServiceProvider.GetRequiredService<IGeradorPecaService>();
 
             try
             {
@@ -87,10 +85,15 @@ namespace CapitalAco.DrawingMacro.App
                 var biblioteca = bibliotecaService.ListarModelos();
                 Log.Information("Pré-carregamento: {Count} modelos de peça carregados da biblioteca JSON com sucesso.", biblioteca.Count);
 
+#if DEBUG
+                // Testes de Regressão da Fase 3 e Integração da Fase 4 (geram PDFs de teste em disco):
+                // só fazem sentido durante o desenvolvimento. Em Release isso apenas atrasa a abertura do
+                // programa para o usuário final sem nenhum benefício, então são pulados fora do modo Debug.
+                var geometryService = ServiceProvider.GetRequiredService<IGeometryService>();
+                var geradorPecaService = ServiceProvider.GetRequiredService<IGeradorPecaService>();
                 var pdfGeneratorService = ServiceProvider.GetRequiredService<IPdfGeneratorService>();
-
-                // Executar Testes de Regressão da Fase 3 e Integração da Fase 4
                 GeometryTests.ExecutarTestes(geometryService, geradorPecaService, pdfGeneratorService);
+#endif
             }
             catch (Exception ex)
             {

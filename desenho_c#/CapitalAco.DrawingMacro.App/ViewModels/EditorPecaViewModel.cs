@@ -49,6 +49,10 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         public ObservableCollection<Segmento> Segmentos { get; } = new();
         public ObservableCollection<string> Avisos { get; } = new();
 
+        // Linha selecionada na tabela de segmentos (Modo Clássico), usada por "Remover Sel."
+        [ObservableProperty]
+        private Segmento? _selectedSegmento;
+
         // Imagem do Desenho (Preview)
         [ObservableProperty]
         private ImageSource? _previewImage;
@@ -87,7 +91,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
 
         // Modo Rápido de Desenho (teclado): desenha o esqueleto por direção e depois preenche as medidas em sequência
         [ObservableProperty]
-        private bool _modoRapidoAtivo;
+        private bool _modoRapidoAtivo = true;
 
         [ObservableProperty]
         private FaseModoRapido _faseRapida = FaseModoRapido.Desenho;
@@ -112,6 +116,15 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         private Brush _modoAtualCor = new SolidColorBrush(Color.FromRgb(0x34, 0x49, 0x5E));
 
         private double? _proximoGrauPersonalizado;
+
+        // Histórico para Ctrl+Z: cada entrada é uma cópia completa da lista de segmentos capturada
+        // imediatamente ANTES de uma mutação (adicionar/remover/limpar/editar medida/gerar/carregar),
+        // de forma que desfazer sempre restaure o estado exato anterior, em qualquer modo (clássico ou rápido).
+        private const int LimiteHistoricoDesfazer = 50;
+        private readonly List<List<Segmento>> _historicoDesfazer = new();
+
+        [ObservableProperty]
+        private bool _podeDesfazer;
 
         // Galeria de Geradores de Peças
         public ObservableCollection<string> GeradoresDisponiveis { get; } = new() { "Boiadeira", "Tubo Redondo" };
@@ -222,6 +235,8 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             ComprimentoPeca = peca.Comprimento;
             ChapaSelecionada = Chapas.FirstOrDefault(c => string.Equals(c.Codigo, peca.Chapa, StringComparison.OrdinalIgnoreCase)) ?? ChapaSelecionada;
 
+            if (Segmentos.Count > 0) RegistrarEstadoParaDesfazer();
+
             Segmentos.CollectionChanged -= Segmentos_CollectionChanged;
             Segmentos.Clear();
             foreach (var seg in peca.Segmentos)
@@ -262,6 +277,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
                 };
             }
 
+            RegistrarEstadoParaDesfazer();
             Segmentos.Add(novo);
         }
 
@@ -270,6 +286,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         {
             if (seg != null)
             {
+                RegistrarEstadoParaDesfazer();
                 Segmentos.Remove(seg);
             }
         }
@@ -277,7 +294,60 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         [RelayCommand]
         private void LimparSegmentos()
         {
+            if (Segmentos.Count == 0) return;
+
+            RegistrarEstadoParaDesfazer();
             Segmentos.Clear();
+        }
+
+        private static Segmento ClonarSegmento(Segmento s) => new Segmento
+        {
+            Direcao = s.Direcao,
+            Angulo = s.Angulo,
+            Medida = s.Medida,
+            TipoMedida = s.TipoMedida,
+            EhCurvo = s.EhCurvo,
+            MedidaDefinida = s.MedidaDefinida,
+            CurvaInfo = s.CurvaInfo == null ? null : new Segmento.InformacaoCurva
+            {
+                Raio = s.CurvaInfo.Raio,
+                ComprimentoCurva = s.CurvaInfo.ComprimentoCurva,
+                AnguloCurva = s.CurvaInfo.AnguloCurva,
+                TipoRaio = s.CurvaInfo.TipoRaio
+            }
+        };
+
+        // Captura uma cópia do estado atual dos segmentos antes de uma mutação, para permitir desfazer (Ctrl+Z).
+        // Público para que o code-behind da View também possa registrar o estado antes de edições diretas na
+        // tabela (DataGrid), que alteram propriedades de um Segmento já existente sem disparar CollectionChanged.
+        public void RegistrarEstadoParaDesfazer()
+        {
+            _historicoDesfazer.Add(Segmentos.Select(ClonarSegmento).ToList());
+            if (_historicoDesfazer.Count > LimiteHistoricoDesfazer)
+            {
+                _historicoDesfazer.RemoveAt(0);
+            }
+            PodeDesfazer = true;
+        }
+
+        [RelayCommand]
+        private void Desfazer()
+        {
+            if (_historicoDesfazer.Count == 0) return;
+
+            var estadoAnterior = _historicoDesfazer[^1];
+            _historicoDesfazer.RemoveAt(_historicoDesfazer.Count - 1);
+            PodeDesfazer = _historicoDesfazer.Count > 0;
+
+            Segmentos.CollectionChanged -= Segmentos_CollectionChanged;
+            Segmentos.Clear();
+            foreach (var seg in estadoAnterior)
+            {
+                Segmentos.Add(seg);
+            }
+            Segmentos.CollectionChanged += Segmentos_CollectionChanged;
+
+            AtualizarPreview();
         }
 
         // Direção igual (0°) ou oposta (180°) ao último segmento reto não é uma dobra válida.
@@ -311,6 +381,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         {
             if (value)
             {
+                if (Segmentos.Count > 0) RegistrarEstadoParaDesfazer();
                 Segmentos.Clear();
                 FaseRapida = FaseModoRapido.Desenho;
                 _proximoGrauPersonalizado = null;
@@ -333,6 +404,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             double angulo = _proximoGrauPersonalizado ?? 90.0;
 
             var config = _configService.ObterConfiguracao();
+            RegistrarEstadoParaDesfazer();
             Segmentos.Add(new Segmento
             {
                 Direcao = direcao,
@@ -386,6 +458,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             if (IndiceMedidaRapida < 0 || IndiceMedidaRapida >= Segmentos.Count) return;
             if (MedidaRapidaAtual <= 0) return;
 
+            RegistrarEstadoParaDesfazer();
             var segAtual = Segmentos[IndiceMedidaRapida];
             segAtual.Medida = MedidaRapidaAtual;
             segAtual.MedidaDefinida = true;
@@ -400,6 +473,9 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             AtualizarStatusModoRapido();
         }
 
+        // Desfaz o último passo do Modo Rápido. As mutações de conteúdo dos segmentos (desenhar/medir) são
+        // revertidas via o histórico genérico de Ctrl+Z (Desfazer); aqui tratamos apenas as transições de
+        // sub-fase que não alteram os segmentos em si.
         [RelayCommand]
         public void DesfazerModoRapido()
         {
@@ -408,10 +484,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             switch (FaseRapida)
             {
                 case FaseModoRapido.Desenho:
-                    if (Segmentos.Count > 0)
-                    {
-                        Segmentos.RemoveAt(Segmentos.Count - 1);
-                    }
+                    Desfazer();
                     break;
 
                 case FaseModoRapido.Grau:
@@ -422,7 +495,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
                     if (IndiceMedidaRapida > 0)
                     {
                         IndiceMedidaRapida--;
-                        DesfazerMedidaDoSegmento(IndiceMedidaRapida);
+                        Desfazer();
                     }
                     else
                     {
@@ -435,19 +508,12 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
                     IndiceMedidaRapida = Segmentos.Count - 1;
                     if (IndiceMedidaRapida >= 0)
                     {
-                        DesfazerMedidaDoSegmento(IndiceMedidaRapida);
+                        Desfazer();
                     }
                     break;
             }
 
             AtualizarStatusModoRapido();
-        }
-
-        private void DesfazerMedidaDoSegmento(int indice)
-        {
-            var seg = Segmentos[indice];
-            seg.MedidaDefinida = false;
-            Segmentos[indice] = seg; // força notificação (refresh do DataGrid + prévia)
         }
 
         // ESC: sai um nível do modo/sub-fase atual, sem apagar dados já confirmados (diferente do Ctrl+Backspace).
@@ -558,7 +624,9 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
                 );
 
                 NomePeca = boiadeira.Nome;
-                
+
+                if (Segmentos.Count > 0) RegistrarEstadoParaDesfazer();
+
                 Segmentos.CollectionChanged -= Segmentos_CollectionChanged;
                 Segmentos.Clear();
                 foreach (var seg in boiadeira.Segmentos)
@@ -585,6 +653,8 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
                 var tubo = _geradorPecaService.GerarTuboRedondo(TuboDiametro, TuboTipoDiametro, ChapaSelecionada.Codigo, ComprimentoPeca);
 
                 NomePeca = tubo.Nome;
+
+                if (Segmentos.Count > 0) RegistrarEstadoParaDesfazer();
 
                 Segmentos.CollectionChanged -= Segmentos_CollectionChanged;
                 Segmentos.Clear();
@@ -764,6 +834,8 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
 
                 if (File.Exists(caminho))
                 {
+                    FileShellHelper.CopiarArquivoParaAreaDeTransferencia(caminho);
+
                     System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
                     {
                         FileName = caminho,
@@ -775,6 +847,12 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             {
                 MessageBox.Show($"Erro ao gerar ficha de dobra: {ex.Message}", "Erro de PDF", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        [RelayCommand]
+        private void AbrirPastaRelatorios()
+        {
+            FileShellHelper.AbrirPasta(_configService.ObterCaminhoSaidaRelatorios());
         }
 
         public void AtualizarPreview()

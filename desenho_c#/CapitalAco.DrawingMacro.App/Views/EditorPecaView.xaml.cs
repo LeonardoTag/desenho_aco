@@ -46,6 +46,25 @@ namespace CapitalAco.DrawingMacro.App.Views
             }), DispatcherPriority.Input);
         }
 
+        // Edição direta de uma célula na tabela de segmentos (Modo Clássico): registra o estado anterior
+        // para Ctrl+Z e, ao confirmar a edição, força a atualização da prévia/avisos (Segmento não notifica
+        // mudanças de propriedade individualmente).
+        private void SegmentosDataGrid_BeginningEdit(object? sender, DataGridBeginningEditEventArgs e)
+        {
+            if (DataContext is EditorPecaViewModel vm)
+            {
+                vm.RegistrarEstadoParaDesfazer();
+            }
+        }
+
+        private void SegmentosDataGrid_CellEditEnding(object? sender, DataGridCellEditEndingEventArgs e)
+        {
+            if (DataContext is EditorPecaViewModel vm)
+            {
+                Dispatcher.BeginInvoke(new Action(vm.AtualizarPreview), DispatcherPriority.Background);
+            }
+        }
+
         private void EditorPecaView_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (DataContext is not EditorPecaViewModel vm) return;
@@ -81,6 +100,22 @@ namespace CapitalAco.DrawingMacro.App.Views
                     vm.DesfazerModoRapido();
                     e.Handled = true;
                 }
+                return;
+            }
+
+            // Ctrl+Z: desfaz a última ação no Editor de Peça (desenho, edição, remoção, limpar tudo etc.),
+            // em qualquer modo e mesmo durante a digitação de um campo.
+            if (e.Key == Key.Z && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                if (vm.ModoRapidoAtivo)
+                {
+                    vm.DesfazerModoRapido();
+                }
+                else
+                {
+                    vm.DesfazerCommand.Execute(null);
+                }
+                e.Handled = true;
                 return;
             }
 

@@ -15,9 +15,9 @@
 
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="340"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="320"/>
+            <ColumnDefinition Width="1.4*" MinWidth="300"/>
+            <ColumnDefinition Width="1.6*" MinWidth="280"/>
+            <ColumnDefinition Width="1.3*" MinWidth="280"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -130,11 +130,11 @@
 
                     <StackPanel Margin="2">
                         <TextBlock Text="Direção:" Margin="0,0,0,3" FontSize="11" Foreground="#5B6472"/>
-                        <ComboBox SelectedValue="{Binding SegDirecao}" SelectedValuePath="Content">
-                            <ComboBoxItem Content="N"/>
-                            <ComboBoxItem Content="E"/>
-                            <ComboBoxItem Content="S"/>
-                            <ComboBoxItem Content="W"/>
+                        <ComboBox SelectedValue="{Binding SegDirecao}" SelectedValuePath="Tag">
+                            <ComboBoxItem Content="↑" Tag="N" FontWeight="Bold" HorizontalContentAlignment="Center"/>
+                            <ComboBoxItem Content="→" Tag="E" FontWeight="Bold" HorizontalContentAlignment="Center"/>
+                            <ComboBoxItem Content="↓" Tag="S" FontWeight="Bold" HorizontalContentAlignment="Center"/>
+                            <ComboBoxItem Content="←" Tag="W" FontWeight="Bold" HorizontalContentAlignment="Center"/>
                         </ComboBox>
                     </StackPanel>
 
@@ -150,9 +150,9 @@
 
                     <StackPanel Grid.Row="1" Grid.Column="1" Margin="2">
                         <TextBlock Text="Tipo de Medida:" Margin="0,0,0,3" FontSize="11" Foreground="#5B6472"/>
-                        <ComboBox SelectedValue="{Binding SegTipoMedida}" SelectedValuePath="Content">
-                            <ComboBoxItem Content="e" Tag="Externa"/>
-                            <ComboBoxItem Content="i" Tag="Interna"/>
+                        <ComboBox SelectedValue="{Binding SegTipoMedida}" SelectedValuePath="Tag">
+                            <ComboBoxItem Content="Externa" Tag="e"/>
+                            <ComboBoxItem Content="Interna" Tag="i"/>
                         </ComboBox>
                     </StackPanel>
 
@@ -197,7 +197,7 @@
                 <TextBlock Grid.Row="2" Text="SEGMENTOS ADICIONADOS" FontSize="12" FontWeight="Bold" Foreground="#12153F" Margin="0,10,0,5"/>
 
                 <!-- Tabela de Segmentos -->
-                <DataGrid Grid.Row="2" ItemsSource="{Binding Segmentos}" SelectedItem="{Binding SelectedSegmento}" AutoGenerateColumns="False" CanUserAddRows="False" Background="#ECEEF3" Foreground="#1F2430" RowBackground="#FFFFFF" AlternatingRowBackground="#ECEEF3" BorderThickness="0" Margin="0,25,0,0">
+                <DataGrid x:Name="SegmentosDataGrid" Grid.Row="2" ItemsSource="{Binding Segmentos}" SelectedItem="{Binding SelectedSegmento}" AutoGenerateColumns="False" CanUserAddRows="False" Background="#ECEEF3" Foreground="#1F2430" RowBackground="#FFFFFF" AlternatingRowBackground="#ECEEF3" BorderThickness="0" Margin="0,25,0,0" BeginningEdit="SegmentosDataGrid_BeginningEdit" CellEditEnding="SegmentosDataGrid_CellEditEnding">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Dir" Binding="{Binding Direcao}" Width="35"/>
                         <DataGridTextColumn Header="Ang" Binding="{Binding Angulo}" Width="45"/>
@@ -208,9 +208,10 @@
                 </DataGrid>
 
                 <!-- Ações de Tabela -->
-                <UniformGrid Grid.Row="3" Columns="2" Margin="0,5,0,0">
+                <UniformGrid Grid.Row="3" Columns="3" Margin="0,5,0,0">
                     <Button Content="Limpar Tudo" Command="{Binding LimparSegmentosCommand}" Margin="2" Background="#E8333D" Foreground="White" BorderThickness="0" Height="25"/>
                     <Button Content="Remover Sel." Command="{Binding RemoverSegmentoCommand}" CommandParameter="{Binding SelectedSegmento}" Margin="2" Background="#D35400" Foreground="White" BorderThickness="0" Height="25"/>
+                    <Button Content="Desfazer (Ctrl+Z)" Command="{Binding DesfazerCommand}" IsEnabled="{Binding PodeDesfazer}" Margin="2" Background="#5B6472" Foreground="White" BorderThickness="0" Height="25"/>
                 </UniformGrid>
             </Grid>
         </Border>
@@ -252,7 +253,8 @@
         </Grid>
 
         <!-- Painel Direito: Configuração da Peça e Gerador -->
-        <Grid Grid.Row="1" Grid.Column="2" Margin="5">
+        <ScrollViewer Grid.Row="1" Grid.Column="2" Margin="5" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -276,6 +278,7 @@
                         <Button Content="Salvar Biblioteca" Command="{Binding SalvarNaBibliotecaCommand}" Margin="2" Background="#12153F" Foreground="White" BorderThickness="0" Height="26"/>
                         <Button Content="Ficha Dobra (PDF)" Command="{Binding GerarFichaDobraCommand}" Margin="2" Background="#8E44AD" Foreground="White" BorderThickness="0" Height="26"/>
                     </UniformGrid>
+                    <Button Content="Abrir Pasta de Relatórios" Command="{Binding AbrirPastaRelatoriosCommand}" Margin="2,6,2,0" Background="#5B6472" Foreground="White" BorderThickness="0" Height="26"/>
                 </StackPanel>
             </Border>
 
@@ -375,5 +378,6 @@
                 </StackPanel>
             </Border>
         </Grid>
+        </ScrollViewer>
     </Grid>
 </UserControl>

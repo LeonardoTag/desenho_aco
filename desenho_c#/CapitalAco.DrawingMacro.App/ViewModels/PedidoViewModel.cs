@@ -59,6 +59,8 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
 
                 if (File.Exists(caminho))
                 {
+                    FileShellHelper.CopiarArquivoParaAreaDeTransferencia(caminho);
+
                     // Abrir PDF automaticamente
                     System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
                     {
@@ -71,6 +73,12 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             {
                 MessageBox.Show($"Erro ao gerar PDF da Ordem de Produção: {ex.Message}", "Erro de Geração", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        [RelayCommand]
+        private void AbrirPastaRelatorios()
+        {
+            FileShellHelper.AbrirPasta(_configService.ObterCaminhoSaidaRelatorios());
         }
     }
 }

@@ -8,10 +8,12 @@
     <UseWPF>true</UseWPF>
     <RootNamespace>CapitalAco.DrawingMacro.App</RootNamespace>
     <AssemblyName>CapitalAco.DrawingMacro.App</AssemblyName>
+    <ApplicationIcon>Assets\logo.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <Resource Include="Assets\logo.png" />
+    <Resource Include="Assets\logo.ico" />
   </ItemGroup>
 
   <ItemGroup>

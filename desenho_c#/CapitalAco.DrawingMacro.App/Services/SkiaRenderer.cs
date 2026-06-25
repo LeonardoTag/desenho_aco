@@ -111,17 +111,18 @@ namespace CapitalAco.DrawingMacro.App.Services
             if (dimX == 0) dimX = 1;
             if (dimY == 0) dimY = 1;
 
-            // A extrusão 3D desloca o desenho na diagonal (ângulo3D); reservamos esse espaço ANTES de
-            // calcular a escala, senão miniaturas achatadas (proporção larga/baixa, ex.: Ordem de Produção)
-            // sangram para fora da caixa.
+            // A escala considera somente os segmentos da peça (a seção transversal desenhada), nunca o
+            // comprimento da extrusão: caso contrário, peças muito compridas encolheriam a seção a ponto
+            // de tornar os segmentos ilegíveis.
+            double escala = Math.Min(utilW / dimX, utilH / dimY);
+
+            // A extrusão 3D desloca o desenho na diagonal (ângulo3D); a profundidade exibida é estilizada
+            // (não fiel à escala real do comprimento) e limitada a uma fração do próprio perfil, para que
+            // peças muito compridas não façam a extrusão sangrar para fora da caixa.
             double comprimento = polar.Comprimento;
             double angulo3D = 55.0 * (Math.PI / 180.0);
-            double extrusaoFatorX = comprimento * 0.25 * Math.Cos(angulo3D);
-            double extrusaoFatorY = comprimento * 0.25 * Math.Sin(angulo3D);
-
-            double escala = Math.Min(utilW / (dimX + extrusaoFatorX), utilH / (dimY + extrusaoFatorY));
-
-            double compEsboco = comprimento * escala * 0.25;
+            double profundidadeMaxima = Math.Max(dimX, dimY) * escala * 0.6;
+            double compEsboco = Math.Min(comprimento * escala * 0.25, profundidadeMaxima);
             float dx = (float)(compEsboco * Math.Cos(angulo3D));
             float dy = (float)(-compEsboco * Math.Sin(angulo3D));
 
