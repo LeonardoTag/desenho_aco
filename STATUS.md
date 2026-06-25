@@ -11,3 +11,5 @@ Atualizado em: 2026-06-25
 ## Editor de Peça
 
 - [x] **Botão "Nova Peça (Ctrl+N)"** — limpa todos os campos e segmentos. Disponível via botão no painel direito e via atalho Ctrl+N.
+- [x] **Nomes únicos na biblioteca** — `BibliotecaPecasService.SalvarModelo` rejeita (com mensagem de erro) qualquer nome já existente em outra peça da biblioteca.
+- [x] **Destaque do segmento ativo no modo rápido (fase Medidas)** — o segmento cuja medida está sendo inserida é marcado com linha laranja grossa; as cotas desse segmento (externa e interna) ficam laranja com texto maior, deslocadas para não sobrepor o perfil.

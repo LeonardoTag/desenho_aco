@@ -113,10 +113,16 @@ namespace CapitalAco.DrawingMacro.App.Services
 
             var dados = CarregarDados();
             var agora = DateTime.UtcNow;
-            
+
+            var registroId = id ?? Guid.NewGuid();
+            var duplicadoPorNome = dados.Pecas.FirstOrDefault(p =>
+                string.Equals(p.Nome, nomeLimpo, StringComparison.OrdinalIgnoreCase) && p.Id != registroId);
+            if (duplicadoPorNome != null)
+                throw new InvalidOperationException($"Já existe uma peça com o nome \"{nomeLimpo}\" na biblioteca.");
+
             var registro = new ModeloPeca
             {
-                Id = id ?? Guid.NewGuid(),
+                Id = registroId,
                 Nome = nomeLimpo,
                 Descricao = (descricao ?? "").Trim(),
                 Chapa = chapa,

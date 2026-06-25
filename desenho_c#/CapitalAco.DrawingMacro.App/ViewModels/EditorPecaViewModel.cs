@@ -104,7 +104,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
 
         // Modo Rápido de Desenho (teclado): desenha o esqueleto por direção e depois preenche as medidas em sequência
         [ObservableProperty]
-        private bool _modoRapidoAtivo = true;
+        private bool _modoRapidoAtivo = false;
 
         [ObservableProperty]
         private FaseModoRapido _faseRapida = FaseModoRapido.Desenho;
@@ -237,12 +237,10 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
 
             Segmentos.CollectionChanged += Segmentos_CollectionChanged;
 
-            // ModoRapidoAtivo é inicializado via inicializador de campo (true por padrão), o que NÃO
-            // dispara o callback OnModoRapidoAtivoChanged (inicializadores de campo atribuem o campo
-            // diretamente, sem passar pelo setter gerado). Por isso a tarja de modo atual e o texto de
-            // status ficavam com os valores padrão de "Modo Clássico" mesmo com o Modo Rápido já marcado,
-            // até o usuário desmarcar/marcar a opção manualmente. Sincroniza aqui, uma única vez, no início.
-            AtualizarStatusModoRapido();
+            // Inicializa via setter para disparar PropertyChanged("ModoRapidoAtivo") e os DataTriggers do XAML.
+            // Usar inicializador de campo (= true) contornaria o setter gerado e o painel do Modo Rápido
+            // permaneceria colapsado até o usuário desmarcar/marcar manualmente o checkbox.
+            ModoRapidoAtivo = true;
         }
 
         private void CarregarChapas()
@@ -471,7 +469,10 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             OnPropertyChanged(nameof(EstaNaFaseGrau));
             OnPropertyChanged(nameof(EstaNaFaseMedidas));
             OnPropertyChanged(nameof(EstaConcluido));
+            AtualizarPreview();
         }
+
+        partial void OnIndiceMedidaRapidaChanged(int value) => AtualizarPreview();
 
         partial void OnModoRapidoAtivoChanged(bool value)
         {
@@ -1117,7 +1118,9 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
                 // Renderizar preview 520x400, usando os tamanhos de fonte configurados
                 float fonteCota = (float)config.DesenhoFonteBaseMinima;
                 float fonteAngulo = (float)Math.Max(config.DesenhoFonteBaseMinima - 1.0, 8.0);
-                PreviewImage = SkiaRenderer.RenderToImageSource(polar, 780, 600, _geometryService, fonteCota, fonteAngulo);
+                int? destaque = EstaNaFaseMedidas ? IndiceMedidaRapida : (int?)null;
+                bool mostrarOrigem = ModoRapidoAtivo && EstaNaFaseDesenho && Segmentos.Count > 0;
+                PreviewImage = SkiaRenderer.RenderToImageSource(polar, 780, 600, _geometryService, fonteCota, fonteAngulo, segmentoDestacado: destaque, destacarProximaOrigem: mostrarOrigem);
 
                 // Dimensões totais acabadas da peça
                 var dimensoes = _geometryService.CalcularDimensoesAcabadas(polar);

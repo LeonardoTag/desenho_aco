@@ -35,8 +35,9 @@ namespace CapitalAco.DrawingMacro.App.Services
         private static readonly SKColor CotaInternaLinhaCor = new SKColor(229, 154, 154);
         private static readonly SKColor CotaInternaTextoCor = new SKColor(183, 28, 28);
         private static readonly SKColor AnguloTextoCor = new SKColor(46, 125, 50);
+        private static readonly SKColor SegmentoDestaqueCor = new SKColor(255, 120, 0);
 
-        public static System.Windows.Media.ImageSource RenderToImageSource(InstrucoesPolares polar, int width, int height, IGeometryService geometryService, float fonteCota = 12f, float fonteAngulo = 11f, bool mostrarMedidas = true)
+        public static System.Windows.Media.ImageSource RenderToImageSource(InstrucoesPolares polar, int width, int height, IGeometryService geometryService, float fonteCota = 12f, float fonteAngulo = 11f, bool mostrarMedidas = true, int? segmentoDestacado = null, bool destacarProximaOrigem = false)
         {
             using var bitmap = new SKBitmap(width, height);
             using var canvas = new SKCanvas(bitmap);
@@ -44,7 +45,7 @@ namespace CapitalAco.DrawingMacro.App.Services
             canvas.Clear(FundoCor);
 
             var dim = geometryService.CalcularDimensoesAcabadas(polar);
-            RenderizarPeca(canvas, new SKSize(width, height), polar, dim, mostrarMedidas, geometryService, fonteCota, fonteAngulo);
+            RenderizarPeca(canvas, new SKSize(width, height), polar, dim, mostrarMedidas, geometryService, fonteCota, fonteAngulo, segmentoDestacado, destacarProximaOrigem);
 
             using var image = SKImage.FromBitmap(bitmap);
             using var data = image.Encode(SKEncodedImageFormat.Png, 100);
@@ -69,7 +70,9 @@ namespace CapitalAco.DrawingMacro.App.Services
             bool mostrarMedidas,
             IGeometryService geometryService,
             float fonteCota = 12f,
-            float fonteAngulo = 11f)
+            float fonteAngulo = 11f,
+            int? segmentoDestacado = null,
+            bool destacarProximaOrigem = false)
         {
             if (polar.CoordenadasPolares.Count == 0)
                 return;
@@ -309,11 +312,40 @@ namespace CapitalAco.DrawingMacro.App.Services
             }
             canvas.DrawPath(realcePath, realcePaint);
 
+            // Destacar segmento ativo (fase de inserção de medidas no modo rápido)
+            if (segmentoDestacado.HasValue)
+            {
+                int si = segmentoDestacado.Value;
+                if (si >= 0 && si < coordenadasNoCanvas.Count - 1)
+                {
+                    using var paintDestaque = new SKPaint
+                    {
+                        Color = SegmentoDestaqueCor.WithAlpha(180),
+                        Style = SKPaintStyle.Stroke,
+                        StrokeWidth = (float)espessuraPx + 4f,
+                        StrokeCap = SKStrokeCap.Round,
+                        IsAntialias = true
+                    };
+                    canvas.DrawLine(coordenadasNoCanvas[si], coordenadasNoCanvas[si + 1], paintDestaque);
+                }
+            }
+
+            // Indicar a origem do próximo segmento (fase Desenho do modo rápido)
+            if (destacarProximaOrigem && coordenadasNoCanvas.Count > 0)
+            {
+                var origem = coordenadasNoCanvas[coordenadasNoCanvas.Count - 1];
+                float raio = (float)Math.Max(7.0, espessuraPx * 0.7);
+                using var paintFundo = new SKPaint { Color = SKColors.White, Style = SKPaintStyle.Fill, IsAntialias = true };
+                using var paintAnel = new SKPaint { Color = SegmentoDestaqueCor, Style = SKPaintStyle.Stroke, StrokeWidth = 2.5f, IsAntialias = true };
+                canvas.DrawCircle(origem, raio, paintFundo);
+                canvas.DrawCircle(origem, raio, paintAnel);
+            }
+
             // 6. Desenhar cotas, medidas internas e graus de dobra, se solicitado
             if (mostrarMedidas)
             {
                 var medidas = geometryService.GerarMedidasInternaExterna(polar);
-                DesenharCotas(canvas, coordenadasNoCanvas, polar.SegmentosOriginal, absolutas, medidas, geometryService, fonteCota, espessuraPx);
+                DesenharCotas(canvas, coordenadasNoCanvas, polar.SegmentosOriginal, absolutas, medidas, geometryService, fonteCota, espessuraPx, segmentoDestacado);
                 DesenharGrausDobra(canvas, coordenadasNoCanvas, absolutas, polar, geometryService, escala, fonteAngulo);
             }
         }
@@ -437,7 +469,8 @@ namespace CapitalAco.DrawingMacro.App.Services
             List<(double Livre, double Interna, double Externa)> medidas,
             IGeometryService geometryService,
             float fonteCota,
-            double espessuraPx)
+            double espessuraPx,
+            int? segmentoDestacado = null)
         {
             // Sem caixas de cota (sem linhas de extensão nem linha dupla): só uma linha de chamada curta
             // do meio do segmento até o texto. O deslocamento cresce com a espessura da chapa para a
@@ -483,15 +516,34 @@ namespace CapitalAco.DrawingMacro.App.Services
 
                 int ladoInterno = geometryService.DeterminarLadoInternoSegmento(i, absolutas);
 
-                string textoExt = seg.EhCurvo && seg.CurvaInfo != null
+                bool destacado = segmentoDestacado.HasValue && i == segmentoDestacado.Value;
+                SKColor fundoExt = destacado ? SegmentoDestaqueCor : CotaTextoCor;
+                SKPaint chamadaExt = destacado
+                    ? new SKPaint { Color = SegmentoDestaqueCor, Style = SKPaintStyle.Stroke, StrokeWidth = 2.0f, IsAntialias = true }
+                    : chamadaPaintExterna;
+                SKPaint textoExt2 = destacado
+                    ? new SKPaint { Color = SKColors.White, TextSize = fonteCota * 1.15f, IsAntialias = true, TextAlign = SKTextAlign.Center, FakeBoldText = true }
+                    : textoExterna;
+
+                string textoExtStr = seg.EhCurvo && seg.CurvaInfo != null
                     ? $"{medidas[i].Externa:F0} (Curva)"
                     : $"{medidas[i].Externa:F0}";
-                DesenharMedida(p0, p1, nx * -ladoInterno, ny * -ladoInterno, offsetExterna, textoExt, chamadaPaintExterna, textoExterna, CotaTextoCor);
+                DesenharMedida(p0, p1, nx * -ladoInterno, ny * -ladoInterno, offsetExterna * (destacado ? 1.3f : 1f), textoExtStr, chamadaExt, textoExt2, fundoExt);
+
+                if (destacado) { chamadaExt.Dispose(); textoExt2.Dispose(); }
 
                 if (!seg.EhCurvo)
                 {
-                    string textoInt = $"{medidas[i].Interna:F0}";
-                    DesenharMedida(p0, p1, nx * ladoInterno, ny * ladoInterno, offsetInterna, textoInt, chamadaPaintInterna, textoInterna, CotaInternaLinhaCor);
+                    string textoIntStr = $"{medidas[i].Interna:F0}";
+                    SKColor fundoInt = destacado ? SegmentoDestaqueCor.WithAlpha(180) : CotaInternaLinhaCor;
+                    SKPaint chamadaInt = destacado
+                        ? new SKPaint { Color = SegmentoDestaqueCor, Style = SKPaintStyle.Stroke, StrokeWidth = 2.0f, IsAntialias = true }
+                        : chamadaPaintInterna;
+                    SKPaint textoInt2 = destacado
+                        ? new SKPaint { Color = SKColors.White, TextSize = fonteCota * 1.15f, IsAntialias = true, TextAlign = SKTextAlign.Center, FakeBoldText = true }
+                        : textoInterna;
+                    DesenharMedida(p0, p1, nx * ladoInterno, ny * ladoInterno, offsetInterna * (destacado ? 1.3f : 1f), textoIntStr, chamadaInt, textoInt2, fundoInt);
+                    if (destacado) { chamadaInt.Dispose(); textoInt2.Dispose(); }
                 }
             }
         }
