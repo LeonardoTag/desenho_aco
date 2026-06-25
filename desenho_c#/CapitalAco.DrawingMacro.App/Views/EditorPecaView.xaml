@@ -11,6 +11,9 @@
              PreviewKeyDown="EditorPecaView_PreviewKeyDown">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <Style TargetType="TextBox">
+            <EventSetter Event="GotKeyboardFocus" Handler="TextBox_GotKeyboardFocus"/>
+        </Style>
     </UserControl.Resources>
     <UserControl.InputBindings>
         <KeyBinding Gesture="Ctrl+N" Command="{Binding NovaPecaCommand}"/>
@@ -223,7 +226,7 @@
         <Grid Grid.Row="1" Grid.Column="1" Margin="5">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="85"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <Border Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="5" Grid.Row="0">
@@ -249,8 +252,18 @@
                 </Grid>
             </Border>
 
-            <!-- Avisos e BBox -->
-            <Border Grid.Row="1" Background="#FDECEA" BorderBrush="#E8333D" BorderThickness="2" CornerRadius="8" Padding="6" Margin="0,5,0,0">
+            <!-- Avisos: aparece somente quando há itens -->
+            <Border Grid.Row="1" Background="#FDECEA" BorderBrush="#E8333D" BorderThickness="2" CornerRadius="8" Padding="6" Margin="0,5,0,0" MaxHeight="100">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Visible"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Avisos.Count}" Value="0">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
                 <ListBox ItemsSource="{Binding Avisos}" Background="Transparent" BorderThickness="0" Foreground="#C0392B" FontSize="13" FontWeight="Bold"/>
             </Border>
         </Grid>
@@ -261,62 +274,72 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Propriedades da Peça -->
+            <!-- Peça + Ordem de Produção (mesclado) -->
             <Border Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,10">
                 <StackPanel>
-                    <TextBlock Text="PROPRIEDADES DA PEÇA" FontSize="13" FontWeight="Bold" Foreground="#12153F" Margin="0,0,0,8"/>
-                    <TextBlock Text="Nome da Peça:" FontSize="10" Foreground="#5B6472"/>
-                    <TextBox Text="{Binding NomePeca, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,8"/>
+                    <TextBlock Text="EDITANDO PEÇA DO PEDIDO" FontSize="12" FontWeight="Bold" Foreground="#E67E22" Margin="0,0,0,4"
+                               Visibility="{Binding ModoEdicao, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                    <TextBlock Text="PEÇA · ORDEM DE PRODUÇÃO" FontSize="12" FontWeight="Bold" Foreground="#12153F" Margin="0,0,0,8"/>
 
-                    <TextBlock Text="Comprimento (mm) — tecla C:" FontSize="10" Foreground="#5B6472"/>
-                    <TextBox x:Name="ComprimentoTextBox" Text="{Binding ComprimentoPeca, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" IsEnabled="{Binding ComprimentoUnicoHabilitado}" Margin="0,2,0,8"/>
+                    <TextBlock Text="Nome da Peça:" FontSize="9" Foreground="#5B6472"/>
+                    <TextBox Text="{Binding NomePeca, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,6"/>
 
-                    <TextBlock Text="Chapa:" FontSize="10" Foreground="#5B6472"/>
-                    <ComboBox x:Name="ChapaComboBox" ItemsSource="{Binding Chapas}" SelectedItem="{Binding ChapaSelecionada}" DisplayMemberPath="CodigoExibicao" TextSearch.TextPath="CodigoExibicao" Margin="0,2,0,8"/>
+                    <!-- Comprimento (C) | Chapa (E) -->
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="80"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,3,0">
+                            <TextBlock Text="Comp. (mm) — C:" FontSize="9" Foreground="#5B6472"/>
+                            <TextBox x:Name="ComprimentoTextBox" Text="{Binding ComprimentoPeca, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" IsEnabled="{Binding ComprimentoUnicoHabilitado}" Margin="0,2,0,0"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="Chapa — E:" FontSize="9" Foreground="#5B6472"/>
+                            <ComboBox x:Name="ChapaComboBox" ItemsSource="{Binding Chapas}" SelectedItem="{Binding ChapaSelecionada}" DisplayMemberPath="CodigoExibicao" TextSearch.TextPath="CodigoExibicao" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Grid>
 
-                    <UniformGrid Columns="2" Margin="0,5,0,0">
+                    <!-- Qtd | Observação -->
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="55"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,3,0">
+                            <TextBlock Text="Qtd:" FontSize="9" Foreground="#5B6472"/>
+                            <TextBox x:Name="PedidoQuantidadeTextBox" Text="{Binding PedidoQuantidade}" Margin="0,2,0,0"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="Observação:" FontSize="9" Foreground="#5B6472"/>
+                            <TextBox x:Name="PedidoObservacaoTextBox" Text="{Binding PedidoObservacao}" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <CheckBox Content="Múltiplos comprimentos" IsChecked="{Binding MultiplosComprimentosHabilitado}" Foreground="#1F2430" Margin="0,0,0,4"/>
+                    <StackPanel Visibility="{Binding MultiplosComprimentosHabilitado, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Comp./Qtds (ex: 10x3000, 50x500):" FontSize="9" Foreground="#5B6472"/>
+                        <TextBox Text="{Binding ComprimentosMultiplosTexto, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,6"/>
+                    </StackPanel>
+
+                    <Button Content="{Binding TextoBotaoAddPedido}" Command="{Binding AdicionarAoPedidoCommand}" Margin="0,2,0,4" Background="#27AE60" Foreground="White" BorderThickness="0" Height="26"/>
+                    <UniformGrid Columns="2" Margin="0,0,0,4">
                         <Button Content="Salvar Biblioteca" Command="{Binding SalvarNaBibliotecaCommand}" Margin="2" Background="#12153F" Foreground="White" BorderThickness="0" Height="26"/>
                         <Button Content="Ficha Dobra (PDF)" Command="{Binding GerarFichaDobraCommand}" Margin="2" Background="#8E44AD" Foreground="White" BorderThickness="0" Height="26"/>
                     </UniformGrid>
-                    <Button Content="Nova Peça (Ctrl+N)" Command="{Binding NovaPecaCommand}" Margin="2,6,2,0" Background="#27AE60" Foreground="White" BorderThickness="0" Height="26"/>
-                    <Button Content="Abrir Pasta de Relatórios" Command="{Binding AbrirPastaRelatoriosCommand}" Margin="2,4,2,0" Background="#5B6472" Foreground="White" BorderThickness="0" Height="26"/>
-                </StackPanel>
-            </Border>
-
-            <!-- Adicionar ao Pedido -->
-            <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,10">
-                <StackPanel>
-                    <TextBlock Text="EDITANDO PEÇA DO PEDIDO" FontSize="13" FontWeight="Bold" Foreground="#E67E22" Margin="0,0,0,4" Visibility="{Binding ModoEdicao, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                    <TextBlock Text="ADICIONAR À ORDEM DE PRODUÇÃO (Shift+Enter)" FontSize="13" FontWeight="Bold" Foreground="#27AE60" Margin="0,0,0,8"/>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="65"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Margin="0,0,5,0">
-                            <TextBlock Text="Quantidade:" FontSize="10" Foreground="#5B6472"/>
-                            <TextBox Text="{Binding PedidoQuantidade}" Margin="0,2,0,8"/>
-                        </StackPanel>
-                        <StackPanel Grid.Column="1">
-                            <TextBlock Text="Observação:" FontSize="10" Foreground="#5B6472"/>
-                            <TextBox Text="{Binding PedidoObservacao}" Margin="0,2,0,8"/>
-                        </StackPanel>
-                    </Grid>
-                    <CheckBox Content="Habilitar múltiplos comprimentos" IsChecked="{Binding MultiplosComprimentosHabilitado}" Foreground="#1F2430" Margin="0,0,0,5"/>
-                    <StackPanel Visibility="{Binding MultiplosComprimentosHabilitado, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <TextBlock Text="Comprimentos e Quantidades (ex: 10x3000, 10x2000, 50x500):" FontSize="10" Foreground="#5B6472"/>
-                        <TextBox Text="{Binding ComprimentosMultiplosTexto, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,8"/>
-                    </StackPanel>
-                    <Button Content="{Binding TextoBotaoAddPedido}" Command="{Binding AdicionarAoPedidoCommand}" Background="#27AE60" Foreground="White" BorderThickness="0" Height="26"/>
-                    <Button Content="Cancelar Edição" Command="{Binding CancelarEdicaoCommand}" Margin="0,4,0,0" Background="#D35400" Foreground="White" BorderThickness="0" Height="26" Visibility="{Binding ModoEdicao, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                    <UniformGrid Columns="2">
+                        <Button Content="Nova Peça (Ctrl+N)" Command="{Binding NovaPecaCommand}" Margin="2" Background="#2980B9" Foreground="White" BorderThickness="0" Height="26"/>
+                        <Button Content="Relatórios" Command="{Binding AbrirPastaRelatoriosCommand}" Margin="2" Background="#5B6472" Foreground="White" BorderThickness="0" Height="26"/>
+                    </UniformGrid>
+                    <Button Content="Cancelar Edição" Command="{Binding CancelarEdicaoCommand}" Margin="0,4,0,0" Background="#D35400" Foreground="White" BorderThickness="0" Height="26"
+                            Visibility="{Binding ModoEdicao, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                 </StackPanel>
             </Border>
 
             <!-- Galeria de Geradores -->
-            <Border Grid.Row="2" Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="10">
+            <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="10">
                 <StackPanel>
                     <TextBlock Text="GALERIA DE GERADORES" FontSize="13" FontWeight="Bold" Foreground="#E67E22" Margin="0,0,0,8"/>
                     <TextBlock Text="Gerador:" FontSize="9" Foreground="#5B6472"/>

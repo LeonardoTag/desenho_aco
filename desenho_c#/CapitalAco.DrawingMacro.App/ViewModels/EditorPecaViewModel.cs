@@ -210,6 +210,9 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         // Evento para atualizar item existente no pedido (modo edição)
         public event Action<PecaPedidoItem, PecaPedidoItem>? AtualizarNoPedido;
 
+        // Sinaliza à View que a adição concluiu — View devolve foco ao UserControl
+        public event Action? PecaAdicionadaAoPedido;
+
         private PecaPedidoItem? _itemEditando;
 
         [ObservableProperty]
@@ -332,6 +335,12 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             ComprimentosMultiplosTexto = string.Empty;
             MultiplosComprimentosHabilitado = false;
 
+            ModoRapidoAtivo = true;
+            FaseRapida = FaseModoRapido.Desenho;
+            _proximoGrauPersonalizado = null;
+            _avisosDobraAlertados.Clear();
+            _autoIntersecaoAlertada = false;
+            AtualizarStatusModoRapido();
             AtualizarPreview();
         }
 
@@ -880,6 +889,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
                 PedidoQuantidade = 1;
                 PedidoObservacao = string.Empty;
                 ComprimentosMultiplosTexto = string.Empty;
+                PecaAdicionadaAoPedido?.Invoke();
                 return;
             }
 
@@ -906,6 +916,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             ComprimentosMultiplosTexto = string.Empty;
 
             MessageBox.Show("Peça adicionada ao carrinho da Ordem de Produção!", "Carrinho", MessageBoxButton.OK, MessageBoxImage.Information);
+            PecaAdicionadaAoPedido?.Invoke();
         }
 
         private System.Windows.Media.ImageSource? RenderizarThumbnail(List<Segmento> segmentos, string chapaCodigo, double comprimento)
@@ -1130,38 +1141,55 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
 
                 // Atualizar avisos
                 Avisos.Clear();
-                var novosAlertas = new List<string>();
 
-                // 1. Dobras abaixo da mínima — alerta só na primeira vez que CADA segmento entra em
-                // violação (a chave é o nº do segmento, não o texto completo, que muda a cada dígito
-                // enquanto o usuário ainda está digitando a medida).
+                // 1. Dobras abaixo da mínima
                 var avisosDobra = _geometryService.VerificarDobrasAbaixoMinima(polar, ChapaSelecionada);
                 var chavesAtuais = new HashSet<string>();
                 foreach (var av in avisosDobra)
                 {
                     Avisos.Add($"⚠ {av}");
-                    var chave = av.Split(':')[0];
-                    chavesAtuais.Add(chave);
-                    if (!_avisosDobraAlertados.Contains(chave))
-                    {
-                        novosAlertas.Add(av);
-                    }
+                    chavesAtuais.Add(av.Split(':')[0]);
                 }
-                _avisosDobraAlertados.Clear();
-                foreach (var chave in chavesAtuais) _avisosDobraAlertados.Add(chave);
 
                 // 2. Auto-interseção
                 bool autoIntersecao = _geometryService.PerfilCruzaASiMesmo(ChapaSelecionada.Codigo, comprimentoPreview, listSegs);
                 if (autoIntersecao)
-                {
                     Avisos.Add("⚠ ATENÇÃO: O perfil cruza a si mesmo!");
-                    if (!_autoIntersecaoAlertada) novosAlertas.Add("O perfil desenhado cruza a si mesmo (dobras colidem).");
-                }
-                _autoIntersecaoAlertada = autoIntersecao;
 
-                if (novosAlertas.Count > 0)
+                if (ModoRapidoAtivo)
                 {
-                    MessageBox.Show(string.Join("\n", novosAlertas), "Atenção: Problema no Desenho", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    // Em modo rápido: sem popup durante a construção.
+                    // Ao concluir, avalia o estado ATUAL da peça (não o histórico).
+                    if (EstaConcluido)
+                    {
+                        var avisosFinal = new List<string>(avisosDobra);
+                        if (autoIntersecao) avisosFinal.Add("O perfil desenhado cruza a si mesmo (dobras colidem).");
+                        if (avisosFinal.Count > 0)
+                            MessageBox.Show(string.Join("\n", avisosFinal), "Atenção: Problema no Desenho", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+                    // Mantém o tracking de chaves para o caso de alternar para modo clássico.
+                    _avisosDobraAlertados.Clear();
+                    foreach (var chave in chavesAtuais) _avisosDobraAlertados.Add(chave);
+                    _autoIntersecaoAlertada = autoIntersecao;
+                }
+                else
+                {
+                    // Modo clássico: popup na primeira vez que cada problema aparece.
+                    var novosAlertas = new List<string>();
+                    foreach (var av in avisosDobra)
+                    {
+                        var chave = av.Split(':')[0];
+                        if (!_avisosDobraAlertados.Contains(chave)) novosAlertas.Add(av);
+                    }
+                    _avisosDobraAlertados.Clear();
+                    foreach (var chave in chavesAtuais) _avisosDobraAlertados.Add(chave);
+
+                    if (autoIntersecao && !_autoIntersecaoAlertada)
+                        novosAlertas.Add("O perfil desenhado cruza a si mesmo (dobras colidem).");
+                    _autoIntersecaoAlertada = autoIntersecao;
+
+                    if (novosAlertas.Count > 0)
+                        MessageBox.Show(string.Join("\n", novosAlertas), "Atenção: Problema no Desenho", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
             catch (Exception ex)

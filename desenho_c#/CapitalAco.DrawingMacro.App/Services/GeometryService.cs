@@ -694,7 +694,17 @@ namespace CapitalAco.DrawingMacro.App.Services
                 double flatLen;
                 if (isCurved[i])
                 {
-                    flatLen = i < segmentosOriginal.Count ? segmentosOriginal[i].Medida : dh;
+                    var info = i < segmentosOriginal.Count ? segmentosOriginal[i].CurvaInfo : null;
+                    if (info != null)
+                    {
+                        double rInner = info.TipoRaio == "interno" ? info.Raio : info.Raio - espessura;
+                        double rNeutral = rInner + kFactor * espessura;
+                        flatLen = info.AnguloCurva * (Math.PI / 180.0) * rNeutral;
+                    }
+                    else
+                    {
+                        flatLen = dh;
+                    }
                 }
                 else
                 {

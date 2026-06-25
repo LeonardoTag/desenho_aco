@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using CapitalAco.DrawingMacro.App.Models;
 
 namespace CapitalAco.DrawingMacro.App.Services
@@ -11,6 +12,7 @@ namespace CapitalAco.DrawingMacro.App.Services
         public string NomePeca { get; set; } = string.Empty;
         public List<Segmento> Segmentos { get; set; } = new();
         public string Observacao { get; set; } = string.Empty;
+        [JsonIgnore]
         public System.Windows.Media.ImageSource? ImagemPerfil { get; set; }
     }
 

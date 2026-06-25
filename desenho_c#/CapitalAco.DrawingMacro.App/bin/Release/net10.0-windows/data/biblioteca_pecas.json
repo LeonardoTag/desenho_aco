@@ -314,6 +314,23 @@
       ],
       "criado_em": "2026-06-25T17:06:41.3759051Z",
       "atualizado_em": "2026-06-25T17:06:41.3759051Z"
+    },
+    {
+      "id": "cdedc5a8-7a20-4651-b69f-ffef0d1661ef",
+      "nome": "Chapa Plana 70",
+      "descricao": "",
+      "chapa": "#3/16",
+      "comprimento": 150,
+      "segmentos": [
+        [
+          "E",
+          90,
+          70,
+          "e"
+        ]
+      ],
+      "criado_em": "2026-06-25T18:14:26.1596548Z",
+      "atualizado_em": "2026-06-25T18:14:26.1596548Z"
     }
   ]
 }

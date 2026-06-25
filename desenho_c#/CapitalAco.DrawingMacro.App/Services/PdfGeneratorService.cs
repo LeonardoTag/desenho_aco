@@ -82,6 +82,8 @@ namespace CapitalAco.DrawingMacro.App.Services
                                 col.Item().Text($"Chapa: #{chapaCodigo.Replace("#", "")} (Esp.: {dadosPlan.Espessura:F2} mm)").FontSize((float)config.RelatorioDobraFonteTexto).Bold();
                                 col.Item().Text($"Comprimento da Peça: {comprimento:F0} mm").FontSize((float)config.RelatorioDobraFonteTexto).Bold();
                                 col.Item().Text($"Desenvolvimento Plano: {dadosPlan.CorteTotal} mm").FontSize((float)config.RelatorioDobraFonteTexto).Bold().FontColor(Colors.Indigo.Darken4);
+                                if (dimensoes.HasValue)
+                                    col.Item().Text($"Dimensões Acabadas: {dimensoes.Value.Largura:F0} × {dimensoes.Value.Altura:F0} mm").FontSize((float)config.RelatorioDobraFonteTexto).Bold();
                             });
 
                             row.ConstantItem(200).AlignRight().Column(col =>
@@ -144,8 +146,52 @@ namespace CapitalAco.DrawingMacro.App.Services
             var chapas = _csvService.CarregarChapas();
             var ordemChapas = chapas.Select((c, i) => (c.Codigo, i)).ToDictionary(x => x.Codigo, x => x.i);
             itens = itens
-                .OrderBy(i => ordemChapas.TryGetValue(i.ChapaCodigo, out var idx) ? idx : int.MaxValue)
+                .OrderBy(i => ordemChapas.TryGetValue(i.ChapaCodigo, out var ord) ? ord : int.MaxValue)
                 .ToList();
+
+            // Pré-computa geometria de cada peça fora das lambdas do QuestPDF para evitar
+            // qualquer risco de avaliação deferida capturar o contexto errado.
+            var dadosPecas = itens.Select(item =>
+            {
+                InstrucoesPolares? polar = null;
+                double corte = 0.0;
+                double peso = 0.0;
+                DimensoesAcabadas? dim = null;
+
+                try
+                {
+                    polar = _geometryService.ConverterInstrucoesParaCoordenadasPolares(
+                        item.ChapaCodigo, item.Comprimento, item.Segmentos);
+                    corte = _geometryService.CalcularLarguraCorte(polar);
+                    dim = _geometryService.CalcularDimensoesAcabadas(polar);
+
+                    var chapaInfo = chapas.Find(x => string.Equals(
+                        x.Codigo,
+                        item.ChapaCodigo.StartsWith("#") ? item.ChapaCodigo : $"#{item.ChapaCodigo}",
+                        StringComparison.OrdinalIgnoreCase));
+                    if (chapaInfo != null)
+                        peso = _geometryService.CalcularPesoKg(polar, item.Quantidade, chapaInfo);
+                }
+                catch { }
+
+                return (Item: item, Polar: polar, Corte: corte, Peso: peso, Dim: dim);
+            }).ToList();
+
+            int quantidadeTotalPecas = dadosPecas.Sum(d => d.Item.Quantidade);
+            double pesoTotalGeral = dadosPecas.Sum(d => d.Peso);
+
+            float AlturaParaPeca(PecaPedidoItem it)
+            {
+                const float alturaBase = 90f;
+                const float alturaPorSegmentoExtra = 14f;
+                const int segmentosBase = 3;
+                const float alturaMaxima = 220f;
+
+                int numSegmentos = it.Segmentos?.Count ?? 0;
+                float altura = alturaBase + Math.Max(0, numSegmentos - segmentosBase) * alturaPorSegmentoExtra;
+                if (it.Segmentos != null && it.Segmentos.Any(s => s.EhCurvo)) altura += 18f;
+                return Math.Min(altura, alturaMaxima);
+            }
 
             Document.Create(container =>
             {
@@ -155,7 +201,6 @@ namespace CapitalAco.DrawingMacro.App.Services
                     page.Margin(1.0f, Unit.Centimetre);
                     page.PageColor(Colors.White);
 
-                    // Cabeçalho do Pedido
                     page.Header().Column(col =>
                     {
                         col.Item().Row(row =>
@@ -186,113 +231,80 @@ namespace CapitalAco.DrawingMacro.App.Services
                         }
                     });
 
-                    // Lista de Peças
                     page.Content().PaddingVertical(0.5f, Unit.Centimetre).Column(col =>
                     {
-                        int quantidadeTotalPecas = 0;
-                        double pesoTotalGeral = 0.0;
-
-                        // Peças com mais segmentos (mais cotas/ângulos para encaixar no desenho) recebem um
-                        // container mais alto, senão as medidas ficam amontoadas e ilegíveis em peças complexas.
-                        double AlturaParaPeca(PecaPedidoItem it)
+                        for (int idx = 0; idx < dadosPecas.Count; idx++)
                         {
-                            const double alturaBase = 95;
-                            const double alturaPorSegmentoExtra = 16;
-                            const int segmentosBase = 3;
-                            const double alturaMaxima = 260;
+                            // Captura local imutável — garantia extra além do 'var' no for.
+                            var dado = dadosPecas[idx];
+                            var item   = dado.Item;
+                            var polar  = dado.Polar;
+                            var corte  = dado.Corte;
+                            var peso   = dado.Peso;
+                            var dim    = dado.Dim;
+                            int numero = idx + 1;
 
-                            int numSegmentos = it.Segmentos?.Count ?? 0;
-                            double altura = alturaBase + Math.Max(0, numSegmentos - segmentosBase) * alturaPorSegmentoExtra;
-
-                            // Segmentos curvos somam cotas extras (raio, ângulo de curva, calandragem)
-                            if (it.Segmentos != null && it.Segmentos.Any(s => s.EhCurvo)) altura += 20;
-
-                            return Math.Min(altura, alturaMaxima);
-                        }
-
-                        // Dividimos as peças em slots, numerados e com fundo alternado (zebra) para facilitar a leitura
-                        for (int idx = 0; idx < itens.Count; idx++)
-                        {
-                            var item = itens[idx];
-                            quantidadeTotalPecas += item.Quantidade;
-
-                            col.Item().PaddingBottom(10).Background(idx % 2 == 0 ? Colors.White : Colors.Grey.Lighten5)
-                                .Border(0.5f).BorderColor(Colors.Grey.Lighten1).Height((float)AlturaParaPeca(item)).Row(row =>
-                            {
-                                // Número do item
-                                row.ConstantItem(22).AlignMiddle().AlignCenter()
-                                    .Text($"{idx + 1:D2}").Bold().FontSize((float)config.RelatorioPedidoFonteDestaque).FontColor(Colors.Indigo.Darken4);
-
-                                row.ConstantItem(1).LineVertical(0.5f).LineColor(Colors.Grey.Lighten2);
-
-                                // 1. Imagem de Preview à esquerda (Skia via SVG)
-                                row.RelativeItem(7).Padding(3).Svg(size => RenderizarComoSvg(size.Width, size.Height, canvas =>
+                            col.Item().PaddingBottom(6)
+                                .Background(idx % 2 == 0 ? Colors.White : Colors.Grey.Lighten5)
+                                .Border(0.5f).BorderColor(Colors.Grey.Lighten1)
+                                .Height(AlturaParaPeca(item))
+                                .Row(row =>
                                 {
-                                    try
+                                    row.ConstantItem(22).AlignMiddle().AlignCenter()
+                                        .Text($"{numero:D2}").Bold().FontSize((float)config.RelatorioPedidoFonteDestaque).FontColor(Colors.Indigo.Darken4);
+
+                                    row.ConstantItem(1).LineVertical(0.5f).LineColor(Colors.Grey.Lighten2);
+
+                                    // Desenho (SVG) — usa polar já calculado, sem chamar geometryService aqui
+                                    row.RelativeItem(7).Padding(3).Svg(size => RenderizarComoSvg(size.Width, size.Height, canvas =>
                                     {
-                                        var polar = _geometryService.ConverterInstrucoesParaCoordenadasPolares(item.ChapaCodigo, item.Comprimento, item.Segmentos);
-                                        var dim = _geometryService.CalcularDimensoesAcabadas(polar);
-                                        SkiaRenderer.RenderizarPeca(canvas, new SKSize(size.Width, size.Height), polar, dim, true, _geometryService, fonteCota: 7f, fonteAngulo: 6.5f);
-                                    }
-                                    catch
-                                    {
-                                        canvas.Clear(SKColors.White);
-                                    }
-                                }));
-
-                                // Divisor
-                                row.ConstantItem(1).LineVertical(0.5f).LineColor(Colors.Grey.Lighten2);
-
-                                // 2. Dados numéricos de produção à direita
-                                row.RelativeItem(2).Padding(5).Column(c =>
-                                {
-                                    c.Item().Text(item.NomePeca).Bold().FontSize((float)config.RelatorioPedidoFonteDestaque).FontColor(Colors.Indigo.Darken4);
-
-                                    c.Item().PaddingTop(2).Row(r =>
-                                    {
-                                        r.RelativeItem().Text($"Qtde: {item.Quantidade}").Bold().FontSize((float)config.RelatorioPedidoFonteDestaque);
-                                        r.RelativeItem().Text($"Chapa: #{item.ChapaCodigo.Replace("#", "")}").FontSize((float)config.RelatorioPedidoFonteTexto).Bold();
-                                    });
-
-                                    double corte = 0.0;
-                                    double peso = 0.0;
-                                    try
-                                    {
-                                        var polar = _geometryService.ConverterInstrucoesParaCoordenadasPolares(item.ChapaCodigo, item.Comprimento, item.Segmentos);
-                                        corte = _geometryService.CalcularLarguraCorte(polar);
-
-                                        var chapaInfo = chapas.Find(x => string.Equals(x.Codigo, item.ChapaCodigo.StartsWith("#") ? item.ChapaCodigo : $"#{item.ChapaCodigo}", StringComparison.OrdinalIgnoreCase));
-                                        if (chapaInfo != null)
+                                        if (polar != null)
                                         {
-                                            peso = _geometryService.CalcularPesoKg(polar, item.Quantidade, chapaInfo);
+                                            try
+                                            {
+                                                SkiaRenderer.RenderizarPeca(canvas, new SKSize(size.Width, size.Height), polar, dim, true, _geometryService, fonteCota: 7f, fonteAngulo: 6.5f);
+                                            }
+                                            catch { canvas.Clear(SKColors.White); }
                                         }
-                                    }
-                                    catch { }
+                                        else
+                                        {
+                                            canvas.Clear(SKColors.White);
+                                        }
+                                    }));
 
-                                    pesoTotalGeral += peso;
+                                    row.ConstantItem(1).LineVertical(0.5f).LineColor(Colors.Grey.Lighten2);
 
-                                    c.Item().PaddingTop(3).Text(t =>
+                                    row.RelativeItem(2).Padding(5).Column(c =>
                                     {
-                                        t.Span("Corte: ").Bold().FontSize((float)config.RelatorioPedidoFonteRotuloCampo);
-                                        t.Span($"{corte:F0} mm").Bold().FontColor(Colors.Red.Medium).FontSize((float)config.RelatorioPedidoFonteDestaque);
+                                        c.Item().Text(item.NomePeca).Bold().FontSize((float)config.RelatorioPedidoFonteDestaque).FontColor(Colors.Indigo.Darken4);
+
+                                        c.Item().PaddingTop(2).Row(r =>
+                                        {
+                                            r.RelativeItem().Text($"Qtde: {item.Quantidade}").Bold().FontSize((float)config.RelatorioPedidoFonteDestaque);
+                                            r.RelativeItem().Text($"Chapa: #{item.ChapaCodigo.Replace("#", "")}").FontSize((float)config.RelatorioPedidoFonteTexto).Bold();
+                                        });
+
+                                        c.Item().PaddingTop(3).Text(t =>
+                                        {
+                                            t.Span("Corte: ").Bold().FontSize((float)config.RelatorioPedidoFonteRotuloCampo);
+                                            t.Span($"{corte:F0} mm").Bold().FontColor(Colors.Red.Medium).FontSize((float)config.RelatorioPedidoFonteDestaque);
+                                        });
+
+                                        c.Item().Text($"Comprimento: {item.Comprimento:F0} mm").FontSize((float)config.RelatorioPedidoFonteTexto).Bold();
+                                        if (dim.HasValue)
+                                            c.Item().Text($"Dim.: {dim.Value.Largura:F0} × {dim.Value.Altura:F0} mm").FontSize((float)config.RelatorioPedidoFonteTexto).Bold();
+                                        c.Item().Text($"Peso: {peso:F0} kg").FontSize((float)config.RelatorioPedidoFonteTexto).Bold();
+                                        c.Item().PaddingTop(4).Row(r =>
+                                        {
+                                            r.ConstantItem(12).Border(1).BorderColor(Colors.Grey.Darken1).Height(12).Svg(size => RenderizarComoSvg(size.Width, size.Height, canvas => { }));
+                                            r.AutoItem().PaddingLeft(4).Text("Cortado").FontSize((float)config.RelatorioPedidoFonteRotuloPeca);
+                                        });
+                                        if (!string.IsNullOrWhiteSpace(item.Observacao))
+                                            c.Item().PaddingTop(2).Text($"Obs.: {item.Observacao}").FontSize((float)config.RelatorioPedidoFonteRotuloCampo).Italic();
                                     });
-
-                                    c.Item().Text($"Comprimento: {item.Comprimento:F0} mm").FontSize((float)config.RelatorioPedidoFonteTexto).Bold();
-                                    c.Item().Text($"Peso: {peso:F0} kg").FontSize((float)config.RelatorioPedidoFonteTexto).Bold();
-                                    c.Item().PaddingTop(5).Row(r =>
-                                    {
-                                        r.ConstantItem(15).Border(1).BorderColor(Colors.Grey.Darken1).Height(15).Svg(size => RenderizarComoSvg(size.Width, size.Height, canvas => { }));
-                                        r.AutoItem().PaddingLeft(4).Text("Cortado").FontSize((float)config.RelatorioPedidoFonteRotuloPeca);
-                                    });
-                                    if (!string.IsNullOrWhiteSpace(item.Observacao))
-                                    {
-                                        c.Item().PaddingTop(2).Text($"Obs.: {item.Observacao}").FontSize((float)config.RelatorioPedidoFonteRotuloCampo).Italic();
-                                    }
                                 });
-                            });
                         }
 
-                        // Resumo Geral do Pedido
                         col.Item().PaddingTop(4).Background(Colors.Indigo.Lighten5).Border(1).BorderColor(Colors.Indigo.Lighten3).Padding(8).Row(r =>
                         {
                             r.RelativeItem().Text($"Total de Itens: {itens.Count}").Bold().FontSize((float)config.RelatorioPedidoFonteDestaque);

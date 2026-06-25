@@ -13,17 +13,17 @@
         <KeyBinding Gesture="Ctrl+3" Command="{Binding IrParaAbaCommand}" CommandParameter="2"/>
         <KeyBinding Gesture="Ctrl+4" Command="{Binding IrParaAbaCommand}" CommandParameter="3"/>
     </Window.InputBindings>
-    <Grid Margin="20">
+    <Grid Margin="10,10,10,10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20" VerticalAlignment="Center">
-            <Image Source="/Assets/logo.png" Height="48" Margin="0,0,15,0" VerticalAlignment="Center"/>
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8" VerticalAlignment="Center">
+            <Image Source="/Assets/logo.png" Height="30" Margin="0,0,10,0" VerticalAlignment="Center"/>
             <StackPanel VerticalAlignment="Center">
-                <TextBlock Text="CAPITAL AÇO" Foreground="#12153F" FontSize="28" FontWeight="Bold" FontFamily="Segoe UI"/>
-                <TextBlock Text="Sistema de Detalhamento de Dobras e Geração de Pedidos (.NET 8)" Foreground="#5B6472" FontSize="14" Margin="0,5,0,0" FontFamily="Segoe UI"/>
+                <TextBlock Text="CAPITAL AÇO" Foreground="#12153F" FontSize="18" FontWeight="Bold" FontFamily="Segoe UI"/>
+                <TextBlock Text="Sistema de Detalhamento de Dobras e Geração de Pedidos" Foreground="#5B6472" FontSize="11" Margin="0,2,0,0" FontFamily="Segoe UI"/>
             </StackPanel>
         </StackPanel>
 

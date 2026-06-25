@@ -14,13 +14,31 @@ namespace CapitalAco.DrawingMacro.App.Views
         {
             InitializeComponent();
             DataContextChanged += OnDataContextChanged;
+            IsVisibleChanged += OnIsVisibleChanged;
+        }
+
+        private void OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (e.NewValue is true)
+                Dispatcher.BeginInvoke(() => Focus(), DispatcherPriority.Input);
         }
 
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if (e.OldValue is EditorPecaViewModel oldVm) oldVm.PropertyChanged -= Vm_PropertyChanged;
-            if (e.NewValue is EditorPecaViewModel newVm) newVm.PropertyChanged += Vm_PropertyChanged;
+            if (e.OldValue is EditorPecaViewModel oldVm)
+            {
+                oldVm.PropertyChanged -= Vm_PropertyChanged;
+                oldVm.PecaAdicionadaAoPedido -= OnPecaAdicionadaAoPedido;
+            }
+            if (e.NewValue is EditorPecaViewModel newVm)
+            {
+                newVm.PropertyChanged += Vm_PropertyChanged;
+                newVm.PecaAdicionadaAoPedido += OnPecaAdicionadaAoPedido;
+            }
         }
+
+        private void OnPecaAdicionadaAoPedido()
+            => Dispatcher.BeginInvoke(() => Focus(), DispatcherPriority.Input);
 
         // Ao entrar nas fases de Ângulo/Medida do Modo Rápido, foca e seleciona o campo correspondente
         // para que o usuário possa digitar imediatamente, sem precisar usar o mouse.
@@ -42,6 +60,11 @@ namespace CapitalAco.DrawingMacro.App.Views
                 {
                     MedidaRapidaTextBox.Focus();
                     MedidaRapidaTextBox.SelectAll();
+                }
+                else if (vm.EstaConcluido)
+                {
+                    ComprimentoTextBox.Focus();
+                    ComprimentoTextBox.SelectAll();
                 }
             }), DispatcherPriority.Input);
         }
@@ -65,12 +88,17 @@ namespace CapitalAco.DrawingMacro.App.Views
             }
         }
 
+        private void TextBox_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+            => (sender as System.Windows.Controls.TextBox)?.SelectAll();
+
         private void EditorPecaView_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (DataContext is not EditorPecaViewModel vm) return;
 
             bool focoEmGrauOuMedida = ReferenceEquals(Keyboard.FocusedElement, GrauRapidoTextBox)
                 || ReferenceEquals(Keyboard.FocusedElement, MedidaRapidaTextBox);
+            bool focoEmCampoPedido = ReferenceEquals(Keyboard.FocusedElement, PedidoQuantidadeTextBox)
+                || ReferenceEquals(Keyboard.FocusedElement, PedidoObservacaoTextBox);
             bool focoEmCampoDeTexto = Keyboard.FocusedElement is TextBox or ComboBox;
 
             // Esc: sai um nível do modo/sub-fase atual do Modo Rápido (não faz nada no Modo Clássico).
@@ -81,6 +109,14 @@ namespace CapitalAco.DrawingMacro.App.Views
                     vm.SairDoModoAtual();
                     e.Handled = true;
                 }
+                return;
+            }
+
+            // Enter nos campos Qtd/Observação: adiciona à ordem sem precisar de Shift.
+            if (e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.None && focoEmCampoPedido)
+            {
+                vm.AdicionarAoPedidoCommand.Execute(null);
+                e.Handled = true;
                 return;
             }
 

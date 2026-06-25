@@ -24,17 +24,21 @@ namespace CapitalAco.DrawingMacro.App.Services
      */
     public static class SkiaRenderer
     {
-        private static readonly SKColor FundoCor = new SKColor(255, 255, 255);
-        private static readonly SKColor PerfilContornoCor = new SKColor(38, 50, 66);
+        private static readonly SKColor FundoCor            = new SKColor(255, 255, 255);
+        private static readonly SKColor PerfilContornoCor    = new SKColor(38,  52,  70);
         private static readonly SKColor PerfilPreenchimentoCor = new SKColor(176, 190, 208);
-        private static readonly SKColor ExtrusaoFaceCor = new SKColor(218, 225, 234);
-        private static readonly SKColor ExtrusaoFaceSombraCor = new SKColor(198, 206, 218);
-        private static readonly SKColor ExtrusaoArestaCor = new SKColor(130, 142, 158);
-        private static readonly SKColor CotaLinhaCor = new SKColor(160, 170, 184);
-        private static readonly SKColor CotaTextoCor = new SKColor(21, 101, 192);
+        // Paleta da chapa metálica
+        private static readonly SKColor AcoBase             = new SKColor(172, 185, 202);  // face frontal / tom médio
+        private static readonly SKColor AcoClaro            = new SKColor(218, 228, 242);  // face bem iluminada
+        private static readonly SKColor AcoEscuro           = new SKColor(88,  100, 118);  // face em sombra
+        private static readonly SKColor AcoFundoCor         = new SKColor(148, 162, 178);  // tampa traseira
+        private static readonly SKColor AcoAresta           = new SKColor(38,  52,  70);   // contorno frontal
+        private static readonly SKColor AcoArestaBack       = new SKColor(80,  94,  112);  // arestas traseiras / conexão
+        private static readonly SKColor CotaLinhaCor        = new SKColor(160, 170, 184);
+        private static readonly SKColor CotaTextoCor        = new SKColor(21,  101, 192);
         private static readonly SKColor CotaInternaLinhaCor = new SKColor(229, 154, 154);
-        private static readonly SKColor CotaInternaTextoCor = new SKColor(183, 28, 28);
-        private static readonly SKColor AnguloTextoCor = new SKColor(46, 125, 50);
+        private static readonly SKColor CotaInternaTextoCor = new SKColor(183, 28,  28);
+        private static readonly SKColor AnguloTextoCor      = new SKColor(46,  125, 50);
         private static readonly SKColor SegmentoDestaqueCor = new SKColor(255, 120, 0);
 
         public static System.Windows.Media.ImageSource RenderToImageSource(InstrucoesPolares polar, int width, int height, IGeometryService geometryService, float fonteCota = 12f, float fonteAngulo = 11f, bool mostrarMedidas = true, int? segmentoDestacado = null, bool destacarProximaOrigem = false)
@@ -199,8 +203,6 @@ namespace CapitalAco.DrawingMacro.App.Services
                 }
             }
 
-            var extrusaoTess = pontosTess.Select(p => new SKPoint(p.X + dx, p.Y + dy)).ToList();
-
             // Índices em pontosTess que correspondem aos vértices ORIGINAIS (não às subdivisões da
             // tesselação) — só ali existe uma dobra/transição real para desenhar a aresta de conexão.
             var indicesOriginais = new List<int> { 0 };
@@ -210,107 +212,131 @@ namespace CapitalAco.DrawingMacro.App.Services
                     indicesOriginais.Add(i + 1);
             }
 
-            // 3. Desenhar faces 3D (Painters Algorithm)
-            var facesInfo = new List<(double Depth, SKPoint[] Path, SKColor Cor)>();
+            // 3. Extrusão com espessura real da chapa
+            double espessuraPx = Math.Max(3.0, polar.Espessura * escala);
+            float halfPx = (float)(espessuraPx / 2.0);
+
+            // Dois contornos paralelos ao eixo neutro (face externa e face interna da chapa)
+            var outerTess = ComputarOffsetPolyline(pontosTess, halfPx);
+            var innerTess = ComputarOffsetPolyline(pontosTess, -halfPx);
+            var outerBack = outerTess.Select(p => new SKPoint(p.X + dx, p.Y + dy)).ToList();
+            var innerBack = innerTess.Select(p => new SKPoint(p.X + dx, p.Y + dy)).ToList();
+
+            // Direção de luz (norm. aproximada): vinda de cima-esquerda na tela
+            const float LX = -0.40f, LY = -0.92f;
+
+            // Coletar todas as faces laterais + tampa traseira para o Painter's Algorithm
+            var todasFaces = new List<(double Depth, SKPoint[] Pts, SKColor Cor)>();
+
+            // Tampa traseira
+            {
+                var pts = outerBack.Concat(innerBack.AsEnumerable().Reverse()).ToArray();
+                double d = pts.Average(p => (double)p.Y * Math.Abs(dy) - (double)p.X * dx);
+                todasFaces.Add((d, pts, AcoFundoCor));
+            }
+
+            // Faces laterais por segmento tesselado (outer + inner)
             for (int i = 0; i < pontosTess.Count - 1; i++)
             {
-                var p0 = pontosTess[i];
-                var p1 = pontosTess[i + 1];
-                var pe0 = extrusaoTess[i];
-                var pe1 = extrusaoTess[i + 1];
+                // Normal da face = direção do offset (outer ou inner) em relação ao neutro
+                float onx = outerTess[i].X - pontosTess[i].X;
+                float ony = outerTess[i].Y - pontosTess[i].Y;
+                float olen = MathF.Sqrt(onx * onx + ony * ony);
+                if (olen > 1e-6f) { onx /= olen; ony /= olen; }
 
-                var pathPoints = new SKPoint[] { p0, p1, pe1, pe0 };
-                double midX = (p0.X + p1.X) / 2.0;
-                double midY = (p0.Y + p1.Y) / 2.0;
-                double depth = midY * Math.Abs(dy) - midX * dx;
+                float dotOuter = onx * LX + ony * LY;
+                float dotInner = -(onx * LX + ony * LY);
 
-                var cor = origemTrecho[i] % 2 == 0 ? ExtrusaoFaceCor : ExtrusaoFaceSombraCor;
-                facesInfo.Add((depth, pathPoints, cor));
+                var corOuter = InterpolateColor(AcoBase, AcoClaro, Math.Clamp(dotOuter * 0.85f + 0.55f, 0f, 1f));
+                var corInner = InterpolateColor(AcoEscuro, AcoBase, Math.Clamp(dotInner * 0.85f + 0.55f, 0f, 1f));
+
+                var outerPts = new[] { outerTess[i], outerTess[i + 1], outerBack[i + 1], outerBack[i] };
+                double od = outerPts.Average(p => (double)p.Y * Math.Abs(dy) - (double)p.X * dx);
+                todasFaces.Add((od, outerPts, corOuter));
+
+                var innerPts = new[] { innerTess[i], innerTess[i + 1], innerBack[i + 1], innerBack[i] };
+                double id = innerPts.Average(p => (double)p.Y * Math.Abs(dy) - (double)p.X * dx);
+                todasFaces.Add((id, innerPts, corInner));
             }
 
-            // Ordenar por profundidade (mais distantes primeiro)
-            facesInfo = facesInfo.OrderByDescending(f => f.Depth).ToList();
+            // Ordenar profundidade (mais distantes primeiro) e desenhar
+            todasFaces.Sort((a, b) => b.Depth.CompareTo(a.Depth));
 
-            using var facePaint = new SKPaint { Style = SKPaintStyle.Fill, IsAntialias = true };
-            foreach (var face in facesInfo)
+            using var fillPaint = new SKPaint { Style = SKPaintStyle.Fill, IsAntialias = true };
+            foreach (var (_, pts, cor) in todasFaces)
             {
-                using var path = new SKPath();
-                path.MoveTo(face.Path[0]);
-                path.LineTo(face.Path[1]);
-                path.LineTo(face.Path[2]);
-                path.LineTo(face.Path[3]);
-                path.Close();
-
-                facePaint.Color = face.Cor;
-                canvas.DrawPath(path, facePaint);
+                fillPaint.Color = cor;
+                using var fp = new SKPath();
+                fp.MoveTo(pts[0]);
+                for (int j = 1; j < pts.Length; j++) fp.LineTo(pts[j]);
+                fp.Close();
+                canvas.DrawPath(fp, fillPaint);
             }
 
-            // 4. Desenhar arestas traseiras e conexões
-            using var arestaPaint = new SKPaint
+            // 4. Arestas de profundidade: extremidades do perfil + lado convexo de cada dobra.
+            //    O produto cruzado dos vetores de chegada/saída em cada vértice determina
+            //    qual lado é convexo (visível) e qual é côncavo (cruzaria o vazio interior).
+            using var endDepthPaint = new SKPaint
             {
-                Color = ExtrusaoArestaCor,
+                Color = AcoArestaBack,
                 Style = SKPaintStyle.Stroke,
-                StrokeWidth = 1.5f,
+                StrokeWidth = 1.1f,
                 IsAntialias = true
             };
+            // Extremidades do perfil
+            canvas.DrawLine(outerTess[0],  outerBack[0],  endDepthPaint);
+            canvas.DrawLine(innerTess[0],  innerBack[0],  endDepthPaint);
+            canvas.DrawLine(outerTess[^1], outerBack[^1], endDepthPaint);
+            canvas.DrawLine(innerTess[^1], innerBack[^1], endDepthPaint);
 
-            // Linhas de dobra/conexão: só nos vértices originais (em trechos curvos tesselados não há
-            // dobra real a cada subdivisão, então evitamos desenhar "trilhos" cruzando a curva).
-            foreach (var idx in indicesOriginais)
+            // Dobras internas — apenas o lado convexo
+            for (int k = 1; k < indicesOriginais.Count - 1; k++)
             {
-                canvas.DrawLine(pontosTess[idx], extrusaoTess[idx], arestaPaint);
+                int idx = indicesOriginais[k];
+                float ax = pontosTess[idx].X - pontosTess[idx - 1].X;
+                float ay = pontosTess[idx].Y - pontosTess[idx - 1].Y;
+                float bx = pontosTess[idx + 1].X - pontosTess[idx].X;
+                float by = pontosTess[idx + 1].Y - pontosTess[idx].Y;
+                float cross = ax * by - ay * bx;
+                if (cross > 1f)
+                    canvas.DrawLine(outerTess[idx], outerBack[idx], endDepthPaint);
+                else if (cross < -1f)
+                    canvas.DrawLine(innerTess[idx], innerBack[idx], endDepthPaint);
             }
 
-            // Desenhar perfil traseiro (acompanha a curva, pois percorre todos os pontos tesselados)
-            for (int i = 0; i < extrusaoTess.Count - 1; i++)
+            // 5. Tampa frontal (face da chapa visível ao espectador) — desenhada por último, sempre à frente
             {
-                canvas.DrawLine(extrusaoTess[i], extrusaoTess[i + 1], arestaPaint);
+                using var frontPath = new SKPath();
+                frontPath.MoveTo(outerTess[0]);
+                for (int i = 1; i < outerTess.Count; i++) frontPath.LineTo(outerTess[i]);
+                for (int i = innerTess.Count - 1; i >= 0; i--) frontPath.LineTo(innerTess[i]);
+                frontPath.Close();
+                using var frontFill = new SKPaint { Color = AcoBase, Style = SKPaintStyle.Fill, IsAntialias = true };
+                canvas.DrawPath(frontPath, frontFill);
             }
 
-            // 5. Desenhar perfil frontal mestre (idem: acompanha a curva via pontos tesselados)
-            using var perfilPaint = new SKPaint
+            // Contorno frontal (outer + inner + tampas das extremidades)
+            using var contourPaint = new SKPaint
             {
-                Color = PerfilContornoCor,
+                Color = AcoAresta,
                 Style = SKPaintStyle.Stroke,
-                StrokeWidth = (float)Math.Max(2.5, polar.Espessura * escala),
-                StrokeJoin = SKStrokeJoin.Round,
-                IsAntialias = true
-            };
-
-            using var perfilPath = new SKPath();
-            perfilPath.MoveTo(pontosTess[0]);
-            for (int i = 1; i < pontosTess.Count; i++)
-            {
-                perfilPath.LineTo(pontosTess[i]);
-            }
-            canvas.DrawPath(perfilPath, perfilPaint);
-
-            // Realce (bisel) ao longo da borda frontal, para que a espessura real da chapa apareça como
-            // uma aresta de metal com volume, e não como uma linha de eixo achatada. Desloca-se a mesma
-            // trilha tesselada por um pequeno deslocamento perpendicular à direção da extrusão, então
-            // acompanha curvas automaticamente sem precisar calcular um polígono de offset.
-            double espessuraPx = Math.Max(2.5, polar.Espessura * escala);
-            double compPerp = Math.Sqrt(dx * dx + dy * dy);
-            float perpX = compPerp < 1e-6 ? 0f : (float)(dy / compPerp);
-            float perpY = compPerp < 1e-6 ? 0f : (float)(-dx / compPerp);
-            float realceOffset = (float)Math.Min(espessuraPx * 0.3, 1.6);
-
-            using var realcePaint = new SKPaint
-            {
-                Color = new SKColor(255, 255, 255, 130),
-                Style = SKPaintStyle.Stroke,
-                StrokeWidth = (float)Math.Max(1.0, espessuraPx * 0.35),
+                StrokeWidth = 1.6f,
                 StrokeJoin = SKStrokeJoin.Round,
                 StrokeCap = SKStrokeCap.Round,
                 IsAntialias = true
             };
-            using var realcePath = new SKPath();
-            realcePath.MoveTo(pontosTess[0].X + perpX * realceOffset, pontosTess[0].Y + perpY * realceOffset);
-            for (int i = 1; i < pontosTess.Count; i++)
-            {
-                realcePath.LineTo(pontosTess[i].X + perpX * realceOffset, pontosTess[i].Y + perpY * realceOffset);
-            }
-            canvas.DrawPath(realcePath, realcePaint);
+            using var outerFrontPath = new SKPath();
+            outerFrontPath.MoveTo(outerTess[0]);
+            for (int i = 1; i < outerTess.Count; i++) outerFrontPath.LineTo(outerTess[i]);
+            canvas.DrawPath(outerFrontPath, contourPaint);
+
+            using var innerFrontPath = new SKPath();
+            innerFrontPath.MoveTo(innerTess[0]);
+            for (int i = 1; i < innerTess.Count; i++) innerFrontPath.LineTo(innerTess[i]);
+            canvas.DrawPath(innerFrontPath, contourPaint);
+
+            canvas.DrawLine(outerTess[0], innerTess[0], contourPaint);
+            canvas.DrawLine(outerTess[^1], innerTess[^1], contourPaint);
 
             // Destacar segmento ativo (fase de inserção de medidas no modo rápido)
             if (segmentoDestacado.HasValue)
@@ -320,9 +346,9 @@ namespace CapitalAco.DrawingMacro.App.Services
                 {
                     using var paintDestaque = new SKPaint
                     {
-                        Color = SegmentoDestaqueCor.WithAlpha(180),
+                        Color = SegmentoDestaqueCor.WithAlpha(200),
                         Style = SKPaintStyle.Stroke,
-                        StrokeWidth = (float)espessuraPx + 4f,
+                        StrokeWidth = halfPx * 2f + 5f,
                         StrokeCap = SKStrokeCap.Round,
                         IsAntialias = true
                     };
@@ -424,7 +450,7 @@ namespace CapitalAco.DrawingMacro.App.Services
             var b1 = new SKPoint(tras.X - px * raio, tras.Y - py * raio);
 
             using var facePaint = new SKPaint { Style = SKPaintStyle.Fill, IsAntialias = true };
-            facePaint.Color = ExtrusaoFaceSombraCor;
+            facePaint.Color = AcoFundoCor;
             canvas.DrawCircle(tras, raio, facePaint);
 
             using var bandaPath = new SKPath();
@@ -433,10 +459,10 @@ namespace CapitalAco.DrawingMacro.App.Services
             bandaPath.LineTo(b1);
             bandaPath.LineTo(b0);
             bandaPath.Close();
-            facePaint.Color = ExtrusaoFaceCor;
+            facePaint.Color = AcoBase;
             canvas.DrawPath(bandaPath, facePaint);
 
-            using var arestaPaint = new SKPaint { Color = ExtrusaoArestaCor, Style = SKPaintStyle.Stroke, StrokeWidth = 1.5f, IsAntialias = true };
+            using var arestaPaint = new SKPaint { Color = AcoArestaBack, Style = SKPaintStyle.Stroke, StrokeWidth = 1.5f, IsAntialias = true };
             canvas.DrawCircle(tras, raio, arestaPaint);
             canvas.DrawLine(a0, a1, arestaPaint);
             canvas.DrawLine(b0, b1, arestaPaint);
@@ -459,6 +485,62 @@ namespace CapitalAco.DrawingMacro.App.Services
             var tras = new SKPoint(frente.X + dx, frente.Y + dy);
             string textoComprimento = $"{polar.Comprimento:F0}";
             canvas.DrawText(textoComprimento, (frente.X + tras.X) / 2f, (frente.Y + tras.Y) / 2f - 10f, textPaint);
+        }
+
+        // Computa dois caminhos paralelos ao eixo neutro, deslocados por ±offset em pixels.
+        // O ponto de junção nas dobras usa miter (interseção das normais adjacentes),
+        // limitado para evitar spikes em ângulos muito agudos.
+        private static List<SKPoint> ComputarOffsetPolyline(List<SKPoint> pts, float offset)
+        {
+            int n = pts.Count;
+            var result = new List<SKPoint>(n);
+            for (int i = 0; i < n; i++)
+            {
+                float nx, ny;
+                if (i == 0)
+                {
+                    (nx, ny) = NormalDireita(pts[0], pts[1]);
+                }
+                else if (i == n - 1)
+                {
+                    (nx, ny) = NormalDireita(pts[n - 2], pts[n - 1]);
+                }
+                else
+                {
+                    var (n1x, n1y) = NormalDireita(pts[i - 1], pts[i]);
+                    var (n2x, n2y) = NormalDireita(pts[i], pts[i + 1]);
+                    float mx = n1x + n2x, my = n1y + n2y;
+                    float ml = MathF.Sqrt(mx * mx + my * my);
+                    if (ml < 1e-6f) { nx = n1x; ny = n1y; }
+                    else
+                    {
+                        mx /= ml; my /= ml;
+                        float dot = n1x * mx + n1y * my;
+                        float scale = dot > 0.2f ? MathF.Min(1f / dot, 3.5f) : 1f;
+                        nx = mx * scale; ny = my * scale;
+                    }
+                }
+                result.Add(new SKPoint(pts[i].X + nx * offset, pts[i].Y + ny * offset));
+            }
+            return result;
+        }
+
+        // Normal à direita do vetor a→b, no espaço de tela (Y cresce para baixo).
+        private static (float nx, float ny) NormalDireita(SKPoint a, SKPoint b)
+        {
+            float ddx = b.X - a.X, ddy = b.Y - a.Y;
+            float len = MathF.Sqrt(ddx * ddx + ddy * ddy);
+            if (len < 1e-6f) return (0f, -1f);
+            return (ddy / len, -ddx / len);
+        }
+
+        private static SKColor InterpolateColor(SKColor a, SKColor b, float t)
+        {
+            t = Math.Clamp(t, 0f, 1f);
+            return new SKColor(
+                (byte)(a.Red   + t * (b.Red   - a.Red)),
+                (byte)(a.Green + t * (b.Green - a.Green)),
+                (byte)(a.Blue  + t * (b.Blue  - a.Blue)));
         }
 
         private static void DesenharCotas(
