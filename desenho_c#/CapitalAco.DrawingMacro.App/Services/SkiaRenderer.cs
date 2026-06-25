@@ -111,44 +111,119 @@ namespace CapitalAco.DrawingMacro.App.Services
             if (dimX == 0) dimX = 1;
             if (dimY == 0) dimY = 1;
 
-            double escala = Math.Min(utilW / dimX, utilH / dimY);
+            // A extrusão 3D desloca o desenho na diagonal (ângulo3D); reservamos esse espaço ANTES de
+            // calcular a escala, senão miniaturas achatadas (proporção larga/baixa, ex.: Ordem de Produção)
+            // sangram para fora da caixa.
+            double comprimento = polar.Comprimento;
+            double angulo3D = 55.0 * (Math.PI / 180.0);
+            double extrusaoFatorX = comprimento * 0.25 * Math.Cos(angulo3D);
+            double extrusaoFatorY = comprimento * 0.25 * Math.Sin(angulo3D);
 
-            // Translação para centralizar
-            double dimXScaled = dimX * escala;
-            double dimYScaled = dimY * escala;
-            double fatorX = (canvasW - dimXScaled) / 2.0 - minX * escala;
-            double fatorY = (canvasH - dimYScaled) / 2.0 - minY * escala;
+            double escala = Math.Min(utilW / (dimX + extrusaoFatorX), utilH / (dimY + extrusaoFatorY));
+
+            double compEsboco = comprimento * escala * 0.25;
+            float dx = (float)(compEsboco * Math.Cos(angulo3D));
+            float dy = (float)(-compEsboco * Math.Sin(angulo3D));
+
+            // Centraliza considerando a caixa combinada do perfil + extrusão: o perfil não se estende
+            // para a esquerda/baixo, e a extrusão não se estende para a direita/cima, então a caixa
+            // combinada só cresce nessas duas pontas (direita e cima) em relação ao perfil plano.
+            double dimXCombinado = dimX * escala + dx;
+            double dimYCombinado = dimY * escala + Math.Abs(dy);
+            double fatorX = (canvasW - dimXCombinado) / 2.0 - minX * escala;
+            double fatorY = (canvasH - dimYCombinado) / 2.0 - (minY * escala + dy);
 
             var coordenadasNoCanvas = absolutas.Select(p => new SKPoint(
                 (float)(p.X * escala + fatorX),
                 (float)(p.Y * escala + fatorY)
             )).ToList();
 
-            // 2. Projetar extrusão 3D
-            double comprimento = polar.Comprimento;
-            // Reduz escala do 3D para caber
-            double compEsboco = comprimento * escala * 0.25; 
-            double angulo3D = 55.0 * (Math.PI / 180.0);
-            float dx = (float)(compEsboco * Math.Cos(angulo3D));
-            float dy = (float)(-compEsboco * Math.Sin(angulo3D));
+            // Tubo calandrado fechado (360°): é sempre peça de um único segmento (ver GeradorPecaService),
+            // então tratamos como um caso totalmente dedicado (cilindro 3D) em vez de forçar o caminho
+            // genérico de polígono, que degenera (corda de comprimento zero = sem extrusão visível).
+            if (polar.SegmentosOriginal.Count == 1
+                && polar.SegmentosOriginal[0].EhCurvo
+                && polar.SegmentosOriginal[0].CurvaInfo != null
+                && polar.SegmentosOriginal[0].CurvaInfo!.AnguloCurva >= 359.5)
+            {
+                var infoTubo = polar.SegmentosOriginal[0].CurvaInfo!;
+                double rInternoTubo = infoTubo.TipoRaio == "interno" ? infoTubo.Raio : infoTubo.Raio - polar.Espessura;
+                double rNeutroTubo = rInternoTubo + polar.KFactor * polar.Espessura;
+                float raioCanvasTubo = (float)Math.Max(0.5, rNeutroTubo * escala);
 
-            var coordenadasExtrusao = coordenadasNoCanvas.Select(p => new SKPoint(p.X + dx, p.Y + dy)).ToList();
+                DesenharTuboRedondo3D(canvas, coordenadasNoCanvas[0], raioCanvasTubo, dx, dy);
+
+                if (mostrarMedidas)
+                {
+                    DesenharCotaTubo(canvas, coordenadasNoCanvas[0], raioCanvasTubo, dx, dy, infoTubo, polar, fonteCota);
+                }
+                return;
+            }
+
+            // 2. Tesselar segmentos curvos em pequenos trechos retos, para que o arco apareça de fato
+            // curvado tanto no contorno frontal quanto nas faces extrudadas (e não apenas como uma corda reta).
+            var azimutesOriginais = geometryService.ObterAzimutesDeSegmentos(polar.SegmentosOriginal);
+            var pontosTess = new List<SKPoint> { coordenadasNoCanvas[0] };
+            var origemTrecho = new List<int>();
+            for (int i = 0; i < coordenadasNoCanvas.Count - 1; i++)
+            {
+                var segOriginal = i < polar.SegmentosOriginal.Count ? polar.SegmentosOriginal[i] : null;
+
+                if (segOriginal is { EhCurvo: true, CurvaInfo: not null } && i < azimutesOriginais.Count)
+                {
+                    var infoCurva = segOriginal.CurvaInfo!;
+                    double rInterno = infoCurva.TipoRaio == "interno" ? infoCurva.Raio : infoCurva.Raio - polar.Espessura;
+                    double rNeutro = rInterno + polar.KFactor * polar.Espessura;
+                    float raioCanvas = (float)Math.Max(0.5, rNeutro * escala);
+                    bool sentidoHorario = DeterminarSentidoHorarioCurva(i, azimutesOriginais);
+                    double azStart = ObterAzimuteInicialCurva(i, azimutesOriginais, infoCurva.AnguloCurva, sentidoHorario);
+                    double azCentro = azStart + (sentidoHorario ? 90.0 : -90.0);
+
+                    double centroModelX = absolutas[i].X + rNeutro * Math.Sin(azCentro * Math.PI / 180.0);
+                    double centroModelY = absolutas[i].Y - rNeutro * Math.Cos(azCentro * Math.PI / 180.0);
+                    var centroCanvas = new SKPoint(
+                        (float)(centroModelX * escala + fatorX),
+                        (float)(centroModelY * escala + fatorY));
+
+                    foreach (var sp in TesselarArco(centroCanvas, raioCanvas, azCentro, infoCurva.AnguloCurva, sentidoHorario))
+                    {
+                        pontosTess.Add(sp);
+                        origemTrecho.Add(i);
+                    }
+                }
+                else
+                {
+                    pontosTess.Add(coordenadasNoCanvas[i + 1]);
+                    origemTrecho.Add(i);
+                }
+            }
+
+            var extrusaoTess = pontosTess.Select(p => new SKPoint(p.X + dx, p.Y + dy)).ToList();
+
+            // Índices em pontosTess que correspondem aos vértices ORIGINAIS (não às subdivisões da
+            // tesselação) — só ali existe uma dobra/transição real para desenhar a aresta de conexão.
+            var indicesOriginais = new List<int> { 0 };
+            for (int i = 0; i < origemTrecho.Count; i++)
+            {
+                if (i == origemTrecho.Count - 1 || origemTrecho[i + 1] != origemTrecho[i])
+                    indicesOriginais.Add(i + 1);
+            }
 
             // 3. Desenhar faces 3D (Painters Algorithm)
             var facesInfo = new List<(double Depth, SKPoint[] Path, SKColor Cor)>();
-            for (int i = 0; i < coordenadasNoCanvas.Count - 1; i++)
+            for (int i = 0; i < pontosTess.Count - 1; i++)
             {
-                var p0 = coordenadasNoCanvas[i];
-                var p1 = coordenadasNoCanvas[i + 1];
-                var pe0 = coordenadasExtrusao[i];
-                var pe1 = coordenadasExtrusao[i + 1];
+                var p0 = pontosTess[i];
+                var p1 = pontosTess[i + 1];
+                var pe0 = extrusaoTess[i];
+                var pe1 = extrusaoTess[i + 1];
 
                 var pathPoints = new SKPoint[] { p0, p1, pe1, pe0 };
                 double midX = (p0.X + p1.X) / 2.0;
                 double midY = (p0.Y + p1.Y) / 2.0;
                 double depth = midY * Math.Abs(dy) - midX * dx;
 
-                var cor = i % 2 == 0 ? ExtrusaoFaceCor : ExtrusaoFaceSombraCor;
+                var cor = origemTrecho[i] % 2 == 0 ? ExtrusaoFaceCor : ExtrusaoFaceSombraCor;
                 facesInfo.Add((depth, pathPoints, cor));
             }
 
@@ -178,19 +253,20 @@ namespace CapitalAco.DrawingMacro.App.Services
                 IsAntialias = true
             };
 
-            // Desenhar linhas de dobra/conexão
-            for (int i = 0; i < coordenadasNoCanvas.Count; i++)
+            // Linhas de dobra/conexão: só nos vértices originais (em trechos curvos tesselados não há
+            // dobra real a cada subdivisão, então evitamos desenhar "trilhos" cruzando a curva).
+            foreach (var idx in indicesOriginais)
             {
-                canvas.DrawLine(coordenadasNoCanvas[i], coordenadasExtrusao[i], arestaPaint);
+                canvas.DrawLine(pontosTess[idx], extrusaoTess[idx], arestaPaint);
             }
 
-            // Desenhar perfil traseiro
-            for (int i = 0; i < coordenadasExtrusao.Count - 1; i++)
+            // Desenhar perfil traseiro (acompanha a curva, pois percorre todos os pontos tesselados)
+            for (int i = 0; i < extrusaoTess.Count - 1; i++)
             {
-                canvas.DrawLine(coordenadasExtrusao[i], coordenadasExtrusao[i + 1], arestaPaint);
+                canvas.DrawLine(extrusaoTess[i], extrusaoTess[i + 1], arestaPaint);
             }
 
-            // 5. Desenhar perfil frontal mestre
+            // 5. Desenhar perfil frontal mestre (idem: acompanha a curva via pontos tesselados)
             using var perfilPaint = new SKPaint
             {
                 Color = PerfilContornoCor,
@@ -200,47 +276,46 @@ namespace CapitalAco.DrawingMacro.App.Services
                 IsAntialias = true
             };
 
-            var azimutesOriginais = geometryService.ObterAzimutesDeSegmentos(polar.SegmentosOriginal);
             using var perfilPath = new SKPath();
-            perfilPath.MoveTo(coordenadasNoCanvas[0]);
-            for (int i = 0; i < coordenadasNoCanvas.Count - 1; i++)
+            perfilPath.MoveTo(pontosTess[0]);
+            for (int i = 1; i < pontosTess.Count; i++)
             {
-                var p1 = coordenadasNoCanvas[i + 1];
-                var segOriginal = i < polar.SegmentosOriginal.Count ? polar.SegmentosOriginal[i] : null;
-
-                if (segOriginal is { EhCurvo: true, CurvaInfo: not null } && i < azimutesOriginais.Count)
-                {
-                    var info = segOriginal.CurvaInfo;
-                    double rInterno = info.TipoRaio == "interno" ? info.Raio : info.Raio - polar.Espessura;
-                    double rNeutro = rInterno + polar.KFactor * polar.Espessura;
-                    float raioCanvas = (float)Math.Max(0.5, rNeutro * escala);
-
-                    if (info.AnguloCurva >= 359.5)
-                    {
-                        // Tubo calandrado fechado (360°): corda de comprimento zero, desenhamos o círculo completo.
-                        perfilPath.AddCircle(coordenadasNoCanvas[i].X, coordenadasNoCanvas[i].Y, raioCanvas);
-                        perfilPath.MoveTo(p1);
-                    }
-                    else
-                    {
-                        bool sentidoHorario = DeterminarSentidoHorarioCurva(i, azimutesOriginais);
-                        var tamanhoArco = info.AnguloCurva > 180.0 ? SKPathArcSize.Large : SKPathArcSize.Small;
-                        var direcao = sentidoHorario ? SKPathDirection.Clockwise : SKPathDirection.CounterClockwise;
-                        perfilPath.ArcTo(new SKPoint(raioCanvas, raioCanvas), 0, tamanhoArco, direcao, p1);
-                    }
-                }
-                else
-                {
-                    perfilPath.LineTo(p1);
-                }
+                perfilPath.LineTo(pontosTess[i]);
             }
             canvas.DrawPath(perfilPath, perfilPaint);
+
+            // Realce (bisel) ao longo da borda frontal, para que a espessura real da chapa apareça como
+            // uma aresta de metal com volume, e não como uma linha de eixo achatada. Desloca-se a mesma
+            // trilha tesselada por um pequeno deslocamento perpendicular à direção da extrusão, então
+            // acompanha curvas automaticamente sem precisar calcular um polígono de offset.
+            double espessuraPx = Math.Max(2.5, polar.Espessura * escala);
+            double compPerp = Math.Sqrt(dx * dx + dy * dy);
+            float perpX = compPerp < 1e-6 ? 0f : (float)(dy / compPerp);
+            float perpY = compPerp < 1e-6 ? 0f : (float)(-dx / compPerp);
+            float realceOffset = (float)Math.Min(espessuraPx * 0.3, 1.6);
+
+            using var realcePaint = new SKPaint
+            {
+                Color = new SKColor(255, 255, 255, 130),
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = (float)Math.Max(1.0, espessuraPx * 0.35),
+                StrokeJoin = SKStrokeJoin.Round,
+                StrokeCap = SKStrokeCap.Round,
+                IsAntialias = true
+            };
+            using var realcePath = new SKPath();
+            realcePath.MoveTo(pontosTess[0].X + perpX * realceOffset, pontosTess[0].Y + perpY * realceOffset);
+            for (int i = 1; i < pontosTess.Count; i++)
+            {
+                realcePath.LineTo(pontosTess[i].X + perpX * realceOffset, pontosTess[i].Y + perpY * realceOffset);
+            }
+            canvas.DrawPath(realcePath, realcePaint);
 
             // 6. Desenhar cotas, medidas internas e graus de dobra, se solicitado
             if (mostrarMedidas)
             {
                 var medidas = geometryService.GerarMedidasInternaExterna(polar);
-                DesenharCotas(canvas, coordenadasNoCanvas, polar.SegmentosOriginal, absolutas, medidas, geometryService, fonteCota);
+                DesenharCotas(canvas, coordenadasNoCanvas, polar.SegmentosOriginal, absolutas, medidas, geometryService, fonteCota, espessuraPx);
                 DesenharGrausDobra(canvas, coordenadasNoCanvas, absolutas, polar, geometryService, escala, fonteAngulo);
             }
         }
@@ -268,6 +343,94 @@ namespace CapitalAco.DrawingMacro.App.Services
             return diff < 180.0;
         }
 
+        // Azimute tangente no INÍCIO do arco (antes da curva). Para o primeiro segmento da peça não há
+        // segmento anterior, então replicamos a mesma estimativa simétrica usada no GeometryService.
+        private static double ObterAzimuteInicialCurva(int i, List<double> azimutes, double anguloCurva, bool sentidoHorario)
+        {
+            if (i > 0) return azimutes[i - 1];
+
+            double aSigned = sentidoHorario ? anguloCurva : -anguloCurva;
+            double azStart = (azimutes[0] - aSigned) % 360.0;
+            if (azStart < 0) azStart += 360.0;
+            return azStart;
+        }
+
+        // Subdivide um arco em pequenos trechos retos para que apareça curvado de fato no desenho
+        // (tanto no contorno frontal quanto nas faces extrudadas), em vez de uma única corda reta.
+        private static List<SKPoint> TesselarArco(SKPoint centro, float raioCanvas, double azCentroGraus, double anguloCurva, bool sentidoHorario)
+        {
+            int divisoes = Math.Max(6, (int)Math.Ceiling(anguloCurva / 7.5));
+            var pontos = new List<SKPoint>(divisoes);
+            double azOffsetInicial = azCentroGraus + 180.0;
+            double thetaTotal = sentidoHorario ? anguloCurva : -anguloCurva;
+
+            for (int k = 1; k <= divisoes; k++)
+            {
+                double t = (double)k / divisoes;
+                double az = (azOffsetInicial + t * thetaTotal) * Math.PI / 180.0;
+                pontos.Add(new SKPoint(
+                    centro.X + (float)(raioCanvas * Math.Sin(az)),
+                    centro.Y - (float)(raioCanvas * Math.Cos(az))
+                ));
+            }
+            return pontos;
+        }
+
+        // Tubo calandrado fechado (360°): desenhado como um cilindro 3D dedicado (face traseira,
+        // banda lateral sombreada e face frontal aberta), já que o caminho genérico de polígono
+        // degenera quando a corda do segmento tem comprimento zero.
+        private static void DesenharTuboRedondo3D(SKCanvas canvas, SKPoint frente, float raio, float dx, float dy)
+        {
+            var tras = new SKPoint(frente.X + dx, frente.Y + dy);
+
+            double comp = Math.Sqrt(dx * dx + dy * dy);
+            float px, py;
+            if (comp < 1e-6) { px = 1f; py = 0f; }
+            else { px = (float)(-dy / comp); py = (float)(dx / comp); }
+
+            var a0 = new SKPoint(frente.X + px * raio, frente.Y + py * raio);
+            var a1 = new SKPoint(tras.X + px * raio, tras.Y + py * raio);
+            var b0 = new SKPoint(frente.X - px * raio, frente.Y - py * raio);
+            var b1 = new SKPoint(tras.X - px * raio, tras.Y - py * raio);
+
+            using var facePaint = new SKPaint { Style = SKPaintStyle.Fill, IsAntialias = true };
+            facePaint.Color = ExtrusaoFaceSombraCor;
+            canvas.DrawCircle(tras, raio, facePaint);
+
+            using var bandaPath = new SKPath();
+            bandaPath.MoveTo(a0);
+            bandaPath.LineTo(a1);
+            bandaPath.LineTo(b1);
+            bandaPath.LineTo(b0);
+            bandaPath.Close();
+            facePaint.Color = ExtrusaoFaceCor;
+            canvas.DrawPath(bandaPath, facePaint);
+
+            using var arestaPaint = new SKPaint { Color = ExtrusaoArestaCor, Style = SKPaintStyle.Stroke, StrokeWidth = 1.5f, IsAntialias = true };
+            canvas.DrawCircle(tras, raio, arestaPaint);
+            canvas.DrawLine(a0, a1, arestaPaint);
+            canvas.DrawLine(b0, b1, arestaPaint);
+
+            // Face frontal aberta (vazada), com contorno mestre por cima de tudo
+            using var aberturaPaint = new SKPaint { Color = FundoCor, Style = SKPaintStyle.Fill, IsAntialias = true };
+            canvas.DrawCircle(frente, raio, aberturaPaint);
+
+            using var perfilPaint = new SKPaint { Color = PerfilContornoCor, Style = SKPaintStyle.Stroke, StrokeWidth = 2.5f, StrokeJoin = SKStrokeJoin.Round, IsAntialias = true };
+            canvas.DrawCircle(frente, raio, perfilPaint);
+        }
+
+        private static void DesenharCotaTubo(SKCanvas canvas, SKPoint frente, float raio, float dx, float dy, Segmento.InformacaoCurva info, InstrucoesPolares polar, float fonteCota)
+        {
+            using var textPaint = new SKPaint { Color = CotaTextoCor, TextSize = fonteCota, IsAntialias = true, TextAlign = SKTextAlign.Center };
+
+            string textoDiametro = $"Ø{info.Raio * 2:F0} ({info.TipoRaio})";
+            canvas.DrawText(textoDiametro, frente.X, frente.Y + raio + fonteCota + 6f, textPaint);
+
+            var tras = new SKPoint(frente.X + dx, frente.Y + dy);
+            string textoComprimento = $"{polar.Comprimento:F0}";
+            canvas.DrawText(textoComprimento, (frente.X + tras.X) / 2f, (frente.Y + tras.Y) / 2f - 10f, textPaint);
+        }
+
         private static void DesenharCotas(
             SKCanvas canvas,
             List<SKPoint> pontos,
@@ -275,28 +438,32 @@ namespace CapitalAco.DrawingMacro.App.Services
             List<(double X, double Y)> absolutas,
             List<(double Livre, double Interna, double Externa)> medidas,
             IGeometryService geometryService,
-            float fonteCota)
+            float fonteCota,
+            double espessuraPx)
         {
-            using var cotaPaintExterna = new SKPaint { Color = CotaLinhaCor, Style = SKPaintStyle.Stroke, StrokeWidth = 1.0f, IsAntialias = true };
-            using var cotaPaintInterna = new SKPaint { Color = CotaInternaLinhaCor, Style = SKPaintStyle.Stroke, StrokeWidth = 1.0f, IsAntialias = true };
+            // Sem caixas de cota (sem linhas de extensão nem linha dupla): só uma linha de chamada curta
+            // do meio do segmento até o texto. O deslocamento cresce com a espessura da chapa para a
+            // medida nunca ficar escondida atrás do traço espesso do perfil em chapas grossas.
+            using var chamadaPaintExterna = new SKPaint { Color = CotaLinhaCor, Style = SKPaintStyle.Stroke, StrokeWidth = 1.0f, IsAntialias = true };
+            using var chamadaPaintInterna = new SKPaint { Color = CotaInternaLinhaCor, Style = SKPaintStyle.Stroke, StrokeWidth = 1.0f, IsAntialias = true };
             using var textoExterna = new SKPaint { Color = CotaTextoCor, TextSize = fonteCota, IsAntialias = true, TextAlign = SKTextAlign.Center };
             using var textoInterna = new SKPaint { Color = CotaInternaTextoCor, TextSize = fonteCota, IsAntialias = true, TextAlign = SKTextAlign.Center };
 
-            void DesenharLado(SKPoint p0, SKPoint p1, float nx, float ny, float offset, string texto, SKPaint linhaPaint, SKPaint textPaint)
+            float offsetExterna = (float)Math.Max(16.0, espessuraPx * 1.3 + fonteCota * 0.6);
+            float offsetInterna = (float)Math.Max(12.0, espessuraPx * 1.1 + fonteCota * 0.4);
+
+            void DesenharMedida(SKPoint p0, SKPoint p1, float nx, float ny, float offset, string texto, SKPaint chamadaPaint, SKPaint textPaint)
             {
-                var pc0 = new SKPoint(p0.X + nx * offset, p0.Y + ny * offset);
-                var pc1 = new SKPoint(p1.X + nx * offset, p1.Y + ny * offset);
+                float mx = (p0.X + p1.X) / 2.0f;
+                float my = (p0.Y + p1.Y) / 2.0f;
+                var pTexto = new SKPoint(mx + nx * offset, my + ny * offset);
 
-                canvas.DrawLine(p0, pc0, linhaPaint);
-                canvas.DrawLine(p1, pc1, linhaPaint);
-                canvas.DrawLine(pc0, pc1, linhaPaint);
-
-                float mx = (pc0.X + pc1.X) / 2.0f;
-                float my = (pc0.Y + pc1.Y) / 2.0f;
-                canvas.DrawText(texto, mx, my - 4f, textPaint);
+                canvas.DrawLine(new SKPoint(mx, my), pTexto, chamadaPaint);
+                canvas.DrawText(texto, pTexto.X, pTexto.Y - 4f, textPaint);
             }
 
-            // Para cada segmento desenhamos a cota externa (azul, lado de fora) e a interna (vermelha, lado de dentro)
+            // Para cada segmento desenhamos a medida externa (azul, lado de fora) e a interna (vermelha,
+            // lado de dentro, com sufixo "i" — em impressão P&B a cor desaparece, mas o sufixo não).
             for (int i = 0; i < pontos.Count - 1; i++)
             {
                 if (i >= segmentos.Count || i >= medidas.Count) break;
@@ -318,12 +485,12 @@ namespace CapitalAco.DrawingMacro.App.Services
                 string textoExt = seg.EhCurvo && seg.CurvaInfo != null
                     ? $"{medidas[i].Externa:F0} (Curva)"
                     : $"{medidas[i].Externa:F0}";
-                DesenharLado(p0, p1, nx * -ladoInterno, ny * -ladoInterno, 20f, textoExt, cotaPaintExterna, textoExterna);
+                DesenharMedida(p0, p1, nx * -ladoInterno, ny * -ladoInterno, offsetExterna, textoExt, chamadaPaintExterna, textoExterna);
 
                 if (!seg.EhCurvo)
                 {
-                    string textoInt = $"{medidas[i].Interna:F0}";
-                    DesenharLado(p0, p1, nx * ladoInterno, ny * ladoInterno, 14f, textoInt, cotaPaintInterna, textoInterna);
+                    string textoInt = $"{medidas[i].Interna:F0}i";
+                    DesenharMedida(p0, p1, nx * ladoInterno, ny * ladoInterno, offsetInterna, textoInt, chamadaPaintInterna, textoInterna);
                 }
             }
         }
@@ -367,6 +534,12 @@ namespace CapitalAco.DrawingMacro.App.Services
             {
                 int v = idx + 1;
                 if (v <= 0 || v >= pontos.Count - 1) continue;
+
+                // Vértices adjacentes a um segmento curvo são artefato da representação por corda,
+                // não uma dobra real — sem isso, uma curva suave de 90° aparecia como duas dobras de 45°.
+                bool segAnteriorCurvo = v - 1 < polar.SegmentosOriginal.Count && polar.SegmentosOriginal[v - 1].EhCurvo;
+                bool segPosteriorCurvo = v < polar.SegmentosOriginal.Count && polar.SegmentosOriginal[v].EhCurvo;
+                if (segAnteriorCurvo || segPosteriorCurvo) continue;
 
                 var p0 = pontos[v - 1];
                 var p1 = pontos[v];
