@@ -7,9 +7,25 @@
              d:DesignHeight="600" d:DesignWidth="1200"
              Background="#2C3E50"
              Foreground="White">
+    <UserControl.Resources>
+        <Style x:Key="FonteLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Foreground" Value="#BDC3C7"/>
+            <Setter Property="Margin" Value="0,0,0,3"/>
+        </Style>
+        <Style x:Key="FonteBox" TargetType="TextBox">
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Margin" Value="2,0,2,8"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Background" Value="#2C3E50"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#7F8C8D"/>
+        </Style>
+    </UserControl.Resources>
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
@@ -82,8 +98,67 @@
             </Border>
         </Grid>
 
+        <!-- Painel: Tamanho de Fontes -->
+        <Border Grid.Row="1" Background="#34495E" CornerRadius="8" Padding="15" Margin="5,5,5,0">
+            <StackPanel>
+                <TextBlock Text="TAMANHO DE FONTES" FontSize="15" FontWeight="Bold" Foreground="#9B59B6" Margin="0,0,0,15"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Coluna 1: Desenho/Preview -->
+                    <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                        <TextBlock Text="Desenho / Prévia" FontSize="12" FontWeight="Bold" Foreground="#3498DB" Margin="0,0,0,8"/>
+                        <TextBlock Text="Fonte mínima (preview):" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding FonteDesenhoBaseMinima, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                        <TextBlock Text="Fonte mínima (relatório):" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding FonteRelatorioMinima, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                        <TextBlock Text="Fonte mínima (dobra):" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding FonteDobraMinima, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                    </StackPanel>
+
+                    <!-- Coluna 2: Detalhamento de Dobra -->
+                    <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                        <TextBlock Text="Detalhamento de Dobra (PDF)" FontSize="12" FontWeight="Bold" Foreground="#8E44AD" Margin="0,0,0,8"/>
+                        <TextBlock Text="Título:" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding DobraFonteTitulo, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                        <TextBlock Text="Seção:" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding DobraFonteSecao, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                        <TextBlock Text="Texto:" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding DobraFonteTexto, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                        <TextBlock Text="Cota:" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding DobraFonteCota, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                        <TextBlock Text="Ângulo:" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding DobraFonteAngulo, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                        <TextBlock Text="Sentido:" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding DobraFonteSentido, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                    </StackPanel>
+
+                    <!-- Coluna 3: Ordem de Produção -->
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Ordem de Produção (PDF)" FontSize="12" FontWeight="Bold" Foreground="#27AE60" Margin="0,0,0,8"/>
+                        <TextBlock Text="Título:" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding PedidoFonteTitulo, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                        <TextBlock Text="Subtítulo:" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding PedidoFonteSubtitulo, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                        <TextBlock Text="Texto:" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding PedidoFonteTexto, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                        <TextBlock Text="Destaque:" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding PedidoFonteDestaque, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                        <TextBlock Text="Rótulo da peça:" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding PedidoFonteRotuloPeca, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                        <TextBlock Text="Rótulo de campo:" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding PedidoFonteRotuloCampo, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </Border>
+
         <!-- Botão Salvar Global -->
-        <Border Grid.Row="1" Background="#34495E" CornerRadius="8" Padding="10" Margin="5,10,5,5">
+        <Border Grid.Row="2" Background="#34495E" CornerRadius="8" Padding="10" Margin="5,10,5,5">
             <Button Content="Salvar Todas as Configurações" Command="{Binding SalvarConfiguracoesCommand}" Background="#27AE60" Foreground="White" BorderThickness="0" Height="40" FontSize="15" FontWeight="Bold"/>
         </Border>
     </Grid>

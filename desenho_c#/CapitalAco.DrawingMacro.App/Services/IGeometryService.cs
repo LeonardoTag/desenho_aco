@@ -89,5 +89,9 @@ namespace CapitalAco.DrawingMacro.App.Services
         double GetBendAllowance(double anguloDobra, double raioDeDobra, double kFactor, double espessura);
         double MedidaCentroDeExterna(double medidaExterna, double grau, double espessura, double raioDeDobra);
         double MedidaCentroDeInterna(double medidaInterna, double grau, double espessura, double raioDeDobra);
+
+        // Medidas internas/externas (cotas vermelha/azul) e lado interno do perfil para anotação de desenhos
+        List<(double Livre, double Interna, double Externa)> GerarMedidasInternaExterna(InstrucoesPolares instrucoes);
+        int DeterminarLadoInternoSegmento(int n, List<(double X, double Y)> coordenadas);
     }
 }

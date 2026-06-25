@@ -366,80 +366,103 @@ namespace CapitalAco.DrawingMacro.App.Services
             if (minima <= 0)
                 return avisos;
 
-            var dados = GerarDadosPlanificacao(instrucoes);
-            for (int i = 0; i < dados.Trechos.Count; i += 2)
+            var segmentos = instrucoes.SegmentosOriginal;
+            var medidas = GerarMedidasInternaExterna(instrucoes);
+            for (int segIdx = 0; segIdx < medidas.Count && segIdx < segmentos.Count; segIdx++)
             {
-                int segIdx = i / 2;
-                var trecho = dados.Trechos[i];
-                if (trecho.Tipo == "reta")
+                if (segmentos[segIdx].EhCurvo) continue;
+
+                double interna = medidas[segIdx].Interna;
+                if (interna < minima)
                 {
-                    // As cotas para dobras (medidas internas e externas) estão em dados.Cadeia ou podemos reconstruí-las.
-                    // Para paridade de mensagens, consultamos a medida interna
-                    // A medida de dobra em si corresponde à seção de corte.
-                    // Vamos calcular a medida interna baseada na seção corte e dobras adjacentes
-                    double interna;
-                    var segmentos = instrucoes.SegmentosOriginal;
-                    if (segmentos.Count > 0 && segIdx < segmentos.Count)
-                    {
-                        var seg = segmentos[segIdx];
-                        if (seg.EhCurvo) continue;
-
-                        double medidaLivre = trecho.Comprimento;
-                        double grauEntrada = 0.0;
-                        if (segIdx > 0 && !segmentos[segIdx - 1].EhCurvo)
-                        {
-                            grauEntrada = dados.Dobras[segIdx - 1].AnguloDobra;
-                        }
-                        double grauSaida = 0.0;
-                        if (segIdx < segmentos.Count - 1 && !segmentos[segIdx + 1].EhCurvo)
-                        {
-                            grauSaida = dados.Dobras[segIdx].AnguloDobra;
-                        }
-
-                        if (dados.Dobras.Count == 0)
-                        {
-                            interna = medidaLivre;
-                        }
-                        else
-                        {
-                            var angs = new List<double>();
-                            if (segIdx == 0) angs.Add(dados.Dobras[0].AnguloDobra);
-                            else if (segIdx == segmentos.Count - 1) angs.Add(dados.Dobras[dados.Dobras.Count - 1].AnguloDobra);
-                            else
-                            {
-                                angs.Add(dados.Dobras[segIdx - 1].AnguloDobra);
-                                angs.Add(dados.Dobras[segIdx].AnguloDobra);
-                            }
-
-                            double somaInterna = 0;
-                            foreach (double a in angs)
-                            {
-                                if (a < 90)
-                                {
-                                    somaInterna += (a * Math.PI * instrucoes.RaioDeDobra) / 360.0;
-                                }
-                                else
-                                {
-                                    somaInterna += instrucoes.RaioDeDobra;
-                                }
-                            }
-
-                            interna = medidaLivre + somaInterna;
-                            if (angs.All(a => Math.Abs(a - 90.0) < 0.5))
-                            {
-                                interna = Math.Round(interna - (angs.Count * instrucoes.Espessura), 3);
-                            }
-                        }
-
-                        if (interna < minima)
-                        {
-                            avisos.Add($"Segmento {segIdx + 1}: medida interna {NumericUtils.FormatarNumero(interna, 1)} mm (mínimo da chapa: {NumericUtils.FormatarNumero(minima, 1)} mm)");
-                        }
-                    }
+                    avisos.Add($"Segmento {segIdx + 1}: medida interna {NumericUtils.FormatarNumero(interna, 1)} mm (mínimo da chapa: {NumericUtils.FormatarNumero(minima, 1)} mm)");
                 }
             }
 
             return avisos;
+        }
+
+        public List<(double Livre, double Interna, double Externa)> GerarMedidasInternaExterna(InstrucoesPolares instrucoes)
+        {
+            var dados = GerarDadosPlanificacao(instrucoes);
+            var segmentos = instrucoes.SegmentosOriginal;
+            int totalSegmentos = segmentos.Count;
+            const int casas = 3;
+
+            var resultado = new List<(double Livre, double Interna, double Externa)>();
+
+            for (int i = 0; i < dados.Trechos.Count; i += 2)
+            {
+                int segIdx = i / 2;
+                var trecho = dados.Trechos[i];
+                double medidaLivre = trecho.Comprimento;
+                double interna, externa;
+
+                if (trecho.Tipo == "curvo" && trecho.CurvaInfo != null)
+                {
+                    var info = trecho.CurvaInfo;
+                    double rInterno = info.TipoRaio == "interno" ? info.Raio : info.Raio - instrucoes.Espessura;
+                    double rExterno = rInterno + instrucoes.Espessura;
+                    double aRad = info.AnguloCurva * (Math.PI / 180.0);
+                    interna = rInterno * aRad;
+                    externa = rExterno * aRad;
+                }
+                else if (dados.Dobras.Count == 0)
+                {
+                    interna = medidaLivre;
+                    externa = medidaLivre;
+                }
+                else
+                {
+                    List<double> angulosSegmento;
+                    if (segIdx == 0)
+                        angulosSegmento = new List<double> { dados.Dobras[0].AnguloDobra };
+                    else if (segIdx == totalSegmentos - 1)
+                        angulosSegmento = new List<double> { dados.Dobras[^1].AnguloDobra };
+                    else
+                        angulosSegmento = new List<double> { dados.Dobras[segIdx - 1].AnguloDobra, dados.Dobras[segIdx].AnguloDobra };
+
+                    (interna, externa) = GerarMedidaInternaExterna(medidaLivre, angulosSegmento, instrucoes.RaioDeDobra, instrucoes.Espessura);
+                    (interna, externa) = NormalizarMedidasCota90(interna, externa, angulosSegmento, instrucoes.Espessura, casas);
+                }
+
+                resultado.Add((Math.Round(medidaLivre, casas), Math.Round(interna, casas), Math.Round(externa, casas)));
+            }
+
+            return resultado;
+        }
+
+        private (double Interna, double Externa) GerarMedidaInternaExterna(double medidaLivre, List<double> angulosDobra, double raioDeDobra, double espessura)
+        {
+            double somaInterna = 0.0;
+            double somaExterna = 0.0;
+            foreach (double angulo in angulosDobra)
+            {
+                if (angulo < 90.0)
+                {
+                    somaInterna += (angulo * Math.PI * raioDeDobra) / 360.0;
+                    somaExterna += (angulo * Math.PI * (raioDeDobra + espessura)) / 360.0;
+                }
+                else
+                {
+                    somaInterna += raioDeDobra;
+                    somaExterna += raioDeDobra + espessura;
+                }
+            }
+            return (medidaLivre + somaInterna, medidaLivre + somaExterna);
+        }
+
+        private (double Interna, double Externa) NormalizarMedidasCota90(double interna, double externa, List<double> angulosDobra, double espessura, int casas)
+        {
+            if (angulosDobra.Count == 0 || !angulosDobra.All(a => Math.Abs(a - 90.0) < 0.5))
+                return (interna, externa);
+
+            if (angulosDobra.Count == 1)
+                interna = Math.Round(externa - espessura, casas);
+            else if (angulosDobra.Count == 2)
+                interna = Math.Round(externa - 2.0 * espessura, casas);
+
+            return (interna, externa);
         }
 
         public List<(double X, double Y)> GerarCoordenadasRetangularesParciais(List<(double Azimute, double Comprimento)> coordenadasPolares)
@@ -817,7 +840,7 @@ namespace CapitalAco.DrawingMacro.App.Services
             return (nx * fator, ny * fator);
         }
 
-        private int DeterminarLadoInternoSegmento(int n, List<(double X, double Y)> coordenadas)
+        public int DeterminarLadoInternoSegmento(int n, List<(double X, double Y)> coordenadas)
         {
             var (x0, y0) = coordenadas[n];
             var (x1, y1) = coordenadas[n + 1];

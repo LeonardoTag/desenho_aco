@@ -32,8 +32,11 @@ namespace CapitalAco.DrawingMacro.App.Services
         private static readonly SKColor ExtrusaoArestaCor = new SKColor(130, 142, 158);
         private static readonly SKColor CotaLinhaCor = new SKColor(160, 170, 184);
         private static readonly SKColor CotaTextoCor = new SKColor(21, 101, 192);
+        private static readonly SKColor CotaInternaLinhaCor = new SKColor(229, 154, 154);
+        private static readonly SKColor CotaInternaTextoCor = new SKColor(183, 28, 28);
+        private static readonly SKColor AnguloTextoCor = new SKColor(46, 125, 50);
 
-        public static System.Windows.Media.ImageSource RenderToImageSource(InstrucoesPolares polar, int width, int height, IGeometryService geometryService)
+        public static System.Windows.Media.ImageSource RenderToImageSource(InstrucoesPolares polar, int width, int height, IGeometryService geometryService, float fonteCota = 12f, float fonteAngulo = 11f)
         {
             using var bitmap = new SKBitmap(width, height);
             using var canvas = new SKCanvas(bitmap);
@@ -41,7 +44,7 @@ namespace CapitalAco.DrawingMacro.App.Services
             canvas.Clear(FundoCor);
 
             var dim = geometryService.CalcularDimensoesAcabadas(polar);
-            RenderizarPeca(canvas, new SKSize(width, height), polar, dim, true, geometryService);
+            RenderizarPeca(canvas, new SKSize(width, height), polar, dim, true, geometryService, fonteCota, fonteAngulo);
 
             using var image = SKImage.FromBitmap(bitmap);
             using var data = image.Encode(SKEncodedImageFormat.Png, 100);
@@ -64,7 +67,9 @@ namespace CapitalAco.DrawingMacro.App.Services
             InstrucoesPolares polar,
             DimensoesAcabadas? dimensoes,
             bool mostrarMedidas,
-            IGeometryService geometryService)
+            IGeometryService geometryService,
+            float fonteCota = 12f,
+            float fonteAngulo = 11f)
         {
             if (polar.CoordenadasPolares.Count == 0)
                 return;
@@ -184,41 +189,52 @@ namespace CapitalAco.DrawingMacro.App.Services
                 canvas.DrawLine(coordenadasNoCanvas[i], coordenadasNoCanvas[i + 1], perfilPaint);
             }
 
-            // 6. Desenhar cotas e medidas se solicitado
+            // 6. Desenhar cotas, medidas internas e graus de dobra, se solicitado
             if (mostrarMedidas)
             {
-                DesenharCotas(canvas, coordenadasNoCanvas, polar.SegmentosOriginal, escala);
+                var medidas = geometryService.GerarMedidasInternaExterna(polar);
+                DesenharCotas(canvas, coordenadasNoCanvas, polar.SegmentosOriginal, absolutas, medidas, geometryService, fonteCota);
+                DesenharGrausDobra(canvas, coordenadasNoCanvas, absolutas, polar, geometryService, escala, fonteAngulo);
             }
         }
 
-        private static void DesenharCotas(SKCanvas canvas, List<SKPoint> pontos, List<Segmento> segmentos, double escala)
+        private static void DesenharCotas(
+            SKCanvas canvas,
+            List<SKPoint> pontos,
+            List<Segmento> segmentos,
+            List<(double X, double Y)> absolutas,
+            List<(double Livre, double Interna, double Externa)> medidas,
+            IGeometryService geometryService,
+            float fonteCota)
         {
-            using var cotaPaint = new SKPaint
-            {
-                Color = CotaLinhaCor,
-                Style = SKPaintStyle.Stroke,
-                StrokeWidth = 1.0f,
-                IsAntialias = true
-            };
+            using var cotaPaintExterna = new SKPaint { Color = CotaLinhaCor, Style = SKPaintStyle.Stroke, StrokeWidth = 1.0f, IsAntialias = true };
+            using var cotaPaintInterna = new SKPaint { Color = CotaInternaLinhaCor, Style = SKPaintStyle.Stroke, StrokeWidth = 1.0f, IsAntialias = true };
+            using var textoExterna = new SKPaint { Color = CotaTextoCor, TextSize = fonteCota, IsAntialias = true, TextAlign = SKTextAlign.Center };
+            using var textoInterna = new SKPaint { Color = CotaInternaTextoCor, TextSize = fonteCota, IsAntialias = true, TextAlign = SKTextAlign.Center };
 
-            using var textPaint = new SKPaint
+            void DesenharLado(SKPoint p0, SKPoint p1, float nx, float ny, float offset, string texto, SKPaint linhaPaint, SKPaint textPaint)
             {
-                Color = CotaTextoCor,
-                TextSize = 12f,
-                IsAntialias = true,
-                TextAlign = SKTextAlign.Center
-            };
+                var pc0 = new SKPoint(p0.X + nx * offset, p0.Y + ny * offset);
+                var pc1 = new SKPoint(p1.X + nx * offset, p1.Y + ny * offset);
 
-            // Para cada segmento desenhamos uma linha de cota paralela offsetada
+                canvas.DrawLine(p0, pc0, linhaPaint);
+                canvas.DrawLine(p1, pc1, linhaPaint);
+                canvas.DrawLine(pc0, pc1, linhaPaint);
+
+                float mx = (pc0.X + pc1.X) / 2.0f;
+                float my = (pc0.Y + pc1.Y) / 2.0f;
+                canvas.DrawText(texto, mx, my - 4f, textPaint);
+            }
+
+            // Para cada segmento desenhamos a cota externa (azul, lado de fora) e a interna (vermelha, lado de dentro)
             for (int i = 0; i < pontos.Count - 1; i++)
             {
-                if (i >= segmentos.Count) break;
+                if (i >= segmentos.Count || i >= medidas.Count) break;
 
                 var p0 = pontos[i];
                 var p1 = pontos[i + 1];
                 var seg = segmentos[i];
 
-                // Calcular vetor normal unitário apontando para fora
                 float dx = p1.X - p0.X;
                 float dy = p1.Y - p0.Y;
                 float len = (float)Math.Sqrt(dx * dx + dy * dy);
@@ -227,28 +243,105 @@ namespace CapitalAco.DrawingMacro.App.Services
                 float nx = -dy / len;
                 float ny = dx / len;
 
-                // Deslocamento de cota
-                float offset = 18f;
-                var pc0 = new SKPoint(p0.X + nx * offset, p0.Y + ny * offset);
-                var pc1 = new SKPoint(p1.X + nx * offset, p1.Y + ny * offset);
+                int ladoInterno = geometryService.DeterminarLadoInternoSegmento(i, absolutas);
 
-                // Desenhar linha de cota e linhas auxiliares
-                canvas.DrawLine(p0, pc0, cotaPaint);
-                canvas.DrawLine(p1, pc1, cotaPaint);
-                canvas.DrawLine(pc0, pc1, cotaPaint);
+                string textoExt = seg.EhCurvo && seg.CurvaInfo != null
+                    ? $"{medidas[i].Externa:F0} (Curva)"
+                    : $"{medidas[i].Externa:F0}";
+                DesenharLado(p0, p1, nx * -ladoInterno, ny * -ladoInterno, 20f, textoExt, cotaPaintExterna, textoExterna);
 
-                // Desenhar texto
-                float mx = (pc0.X + pc1.X) / 2.0f;
-                float my = (pc0.Y + pc1.Y) / 2.0f;
-                string texto = seg.EhCurvo && seg.CurvaInfo != null
-                    ? $"{seg.CurvaInfo.ComprimentoCurva:F0} (Curva)"
-                    : $"{seg.Medida:F0}";
-
-                canvas.DrawText(texto, mx, my - 4f, textPaint);
+                if (!seg.EhCurvo)
+                {
+                    string textoInt = $"{medidas[i].Interna:F0}";
+                    DesenharLado(p0, p1, nx * ladoInterno, ny * ladoInterno, 14f, textoInt, cotaPaintInterna, textoInterna);
+                }
             }
         }
 
-        public static void RenderizarPlanificacao(SKCanvas canvas, SKSize size, DadosPlanificacao plano)
+        private static void DesenharGrausDobra(
+            SKCanvas canvas,
+            List<SKPoint> pontos,
+            List<(double X, double Y)> absolutas,
+            InstrucoesPolares polar,
+            IGeometryService geometryService,
+            double escala,
+            float fonteAngulo)
+        {
+            if (pontos.Count < 3) return;
+
+            var azimutes = polar.CoordenadasPolares.Select(c => c.Azimute).ToList();
+            var angulosDobra = geometryService.ObterAngulosDobraDeAzimutes(azimutes);
+            if (angulosDobra.Count == 0) return;
+
+            using var textPaint = new SKPaint
+            {
+                Color = AnguloTextoCor,
+                TextSize = fonteAngulo,
+                IsAntialias = true,
+                TextAlign = SKTextAlign.Center
+            };
+
+            double espessuraLinhaPx = Math.Max(2.5, polar.Espessura * escala);
+            double distBase = Math.Max(espessuraLinhaPx * 0.8 + fonteAngulo * 0.5, fonteAngulo * 1.1);
+
+            for (int idx = 0; idx < angulosDobra.Count; idx++)
+            {
+                int v = idx + 1;
+                if (v <= 0 || v >= pontos.Count - 1) continue;
+
+                var p0 = pontos[v - 1];
+                var p1 = pontos[v];
+                var p2 = pontos[v + 1];
+
+                double dxIn = p1.X - p0.X, dyIn = p1.Y - p0.Y;
+                double dxOut = p2.X - p1.X, dyOut = p2.Y - p1.Y;
+                double compIn = Math.Sqrt(dxIn * dxIn + dyIn * dyIn);
+                double compOut = Math.Sqrt(dxOut * dxOut + dyOut * dyOut);
+                if (compIn < 1e-6 || compOut < 1e-6) continue;
+
+                double tInX = dxIn / compIn, tInY = dyIn / compIn;
+                double tOutX = dxOut / compOut, tOutY = dyOut / compOut;
+
+                int lado1 = geometryService.DeterminarLadoInternoSegmento(v - 1, absolutas);
+                int lado2 = geometryService.DeterminarLadoInternoSegmento(v, absolutas);
+
+                double n1x = -tInY, n1y = tInX;
+                double n2x = -tOutY, n2y = tOutX;
+
+                double bx = n1x * lado1 + n2x * lado2;
+                double by = n1y * lado1 + n2y * lado2;
+                double comp = Math.Sqrt(bx * bx + by * by);
+
+                double dirX, dirY;
+                if (comp < 1e-6)
+                {
+                    dirX = -n1x * lado1;
+                    dirY = -n1y * lado1;
+                }
+                else
+                {
+                    dirX = -bx / comp;
+                    dirY = -by / comp;
+                }
+
+                string texto = FormatarAnguloDobra(angulosDobra[idx]);
+                float tx = (float)(p1.X + dirX * distBase);
+                float ty = (float)(p1.Y + dirY * distBase + fonteAngulo * 0.3);
+                canvas.DrawText(texto, tx, ty, textPaint);
+            }
+        }
+
+        private static string FormatarAnguloDobra(double angulo)
+        {
+            double arred = Math.Round(angulo, 1);
+            if (Math.Abs(arred - Math.Round(arred)) < 0.05)
+            {
+                return $"{(long)Math.Round(arred)}°";
+            }
+            return $"{arred.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}°";
+        }
+
+        public static void RenderizarPlanificacao(SKCanvas canvas, SKSize size, DadosPlanificacao plano, float fonteAngulo = 10f, float fonteSentido = 10f, float fonteCota = 10f)
         {
             canvas.Clear(FundoCor);
 
@@ -296,7 +389,23 @@ namespace CapitalAco.DrawingMacro.App.Services
             using var textPaint = new SKPaint
             {
                 Color = PerfilContornoCor,
-                TextSize = 10f,
+                TextSize = fonteCota,
+                IsAntialias = true,
+                TextAlign = SKTextAlign.Center
+            };
+
+            using var textPaintAngulo = new SKPaint
+            {
+                Color = PerfilContornoCor,
+                TextSize = fonteAngulo,
+                IsAntialias = true,
+                TextAlign = SKTextAlign.Center
+            };
+
+            using var textPaintSentido = new SKPaint
+            {
+                Color = PerfilContornoCor,
+                TextSize = fonteSentido,
                 IsAntialias = true,
                 TextAlign = SKTextAlign.Center
             };
@@ -312,7 +421,7 @@ namespace CapitalAco.DrawingMacro.App.Services
             foreach (var marca in plano.MarcasDobra)
             {
                 float x = EscalaX(marca.Posicao);
-                
+
                 // Dobra contínua ou tracejada dependendo do sentido
                 if (marca.Sentido == "a")
                 {
@@ -325,9 +434,9 @@ namespace CapitalAco.DrawingMacro.App.Services
                 canvas.DrawLine(x, y0 - 3, x, y1 + 3, marcaDobraPaint);
 
                 // Ângulo e sentido
-                canvas.DrawText($"{marca.AnguloDobra:F0}°", x, y0 - 15, textPaint);
+                canvas.DrawText($"{marca.AnguloDobra:F0}°", x, y0 - 15, textPaintAngulo);
                 string dirText = marca.Sentido == "h" ? "P.Baixo" : "P.Cima";
-                canvas.DrawText(dirText, x, y0 - 5, textPaint);
+                canvas.DrawText(dirText, x, y0 - 5, textPaintSentido);
             }
 
             // 3. Desenhar marcas de calandragem (curvas)

@@ -12,6 +12,10 @@ namespace CapitalAco.DrawingMacro.App.Models
         public bool EhCurvo { get; set; }
         public InformacaoCurva? CurvaInfo { get; set; }
 
+        // Estado transitório do Modo Rápido (não persistido): false enquanto Medida só contém o placeholder de prévia.
+        [JsonIgnore]
+        public bool MedidaDefinida { get; set; } = true;
+
         public class InformacaoCurva
         {
             [JsonPropertyName("raio")]

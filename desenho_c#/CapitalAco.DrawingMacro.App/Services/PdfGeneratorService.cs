@@ -74,56 +74,53 @@ namespace CapitalAco.DrawingMacro.App.Services
                     {
                         row.RelativeItem().Column(col =>
                         {
-                            col.Item().Text("DETALHAMENTO DE DOBRA").FontSize(16).Bold().FontColor(Colors.Grey.Darken3);
-                            col.Item().Text($"Peça: {nomePeca}").FontSize(10);
-                            col.Item().Text($"Chapa: #{chapaCodigo.Replace("#", "")} (Esp.: {dadosPlan.Espessura:F2} mm)").FontSize(10);
-                            col.Item().Text($"Comprimento da Peça: {comprimento:F0} mm").FontSize(10);
-                            col.Item().Text($"Desenvolvimento Plano: {dadosPlan.CorteTotal} mm").FontSize(10).Bold();
+                            col.Item().Text("DETALHAMENTO DE DOBRA").FontSize((float)config.RelatorioDobraFonteTitulo).Bold().FontColor(Colors.Grey.Darken3);
+                            col.Item().Text($"Peça: {nomePeca}").FontSize((float)config.RelatorioDobraFonteTexto);
+                            col.Item().Text($"Chapa: #{chapaCodigo.Replace("#", "")} (Esp.: {dadosPlan.Espessura:F2} mm)").FontSize((float)config.RelatorioDobraFonteTexto);
+                            col.Item().Text($"Comprimento da Peça: {comprimento:F0} mm").FontSize((float)config.RelatorioDobraFonteTexto);
+                            col.Item().Text($"Desenvolvimento Plano: {dadosPlan.CorteTotal} mm").FontSize((float)config.RelatorioDobraFonteTexto).Bold();
                         });
 
                         row.ConstantItem(200).AlignRight().Column(col =>
                         {
-                            col.Item().Text($"Emissão: {DateTime.Now:dd/MM/yyyy HH:mm}").FontSize(9);
-                            col.Item().Text($"Responsável: {config.RelatorioNomeResponsavel}").FontSize(9);
+                            col.Item().Text($"Emissão: {DateTime.Now:dd/MM/yyyy HH:mm}").FontSize((float)config.RelatorioDobraFonteTexto);
+                            col.Item().Text($"Responsável: {config.RelatorioNomeResponsavel}").FontSize((float)config.RelatorioDobraFonteTexto);
                         });
                     });
 
-                    // Corpo do Relatório
+                    // Corpo do Relatório: desenho da peça em cima, planificação embaixo (melhor visualização)
                     page.Content().PaddingVertical(0.5f, Unit.Centimetre).Column(col =>
                     {
-                        // Linha com Desenhos
-                        col.Item().Row(drawRow =>
-                        {
-                            // Preview 3D do Perfil
-                            drawRow.RelativeItem(4).Height(240).Border(1).BorderColor(Colors.Grey.Lighten2).Svg(size =>
-                                RenderizarComoSvg(size.Width, size.Height, canvas =>
-                                    SkiaRenderer.RenderizarPeca(canvas, new SKSize(size.Width, size.Height), polar, dimensoes, true, _geometryService)));
+                        // Desenho 3D do Perfil (em cima)
+                        col.Item().Height(215).Border(1).BorderColor(Colors.Grey.Lighten2).Svg(size =>
+                            RenderizarComoSvg(size.Width, size.Height, canvas =>
+                                SkiaRenderer.RenderizarPeca(canvas, new SKSize(size.Width, size.Height), polar, dimensoes, true, _geometryService,
+                                    (float)config.RelatorioDobraFonteCota, (float)config.RelatorioDobraFonteAngulo)));
 
-                            drawRow.ConstantItem(15);
+                        col.Item().PaddingTop(6);
 
-                            // Planificação
-                            drawRow.RelativeItem(5).Height(240).Border(1).BorderColor(Colors.Grey.Lighten2).Svg(size =>
-                                RenderizarComoSvg(size.Width, size.Height, canvas =>
-                                    SkiaRenderer.RenderizarPlanificacao(canvas, new SKSize(size.Width, size.Height), dadosPlan)));
-                        });
+                        // Planificação (embaixo)
+                        col.Item().Height(120).Border(1).BorderColor(Colors.Grey.Lighten2).Svg(size =>
+                            RenderizarComoSvg(size.Width, size.Height, canvas =>
+                                SkiaRenderer.RenderizarPlanificacao(canvas, new SKSize(size.Width, size.Height), dadosPlan,
+                                    (float)config.RelatorioDobraFonteAngulo, (float)config.RelatorioDobraFonteSentido, (float)config.RelatorioDobraFonteCota)));
 
-                        col.Item().PaddingTop(15).Row(infoRow =>
+                        col.Item().PaddingTop(6).Row(infoRow =>
                         {
                             infoRow.RelativeItem().Column(textCol =>
                             {
-                                textCol.Item().Text("Instruções de Planificação").FontSize(11).Bold();
-                                textCol.Item().Text("· Cotas ordenadas (topo): medidas acumuladas a partir do início da chapa plana.").FontSize(9);
-                                textCol.Item().Text("· Cotas em cadeia (base): medidas individuais entre centros de dobras sucessivas.").FontSize(9);
-                                textCol.Item().Text("· Linha vertical tracejada = dobra para cima. Linha vertical contínua = dobra para baixo.").FontSize(9);
+                                textCol.Item().Text("Instruções de Planificação").FontSize((float)config.RelatorioDobraFonteSecao).Bold();
+                                textCol.Item().Text("· Cotas ordenadas (topo): medidas acumuladas a partir do início da chapa plana. · Cotas em cadeia (base): medidas individuais entre centros de dobras sucessivas.").FontSize((float)config.RelatorioDobraFonteTexto);
+                                textCol.Item().Text("· Linha vertical tracejada = dobra para cima. Linha vertical contínua = dobra para baixo. · Cota vermelha = medida interna. Cota azul = medida externa.").FontSize((float)config.RelatorioDobraFonteTexto);
                             });
                         });
                     });
 
                     page.Footer().AlignCenter().Text(t =>
                     {
-                        t.CurrentPageNumber().FontSize(9);
-                        t.Span(" / ").FontSize(9);
-                        t.TotalPages().FontSize(9);
+                        t.CurrentPageNumber().FontSize((float)config.RelatorioDobraFonteTexto);
+                        t.Span(" / ").FontSize((float)config.RelatorioDobraFonteTexto);
+                        t.TotalPages().FontSize((float)config.RelatorioDobraFonteTexto);
                     });
                 });
             }).GeneratePdf(caminhoPdf);
@@ -156,14 +153,14 @@ namespace CapitalAco.DrawingMacro.App.Services
                         {
                             row.RelativeItem().Column(c =>
                             {
-                                c.Item().Text(config.RelatorioNomeResponsavel.ToUpper()).FontSize(14).Bold().FontColor(Colors.Indigo.Darken4);
-                                c.Item().Text("ORDEM DE PRODUÇÃO").FontSize(11).Bold().FontColor(Colors.Grey.Darken2);
+                                c.Item().Text(config.RelatorioNomeResponsavel.ToUpper()).FontSize((float)config.RelatorioPedidoFonteTitulo).Bold().FontColor(Colors.Indigo.Darken4);
+                                c.Item().Text("ORDEM DE PRODUÇÃO").FontSize((float)config.RelatorioPedidoFonteSubtitulo).Bold().FontColor(Colors.Grey.Darken2);
                             });
 
                             row.ConstantItem(250).AlignRight().Column(c =>
                             {
-                                c.Item().Text($"Emissão: {DateTime.Now:dd/MM/yyyy HH:mm}").FontSize(9);
-                                c.Item().Text("PRAZO DE ENTREGA: ____________________").FontSize(9).Bold();
+                                c.Item().Text($"Emissão: {DateTime.Now:dd/MM/yyyy HH:mm}").FontSize((float)config.RelatorioPedidoFonteTexto);
+                                c.Item().Text("PRAZO DE ENTREGA: ____________________").FontSize((float)config.RelatorioPedidoFonteTexto).Bold();
                             });
                         });
 
@@ -173,8 +170,8 @@ namespace CapitalAco.DrawingMacro.App.Services
                         {
                             col.Item().Text(t =>
                             {
-                                t.Span("Observação: ").Bold().FontSize(9);
-                                t.Span(observacao).FontSize(9);
+                                t.Span("Observação: ").Bold().FontSize((float)config.RelatorioPedidoFonteTexto);
+                                t.Span(observacao).FontSize((float)config.RelatorioPedidoFonteTexto);
                             });
                             col.Item().PaddingBottom(5);
                         }
@@ -195,7 +192,7 @@ namespace CapitalAco.DrawingMacro.App.Services
                                     {
                                         var polar = _geometryService.ConverterInstrucoesParaCoordenadasPolares(item.ChapaCodigo, item.Comprimento, item.Segmentos);
                                         var dim = _geometryService.CalcularDimensoesAcabadas(polar);
-                                        SkiaRenderer.RenderizarPeca(canvas, new SKSize(size.Width, size.Height), polar, dim, false, _geometryService);
+                                        SkiaRenderer.RenderizarPeca(canvas, new SKSize(size.Width, size.Height), polar, dim, true, _geometryService, fonteCota: 7f, fonteAngulo: 6.5f);
                                     }
                                     catch
                                     {
@@ -211,8 +208,8 @@ namespace CapitalAco.DrawingMacro.App.Services
                                 {
                                     c.Item().Row(r =>
                                     {
-                                        r.RelativeItem().Text($"Qtde: {item.Quantidade}").Bold().FontSize(11);
-                                        r.RelativeItem().Text($"Chapa: #{item.ChapaCodigo.Replace("#", "")}").FontSize(10);
+                                        r.RelativeItem().Text($"Qtde: {item.Quantidade}").Bold().FontSize((float)config.RelatorioPedidoFonteDestaque);
+                                        r.RelativeItem().Text($"Chapa: #{item.ChapaCodigo.Replace("#", "")}").FontSize((float)config.RelatorioPedidoFonteTexto);
                                     });
 
                                     double corte = 0.0;
@@ -232,19 +229,19 @@ namespace CapitalAco.DrawingMacro.App.Services
 
                                     c.Item().PaddingTop(3).Text(t =>
                                     {
-                                        t.Span("Corte: ").Bold().FontSize(9);
-                                        t.Span($"{corte:F0} mm").Bold().FontColor(Colors.Red.Medium).FontSize(10);
+                                        t.Span("Corte: ").Bold().FontSize((float)config.RelatorioPedidoFonteRotuloCampo);
+                                        t.Span($"{corte:F0} mm").Bold().FontColor(Colors.Red.Medium).FontSize((float)config.RelatorioPedidoFonteDestaque);
                                     });
 
-                                    c.Item().Text($"Comprimento: {item.Comprimento:F0} mm").FontSize(9);
-                                    c.Item().Text($"Peso: {peso:F0} kg").FontSize(9);
+                                    c.Item().Text($"Comprimento: {item.Comprimento:F0} mm").FontSize((float)config.RelatorioPedidoFonteTexto);
+                                    c.Item().Text($"Peso: {peso:F0} kg").FontSize((float)config.RelatorioPedidoFonteTexto);
                                 });
 
                                 // Checkbox de controle de fábrica
                                 row.ConstantItem(60).PaddingRight(5).AlignMiddle().AlignCenter().Column(c =>
                                 {
                                     c.Item().Border(1).BorderColor(Colors.Grey.Darken1).Width(15).Height(15).Svg(size => RenderizarComoSvg(size.Width, size.Height, canvas => { }));
-                                    c.Item().PaddingTop(3).AlignCenter().Text("Cortado").FontSize(7);
+                                    c.Item().PaddingTop(3).AlignCenter().Text("Cortado").FontSize((float)config.RelatorioPedidoFonteRotuloPeca);
                                 });
                             });
                         }
@@ -252,9 +249,9 @@ namespace CapitalAco.DrawingMacro.App.Services
 
                     page.Footer().AlignCenter().Text(t =>
                     {
-                        t.CurrentPageNumber().FontSize(9);
-                        t.Span(" / ").FontSize(9);
-                        t.TotalPages().FontSize(9);
+                        t.CurrentPageNumber().FontSize((float)config.RelatorioPedidoFonteTexto);
+                        t.Span(" / ").FontSize((float)config.RelatorioPedidoFonteTexto);
+                        t.TotalPages().FontSize((float)config.RelatorioPedidoFonteTexto);
                     });
                 });
             }).GeneratePdf(caminhoPdf);
