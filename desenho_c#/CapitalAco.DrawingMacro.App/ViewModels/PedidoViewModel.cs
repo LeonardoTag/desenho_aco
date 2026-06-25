@@ -28,6 +28,22 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             Observacao = configService.ObterConfiguracao().RelatorioObservacao;
         }
 
+        public event Action<PecaPedidoItem>? EditarItemSolicitado;
+
+        [RelayCommand]
+        private void EditarItem(PecaPedidoItem? item)
+        {
+            if (item != null)
+                EditarItemSolicitado?.Invoke(item);
+        }
+
+        public void AtualizarItem(PecaPedidoItem original, PecaPedidoItem novo)
+        {
+            int idx = Itens.IndexOf(original);
+            if (idx >= 0)
+                Itens[idx] = novo;
+        }
+
         [RelayCommand]
         private void RemoverItem(PecaPedidoItem? item)
         {

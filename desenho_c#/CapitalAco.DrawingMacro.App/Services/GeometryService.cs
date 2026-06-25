@@ -97,82 +97,16 @@ namespace CapitalAco.DrawingMacro.App.Services
                 }
                 else
                 {
+                    // Escolhe entre dobrar à direita (ant+grau) ou à esquerda (ant-grau) selecionando
+                    // o resultado cujo azimute é angularmente mais próximo da direção indicada pelo usuário.
                     double ant = azimuteAnterior.Value;
-                    if (Math.Abs(ant) < 0.001)
-                    {
-                        azimute = azimuteDirecao switch
-                        {
-                            0 or 90 or 180 => grau,
-                            270 => 360.0 - grau,
-                            _ => grau
-                        };
-                    }
-                    else if (Math.Abs(ant - 90.0) < 0.001)
-                    {
-                        azimute = azimuteDirecao switch
-                        {
-                            90 or 180 or 270 => 90.0 + grau,
-                            0 => 90.0 - grau,
-                            _ => 90.0 + grau
-                        };
-                    }
-                    else if (Math.Abs(ant - 180.0) < 0.001)
-                    {
-                        azimute = azimuteDirecao switch
-                        {
-                            0 or 90 or 270 => 180.0 + grau,
-                            180 => 180.0 - grau,
-                            _ => 180.0 + grau
-                        };
-                    }
-                    else if (Math.Abs(ant - 270.0) < 0.001)
-                    {
-                        azimute = azimuteDirecao switch
-                        {
-                            0 or 90 or 270 => 270.0 + grau,
-                            180 => 270.0 - grau,
-                            _ => 270.0 + grau
-                        };
-                    }
-                    else
-                    {
-                        if (ant > 0 && ant < 90.0)
-                        {
-                            azimute = azimuteDirecao switch
-                            {
-                                0 or 270 => ant - grau,
-                                90 or 180 => ant + grau,
-                                _ => ant
-                            };
-                        }
-                        else if (ant > 90.0 && ant < 180.0)
-                        {
-                            azimute = azimuteDirecao switch
-                            {
-                                0 or 90 => ant - grau,
-                                180 or 270 => ant + grau,
-                                _ => ant
-                            };
-                        }
-                        else if (ant > 180.0 && ant < 270.0)
-                        {
-                            azimute = azimuteDirecao switch
-                            {
-                                0 or 270 => ant + grau,
-                                90 or 180 => ant - grau,
-                                _ => ant
-                            };
-                        }
-                        else // ant > 270.0 && ant < 360.0
-                        {
-                            azimute = azimuteDirecao switch
-                            {
-                                0 or 90 => ant + grau,
-                                180 or 270 => ant - grau,
-                                _ => ant
-                            };
-                        }
-                    }
+                    double optA = (ant + grau) % 360.0;
+                    double optB = (ant - grau + 360.0) % 360.0;
+                    double distA = Math.Abs(optA - azimuteDirecao);
+                    if (distA > 180.0) distA = 360.0 - distA;
+                    double distB = Math.Abs(optB - azimuteDirecao);
+                    if (distB > 180.0) distB = 360.0 - distB;
+                    azimute = distA <= distB ? optA : optB;
                 }
             }
 

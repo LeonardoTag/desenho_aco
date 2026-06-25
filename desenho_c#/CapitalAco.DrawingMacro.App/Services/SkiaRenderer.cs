@@ -36,7 +36,7 @@ namespace CapitalAco.DrawingMacro.App.Services
         private static readonly SKColor CotaInternaTextoCor = new SKColor(183, 28, 28);
         private static readonly SKColor AnguloTextoCor = new SKColor(46, 125, 50);
 
-        public static System.Windows.Media.ImageSource RenderToImageSource(InstrucoesPolares polar, int width, int height, IGeometryService geometryService, float fonteCota = 12f, float fonteAngulo = 11f)
+        public static System.Windows.Media.ImageSource RenderToImageSource(InstrucoesPolares polar, int width, int height, IGeometryService geometryService, float fonteCota = 12f, float fonteAngulo = 11f, bool mostrarMedidas = true)
         {
             using var bitmap = new SKBitmap(width, height);
             using var canvas = new SKCanvas(bitmap);
@@ -44,7 +44,7 @@ namespace CapitalAco.DrawingMacro.App.Services
             canvas.Clear(FundoCor);
 
             var dim = geometryService.CalcularDimensoesAcabadas(polar);
-            RenderizarPeca(canvas, new SKSize(width, height), polar, dim, true, geometryService, fonteCota, fonteAngulo);
+            RenderizarPeca(canvas, new SKSize(width, height), polar, dim, mostrarMedidas, geometryService, fonteCota, fonteAngulo);
 
             using var image = SKImage.FromBitmap(bitmap);
             using var data = image.Encode(SKEncodedImageFormat.Png, 100);
@@ -111,30 +111,25 @@ namespace CapitalAco.DrawingMacro.App.Services
             if (dimX == 0) dimX = 1;
             if (dimY == 0) dimY = 1;
 
-            // A extrusão 3D desloca o desenho na diagonal (ângulo3D); reservamos esse espaço ANTES de
-            // calcular a escala para a peça (perfil + extrusão) sempre caber dentro da caixa do desenho.
-            // A profundidade reservada NÃO cresce sem limite com o comprimento real (senão peças muito
-            // compridas encolheriam a seção transversal a ponto de ficar ilegível) — ela é limitada a uma
-            // fração do próprio perfil, então a extrusão exibida é estilizada, não fiel à escala real.
+            // Escala exclusivamente pelo perfil — a extrusão não interfere na escala nem no posicionamento.
             double comprimento = polar.Comprimento;
             double angulo3D = 55.0 * (Math.PI / 180.0);
+            double escala = Math.Min(utilW / dimX, utilH / dimY);
+
+            // Perfil centralizado no canvas (as margens de 15% ficam livres para a extrusão).
+            double fatorX = (canvasW - dimX * escala) / 2.0 - minX * escala;
+            double fatorY = (canvasH - dimY * escala) / 2.0 - minY * escala;
+
+            // Extrusão proporcional ao comprimento, limitada a caber exatamente nas margens
+            // do lado onde ela cresce (direita e cima), sem alterar fatorX/fatorY.
             double profundidadeModelo = Math.Min(comprimento * 0.25, Math.Max(dimX, dimY) * 0.6);
-            double extrusaoFatorX = profundidadeModelo * Math.Cos(angulo3D);
-            double extrusaoFatorY = profundidadeModelo * Math.Sin(angulo3D);
-
-            double escala = Math.Min(utilW / (dimX + extrusaoFatorX), utilH / (dimY + extrusaoFatorY));
-
             double compEsboco = profundidadeModelo * escala;
+            double margemDireita = (canvasW - dimX * escala) / 2.0;
+            double margemCima    = (canvasH - dimY * escala) / 2.0;
+            compEsboco = Math.Max(0, Math.Min(compEsboco,
+                Math.Min(margemDireita / Math.Cos(angulo3D), margemCima / Math.Sin(angulo3D))));
             float dx = (float)(compEsboco * Math.Cos(angulo3D));
             float dy = (float)(-compEsboco * Math.Sin(angulo3D));
-
-            // Centraliza considerando a caixa combinada do perfil + extrusão: o perfil não se estende
-            // para a esquerda/baixo, e a extrusão não se estende para a direita/cima, então a caixa
-            // combinada só cresce nessas duas pontas (direita e cima) em relação ao perfil plano.
-            double dimXCombinado = dimX * escala + dx;
-            double dimYCombinado = dimY * escala + Math.Abs(dy);
-            double fatorX = (canvasW - dimXCombinado) / 2.0 - minX * escala;
-            double fatorY = (canvasH - dimYCombinado) / 2.0 - (minY * escala + dy);
 
             var coordenadasNoCanvas = absolutas.Select(p => new SKPoint(
                 (float)(p.X * escala + fatorX),
@@ -424,7 +419,7 @@ namespace CapitalAco.DrawingMacro.App.Services
 
         private static void DesenharCotaTubo(SKCanvas canvas, SKPoint frente, float raio, float dx, float dy, Segmento.InformacaoCurva info, InstrucoesPolares polar, float fonteCota)
         {
-            using var textPaint = new SKPaint { Color = CotaTextoCor, TextSize = fonteCota, IsAntialias = true, TextAlign = SKTextAlign.Center };
+            using var textPaint = new SKPaint { Color = CotaTextoCor, TextSize = fonteCota, IsAntialias = true, TextAlign = SKTextAlign.Center, FakeBoldText = true };
 
             string textoDiametro = $"Ø{info.Raio * 2:F0} ({info.TipoRaio})";
             canvas.DrawText(textoDiametro, frente.X, frente.Y + raio + fonteCota + 6f, textPaint);
@@ -452,8 +447,8 @@ namespace CapitalAco.DrawingMacro.App.Services
             // Em vez de diferenciar interna/externa só pela cor do texto (ou um sufixo "i"), cada medida
             // ganha um "selo" com fundo preenchido: externa = letra branca em fundo escuro (azul), interna =
             // letra escura em fundo claro (rosa) — funciona mesmo em impressão P&B, pela diferença de tom.
-            using var textoExterna = new SKPaint { Color = SKColors.White, TextSize = fonteCota, IsAntialias = true, TextAlign = SKTextAlign.Center };
-            using var textoInterna = new SKPaint { Color = CotaInternaTextoCor, TextSize = fonteCota, IsAntialias = true, TextAlign = SKTextAlign.Center };
+            using var textoExterna = new SKPaint { Color = SKColors.White, TextSize = fonteCota, IsAntialias = true, TextAlign = SKTextAlign.Center, FakeBoldText = true };
+            using var textoInterna = new SKPaint { Color = CotaInternaTextoCor, TextSize = fonteCota, IsAntialias = true, TextAlign = SKTextAlign.Center, FakeBoldText = true };
 
             float offsetExterna = (float)Math.Max(16.0, espessuraPx * 1.3 + fonteCota * 0.6);
             float offsetInterna = (float)Math.Max(12.0, espessuraPx * 1.1 + fonteCota * 0.4);
@@ -551,7 +546,8 @@ namespace CapitalAco.DrawingMacro.App.Services
                 Color = AnguloTextoCor,
                 TextSize = fonteAngulo,
                 IsAntialias = true,
-                TextAlign = SKTextAlign.Center
+                TextAlign = SKTextAlign.Center,
+                FakeBoldText = true
             };
 
             using var anguloRetoPaint = new SKPaint
@@ -700,7 +696,8 @@ namespace CapitalAco.DrawingMacro.App.Services
                 Color = PerfilContornoCor,
                 TextSize = fonteCota,
                 IsAntialias = true,
-                TextAlign = SKTextAlign.Center
+                TextAlign = SKTextAlign.Center,
+                FakeBoldText = true
             };
 
             using var textPaintAngulo = new SKPaint
@@ -708,7 +705,8 @@ namespace CapitalAco.DrawingMacro.App.Services
                 Color = PerfilContornoCor,
                 TextSize = fonteAngulo,
                 IsAntialias = true,
-                TextAlign = SKTextAlign.Center
+                TextAlign = SKTextAlign.Center,
+                FakeBoldText = true
             };
 
             using var textPaintSentido = new SKPaint
@@ -716,7 +714,8 @@ namespace CapitalAco.DrawingMacro.App.Services
                 Color = PerfilContornoCor,
                 TextSize = fonteSentido,
                 IsAntialias = true,
-                TextAlign = SKTextAlign.Center
+                TextAlign = SKTextAlign.Center,
+                FakeBoldText = true
             };
 
             using var textBluePaint = new SKPaint
@@ -724,6 +723,7 @@ namespace CapitalAco.DrawingMacro.App.Services
                 Color = new SKColor(21, 101, 192),
                 TextSize = 10f,
                 IsAntialias = true,
+                FakeBoldText = true,
                 TextAlign = SKTextAlign.Center
             };
 

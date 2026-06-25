@@ -36,15 +36,25 @@
                         </Style>
                     </DataGrid.Resources>
                     <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="Perfil" Width="90" IsReadOnly="True">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Image Source="{Binding ImagemPerfil}" Width="80" Height="60" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <DataGridTextColumn Header="Nome da Peça" Binding="{Binding NomePeca}" Width="*" IsReadOnly="True"/>
                         <DataGridTextColumn Header="Chapa" Binding="{Binding ChapaCodigo}" Width="100" IsReadOnly="True"/>
                         <DataGridTextColumn Header="Comprimento" Binding="{Binding Comprimento, StringFormat='{}{0} mm'}" Width="120" IsReadOnly="True"/>
                         <DataGridTextColumn Header="Qtd" Binding="{Binding Quantidade}" Width="80" IsReadOnly="True"/>
                         <DataGridTextColumn Header="Observação do Item" Binding="{Binding Observacao}" Width="2*" IsReadOnly="True"/>
-                        <DataGridTemplateColumn Header="Ações" Width="100">
+                        <DataGridTemplateColumn Header="Ações" Width="150">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Button Content="Remover" Command="{Binding DataContext.RemoverItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Margin="2" Background="#E8333D" Foreground="White" BorderThickness="0" Height="22" FontWeight="SemiBold" FontSize="11"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Content="Editar" Command="{Binding DataContext.EditarItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Margin="2" Background="#2980B9" Foreground="White" BorderThickness="0" Height="22" FontWeight="SemiBold" FontSize="11" Width="65"/>
+                                        <Button Content="Remover" Command="{Binding DataContext.RemoverItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Margin="2" Background="#E8333D" Foreground="White" BorderThickness="0" Height="22" FontWeight="SemiBold" FontSize="11" Width="65"/>
+                                    </StackPanel>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>

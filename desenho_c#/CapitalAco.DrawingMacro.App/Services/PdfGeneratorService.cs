@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Serilog;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -78,8 +79,8 @@ namespace CapitalAco.DrawingMacro.App.Services
                             {
                                 col.Item().Text("DETALHAMENTO DE DOBRA").FontSize((float)config.RelatorioDobraFonteTitulo).Bold().FontColor(Colors.Indigo.Darken4);
                                 col.Item().PaddingTop(2).Text($"Peça: {nomePeca}").FontSize((float)config.RelatorioDobraFonteTexto).Bold();
-                                col.Item().Text($"Chapa: #{chapaCodigo.Replace("#", "")} (Esp.: {dadosPlan.Espessura:F2} mm)").FontSize((float)config.RelatorioDobraFonteTexto);
-                                col.Item().Text($"Comprimento da Peça: {comprimento:F0} mm").FontSize((float)config.RelatorioDobraFonteTexto);
+                                col.Item().Text($"Chapa: #{chapaCodigo.Replace("#", "")} (Esp.: {dadosPlan.Espessura:F2} mm)").FontSize((float)config.RelatorioDobraFonteTexto).Bold();
+                                col.Item().Text($"Comprimento da Peça: {comprimento:F0} mm").FontSize((float)config.RelatorioDobraFonteTexto).Bold();
                                 col.Item().Text($"Desenvolvimento Plano: {dadosPlan.CorteTotal} mm").FontSize((float)config.RelatorioDobraFonteTexto).Bold().FontColor(Colors.Indigo.Darken4);
                             });
 
@@ -141,6 +142,10 @@ namespace CapitalAco.DrawingMacro.App.Services
             var caminhoPdf = Path.Combine(pastaSaida, nomeArquivo);
 
             var chapas = _csvService.CarregarChapas();
+            var ordemChapas = chapas.Select((c, i) => (c.Codigo, i)).ToDictionary(x => x.Codigo, x => x.i);
+            itens = itens
+                .OrderBy(i => ordemChapas.TryGetValue(i.ChapaCodigo, out var idx) ? idx : int.MaxValue)
+                .ToList();
 
             Document.Create(container =>
             {
@@ -187,6 +192,24 @@ namespace CapitalAco.DrawingMacro.App.Services
                         int quantidadeTotalPecas = 0;
                         double pesoTotalGeral = 0.0;
 
+                        // Peças com mais segmentos (mais cotas/ângulos para encaixar no desenho) recebem um
+                        // container mais alto, senão as medidas ficam amontoadas e ilegíveis em peças complexas.
+                        double AlturaParaPeca(PecaPedidoItem it)
+                        {
+                            const double alturaBase = 95;
+                            const double alturaPorSegmentoExtra = 16;
+                            const int segmentosBase = 3;
+                            const double alturaMaxima = 260;
+
+                            int numSegmentos = it.Segmentos?.Count ?? 0;
+                            double altura = alturaBase + Math.Max(0, numSegmentos - segmentosBase) * alturaPorSegmentoExtra;
+
+                            // Segmentos curvos somam cotas extras (raio, ângulo de curva, calandragem)
+                            if (it.Segmentos != null && it.Segmentos.Any(s => s.EhCurvo)) altura += 20;
+
+                            return Math.Min(altura, alturaMaxima);
+                        }
+
                         // Dividimos as peças em slots, numerados e com fundo alternado (zebra) para facilitar a leitura
                         for (int idx = 0; idx < itens.Count; idx++)
                         {
@@ -194,7 +217,7 @@ namespace CapitalAco.DrawingMacro.App.Services
                             quantidadeTotalPecas += item.Quantidade;
 
                             col.Item().PaddingBottom(10).Background(idx % 2 == 0 ? Colors.White : Colors.Grey.Lighten5)
-                                .Border(0.5f).BorderColor(Colors.Grey.Lighten1).Height(95).Row(row =>
+                                .Border(0.5f).BorderColor(Colors.Grey.Lighten1).Height((float)AlturaParaPeca(item)).Row(row =>
                             {
                                 // Número do item
                                 row.ConstantItem(22).AlignMiddle().AlignCenter()
@@ -203,7 +226,7 @@ namespace CapitalAco.DrawingMacro.App.Services
                                 row.ConstantItem(1).LineVertical(0.5f).LineColor(Colors.Grey.Lighten2);
 
                                 // 1. Imagem de Preview à esquerda (Skia via SVG)
-                                row.RelativeItem(5).Padding(3).Svg(size => RenderizarComoSvg(size.Width, size.Height, canvas =>
+                                row.RelativeItem(7).Padding(3).Svg(size => RenderizarComoSvg(size.Width, size.Height, canvas =>
                                 {
                                     try
                                     {
@@ -221,14 +244,14 @@ namespace CapitalAco.DrawingMacro.App.Services
                                 row.ConstantItem(1).LineVertical(0.5f).LineColor(Colors.Grey.Lighten2);
 
                                 // 2. Dados numéricos de produção à direita
-                                row.RelativeItem(3).Padding(5).Column(c =>
+                                row.RelativeItem(2).Padding(5).Column(c =>
                                 {
                                     c.Item().Text(item.NomePeca).Bold().FontSize((float)config.RelatorioPedidoFonteDestaque).FontColor(Colors.Indigo.Darken4);
 
                                     c.Item().PaddingTop(2).Row(r =>
                                     {
                                         r.RelativeItem().Text($"Qtde: {item.Quantidade}").Bold().FontSize((float)config.RelatorioPedidoFonteDestaque);
-                                        r.RelativeItem().Text($"Chapa: #{item.ChapaCodigo.Replace("#", "")}").FontSize((float)config.RelatorioPedidoFonteTexto);
+                                        r.RelativeItem().Text($"Chapa: #{item.ChapaCodigo.Replace("#", "")}").FontSize((float)config.RelatorioPedidoFonteTexto).Bold();
                                     });
 
                                     double corte = 0.0;
@@ -254,19 +277,17 @@ namespace CapitalAco.DrawingMacro.App.Services
                                         t.Span($"{corte:F0} mm").Bold().FontColor(Colors.Red.Medium).FontSize((float)config.RelatorioPedidoFonteDestaque);
                                     });
 
-                                    c.Item().Text($"Comprimento: {item.Comprimento:F0} mm").FontSize((float)config.RelatorioPedidoFonteTexto);
-                                    c.Item().Text($"Peso: {peso:F0} kg").FontSize((float)config.RelatorioPedidoFonteTexto);
+                                    c.Item().Text($"Comprimento: {item.Comprimento:F0} mm").FontSize((float)config.RelatorioPedidoFonteTexto).Bold();
+                                    c.Item().Text($"Peso: {peso:F0} kg").FontSize((float)config.RelatorioPedidoFonteTexto).Bold();
+                                    c.Item().PaddingTop(5).Row(r =>
+                                    {
+                                        r.ConstantItem(15).Border(1).BorderColor(Colors.Grey.Darken1).Height(15).Svg(size => RenderizarComoSvg(size.Width, size.Height, canvas => { }));
+                                        r.AutoItem().PaddingLeft(4).Text("Cortado").FontSize((float)config.RelatorioPedidoFonteRotuloPeca);
+                                    });
                                     if (!string.IsNullOrWhiteSpace(item.Observacao))
                                     {
                                         c.Item().PaddingTop(2).Text($"Obs.: {item.Observacao}").FontSize((float)config.RelatorioPedidoFonteRotuloCampo).Italic();
                                     }
-                                });
-
-                                // Checkbox de controle de fábrica
-                                row.ConstantItem(60).PaddingRight(5).AlignMiddle().AlignCenter().Column(c =>
-                                {
-                                    c.Item().Border(1).BorderColor(Colors.Grey.Darken1).Width(15).Height(15).Svg(size => RenderizarComoSvg(size.Width, size.Height, canvas => { }));
-                                    c.Item().PaddingTop(3).AlignCenter().Text("Cortado").FontSize((float)config.RelatorioPedidoFonteRotuloPeca);
                                 });
                             });
                         }

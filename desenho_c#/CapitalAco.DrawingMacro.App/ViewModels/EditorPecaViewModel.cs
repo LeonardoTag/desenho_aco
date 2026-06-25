@@ -207,6 +207,16 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         // Evento para enviar itens ao carrinho do pedido
         public event Action<PecaPedidoItem>? EnviarAoPedido;
 
+        // Evento para atualizar item existente no pedido (modo edição)
+        public event Action<PecaPedidoItem, PecaPedidoItem>? AtualizarNoPedido;
+
+        private PecaPedidoItem? _itemEditando;
+
+        [ObservableProperty]
+        private bool _modoEdicao;
+
+        public string TextoBotaoAddPedido => ModoEdicao ? "Salvar no Pedido" : "Adicionar à Ordem (Shift+Enter)";
+
         public EditorPecaViewModel(
             IGeometryService geometryService,
             IGeradorPecaService geradorPecaService,
@@ -253,6 +263,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
 
         partial void OnChapaSelecionadaChanged(Chapa? value) => AtualizarPreview();
         partial void OnComprimentoPecaChanged(double? value) => AtualizarPreview();
+        partial void OnModoEdicaoChanged(bool value) => OnPropertyChanged(nameof(TextoBotaoAddPedido));
 
         public void CarregarPecaDoModelo(ModeloPeca peca)
         {
@@ -271,6 +282,66 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             Segmentos.CollectionChanged += Segmentos_CollectionChanged;
 
             AtualizarPreview();
+        }
+
+        public void EditarItemDoPedido(PecaPedidoItem item)
+        {
+            _itemEditando = item;
+            ModoEdicao = true;
+
+            NomePeca = item.NomePeca;
+            _nomeEditadoManualmente = true;
+            ComprimentoPeca = item.Comprimento;
+            ChapaSelecionada = Chapas.FirstOrDefault(c => c.Codigo == item.ChapaCodigo) ?? ChapaSelecionada;
+            PedidoQuantidade = item.Quantidade;
+            PedidoObservacao = item.Observacao;
+            MultiplosComprimentosHabilitado = false;
+            ComprimentosMultiplosTexto = string.Empty;
+
+            _historicoDesfazer.Clear();
+            PodeDesfazer = false;
+
+            Segmentos.CollectionChanged -= Segmentos_CollectionChanged;
+            Segmentos.Clear();
+            foreach (var seg in item.Segmentos)
+                Segmentos.Add(ClonarSegmento(seg));
+            Segmentos.CollectionChanged += Segmentos_CollectionChanged;
+
+            AtualizarPreview();
+        }
+
+        [RelayCommand]
+        private void NovaPeca()
+        {
+            if (ModoEdicao)
+            {
+                _itemEditando = null;
+                ModoEdicao = false;
+            }
+
+            _historicoDesfazer.Clear();
+            PodeDesfazer = false;
+
+            Segmentos.CollectionChanged -= Segmentos_CollectionChanged;
+            Segmentos.Clear();
+            Segmentos.CollectionChanged += Segmentos_CollectionChanged;
+
+            NomePeca = "Peça Nova";
+            _nomeEditadoManualmente = false;
+            ComprimentoPeca = null;
+            PedidoQuantidade = 1;
+            PedidoObservacao = string.Empty;
+            ComprimentosMultiplosTexto = string.Empty;
+            MultiplosComprimentosHabilitado = false;
+
+            AtualizarPreview();
+        }
+
+        [RelayCommand]
+        private void CancelarEdicao()
+        {
+            _itemEditando = null;
+            ModoEdicao = false;
         }
 
         [RelayCommand]
@@ -785,6 +856,32 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             }
 
             var segmentosAtuais = Segmentos.ToList();
+
+            if (_itemEditando != null)
+            {
+                var (qtdEdit, compEdit) = lotes[0];
+                var itemOriginal = _itemEditando;
+                var novoItem = new PecaPedidoItem
+                {
+                    ChapaCodigo = ChapaSelecionada.Codigo,
+                    Comprimento = compEdit,
+                    Quantidade = (int)qtdEdit,
+                    NomePeca = NomePeca,
+                    Segmentos = segmentosAtuais,
+                    Observacao = PedidoObservacao
+                };
+                novoItem.ImagemPerfil = RenderizarThumbnail(segmentosAtuais, ChapaSelecionada.Codigo, compEdit);
+
+                _itemEditando = null;
+                ModoEdicao = false;
+                AtualizarNoPedido?.Invoke(itemOriginal, novoItem);
+
+                PedidoQuantidade = 1;
+                PedidoObservacao = string.Empty;
+                ComprimentosMultiplosTexto = string.Empty;
+                return;
+            }
+
             foreach (var (quantidade, comprimento) in lotes)
             {
                 string sufixo = lotes.Count > 1 ? $" ({comprimento:F0})" : string.Empty;
@@ -797,6 +894,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
                     Segmentos = segmentosAtuais,
                     Observacao = PedidoObservacao
                 };
+                item.ImagemPerfil = RenderizarThumbnail(segmentosAtuais, ChapaSelecionada.Codigo, comprimento);
 
                 EnviarAoPedido?.Invoke(item);
             }
@@ -807,6 +905,19 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             ComprimentosMultiplosTexto = string.Empty;
 
             MessageBox.Show("Peça adicionada ao carrinho da Ordem de Produção!", "Carrinho", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private System.Windows.Media.ImageSource? RenderizarThumbnail(List<Segmento> segmentos, string chapaCodigo, double comprimento)
+        {
+            try
+            {
+                var polar = _geometryService.ConverterInstrucoesParaCoordenadasPolares(chapaCodigo, comprimento, segmentos);
+                return SkiaRenderer.RenderToImageSource(polar, 80, 60, _geometryService, mostrarMedidas: false);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private static List<(double Quantidade, double Comprimento)> ParseComprimentosMultiplos(string texto)

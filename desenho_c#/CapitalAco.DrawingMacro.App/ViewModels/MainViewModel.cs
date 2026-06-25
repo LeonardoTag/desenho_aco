@@ -45,6 +45,18 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             {
                 Pedido.Itens.Add(item);
             };
+
+            Editor.AtualizarNoPedido += (original, novo) =>
+            {
+                Pedido.AtualizarItem(original, novo);
+                SelectedTabIndex = 2; // Volta para aba Ordem de Produção
+            };
+
+            Pedido.EditarItemSolicitado += (item) =>
+            {
+                Editor.EditarItemDoPedido(item);
+                SelectedTabIndex = 0; // Vai para aba Editor
+            };
         }
     }
 }

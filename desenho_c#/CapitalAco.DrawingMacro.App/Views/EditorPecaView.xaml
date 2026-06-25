@@ -12,12 +12,15 @@
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Gesture="Ctrl+N" Command="{Binding NovaPecaCommand}"/>
+    </UserControl.InputBindings>
 
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="1.0*" MinWidth="270"/>
-            <ColumnDefinition Width="2.4*" MinWidth="320"/>
             <ColumnDefinition Width="1.0*" MinWidth="260"/>
+            <ColumnDefinition Width="3.2*" MinWidth="340"/>
+            <ColumnDefinition Width="0.75*" MinWidth="210"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -278,13 +281,15 @@
                         <Button Content="Salvar Biblioteca" Command="{Binding SalvarNaBibliotecaCommand}" Margin="2" Background="#12153F" Foreground="White" BorderThickness="0" Height="26"/>
                         <Button Content="Ficha Dobra (PDF)" Command="{Binding GerarFichaDobraCommand}" Margin="2" Background="#8E44AD" Foreground="White" BorderThickness="0" Height="26"/>
                     </UniformGrid>
-                    <Button Content="Abrir Pasta de Relatórios" Command="{Binding AbrirPastaRelatoriosCommand}" Margin="2,6,2,0" Background="#5B6472" Foreground="White" BorderThickness="0" Height="26"/>
+                    <Button Content="Nova Peça (Ctrl+N)" Command="{Binding NovaPecaCommand}" Margin="2,6,2,0" Background="#27AE60" Foreground="White" BorderThickness="0" Height="26"/>
+                    <Button Content="Abrir Pasta de Relatórios" Command="{Binding AbrirPastaRelatoriosCommand}" Margin="2,4,2,0" Background="#5B6472" Foreground="White" BorderThickness="0" Height="26"/>
                 </StackPanel>
             </Border>
 
             <!-- Adicionar ao Pedido -->
             <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,10">
                 <StackPanel>
+                    <TextBlock Text="EDITANDO PEÇA DO PEDIDO" FontSize="13" FontWeight="Bold" Foreground="#E67E22" Margin="0,0,0,4" Visibility="{Binding ModoEdicao, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                     <TextBlock Text="ADICIONAR À ORDEM DE PRODUÇÃO (Shift+Enter)" FontSize="13" FontWeight="Bold" Foreground="#27AE60" Margin="0,0,0,8"/>
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -305,7 +310,8 @@
                         <TextBlock Text="Comprimentos e Quantidades (ex: 10x3000, 10x2000, 50x500):" FontSize="10" Foreground="#5B6472"/>
                         <TextBox Text="{Binding ComprimentosMultiplosTexto, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,8"/>
                     </StackPanel>
-                    <Button Content="Adicionar à Ordem" Command="{Binding AdicionarAoPedidoCommand}" Background="#27AE60" Foreground="White" BorderThickness="0" Height="26"/>
+                    <Button Content="{Binding TextoBotaoAddPedido}" Command="{Binding AdicionarAoPedidoCommand}" Background="#27AE60" Foreground="White" BorderThickness="0" Height="26"/>
+                    <Button Content="Cancelar Edição" Command="{Binding CancelarEdicaoCommand}" Margin="0,4,0,0" Background="#D35400" Foreground="White" BorderThickness="0" Height="26" Visibility="{Binding ModoEdicao, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                 </StackPanel>
             </Border>
 

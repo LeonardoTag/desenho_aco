@@ -11,6 +11,7 @@ namespace CapitalAco.DrawingMacro.App.Services
         public string NomePeca { get; set; } = string.Empty;
         public List<Segmento> Segmentos { get; set; } = new();
         public string Observacao { get; set; } = string.Empty;
+        public System.Windows.Media.ImageSource? ImagemPerfil { get; set; }
     }
 
     public interface IPdfGeneratorService
