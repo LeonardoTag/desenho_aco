@@ -70,50 +70,54 @@ namespace CapitalAco.DrawingMacro.App.Services
                     page.PageColor(Colors.White);
 
                     // Cabeçalho
-                    page.Header().Row(row =>
+                    page.Header().Column(headerCol =>
                     {
-                        row.RelativeItem().Column(col =>
+                        headerCol.Item().Row(row =>
                         {
-                            col.Item().Text("DETALHAMENTO DE DOBRA").FontSize((float)config.RelatorioDobraFonteTitulo).Bold().FontColor(Colors.Grey.Darken3);
-                            col.Item().Text($"Peça: {nomePeca}").FontSize((float)config.RelatorioDobraFonteTexto);
-                            col.Item().Text($"Chapa: #{chapaCodigo.Replace("#", "")} (Esp.: {dadosPlan.Espessura:F2} mm)").FontSize((float)config.RelatorioDobraFonteTexto);
-                            col.Item().Text($"Comprimento da Peça: {comprimento:F0} mm").FontSize((float)config.RelatorioDobraFonteTexto);
-                            col.Item().Text($"Desenvolvimento Plano: {dadosPlan.CorteTotal} mm").FontSize((float)config.RelatorioDobraFonteTexto).Bold();
+                            row.RelativeItem().Column(col =>
+                            {
+                                col.Item().Text("DETALHAMENTO DE DOBRA").FontSize((float)config.RelatorioDobraFonteTitulo).Bold().FontColor(Colors.Indigo.Darken4);
+                                col.Item().PaddingTop(2).Text($"Peça: {nomePeca}").FontSize((float)config.RelatorioDobraFonteTexto).Bold();
+                                col.Item().Text($"Chapa: #{chapaCodigo.Replace("#", "")} (Esp.: {dadosPlan.Espessura:F2} mm)").FontSize((float)config.RelatorioDobraFonteTexto);
+                                col.Item().Text($"Comprimento da Peça: {comprimento:F0} mm").FontSize((float)config.RelatorioDobraFonteTexto);
+                                col.Item().Text($"Desenvolvimento Plano: {dadosPlan.CorteTotal} mm").FontSize((float)config.RelatorioDobraFonteTexto).Bold().FontColor(Colors.Indigo.Darken4);
+                            });
+
+                            row.ConstantItem(200).AlignRight().Column(col =>
+                            {
+                                col.Item().Text($"Emissão: {DateTime.Now:dd/MM/yyyy HH:mm}").FontSize((float)config.RelatorioDobraFonteTexto);
+                                col.Item().Text($"Responsável: {config.RelatorioNomeResponsavel}").FontSize((float)config.RelatorioDobraFonteTexto);
+                            });
                         });
 
-                        row.ConstantItem(200).AlignRight().Column(col =>
-                        {
-                            col.Item().Text($"Emissão: {DateTime.Now:dd/MM/yyyy HH:mm}").FontSize((float)config.RelatorioDobraFonteTexto);
-                            col.Item().Text($"Responsável: {config.RelatorioNomeResponsavel}").FontSize((float)config.RelatorioDobraFonteTexto);
-                        });
+                        headerCol.Item().PaddingTop(6).LineHorizontal(1.2f).LineColor(Colors.Indigo.Darken4);
                     });
 
                     // Corpo do Relatório: desenho da peça em cima, planificação embaixo (melhor visualização)
                     page.Content().PaddingVertical(0.5f, Unit.Centimetre).Column(col =>
                     {
                         // Desenho 3D do Perfil (em cima)
-                        col.Item().Height(215).Border(1).BorderColor(Colors.Grey.Lighten2).Svg(size =>
+                        col.Item().Text("DESENHO DA PEÇA").FontSize((float)config.RelatorioDobraFonteSecao).Bold().FontColor(Colors.Grey.Darken2);
+                        col.Item().PaddingTop(2).Height(215).Background(Colors.Grey.Lighten5).Border(1).BorderColor(Colors.Grey.Lighten2).Svg(size =>
                             RenderizarComoSvg(size.Width, size.Height, canvas =>
                                 SkiaRenderer.RenderizarPeca(canvas, new SKSize(size.Width, size.Height), polar, dimensoes, true, _geometryService,
                                     (float)config.RelatorioDobraFonteCota, (float)config.RelatorioDobraFonteAngulo)));
 
-                        col.Item().PaddingTop(6);
+                        col.Item().PaddingTop(10).Text("PLANIFICAÇÃO").FontSize((float)config.RelatorioDobraFonteSecao).Bold().FontColor(Colors.Grey.Darken2);
 
                         // Planificação (embaixo)
-                        col.Item().Height(120).Border(1).BorderColor(Colors.Grey.Lighten2).Svg(size =>
+                        col.Item().PaddingTop(2).Height(120).Background(Colors.Grey.Lighten5).Border(1).BorderColor(Colors.Grey.Lighten2).Svg(size =>
                             RenderizarComoSvg(size.Width, size.Height, canvas =>
                                 SkiaRenderer.RenderizarPlanificacao(canvas, new SKSize(size.Width, size.Height), dadosPlan,
                                     (float)config.RelatorioDobraFonteAngulo, (float)config.RelatorioDobraFonteSentido, (float)config.RelatorioDobraFonteCota)));
 
-                        col.Item().PaddingTop(6).Row(infoRow =>
-                        {
-                            infoRow.RelativeItem().Column(textCol =>
-                            {
-                                textCol.Item().Text("Instruções de Planificação").FontSize((float)config.RelatorioDobraFonteSecao).Bold();
-                                textCol.Item().Text("· Cotas ordenadas (topo): medidas acumuladas a partir do início da chapa plana. · Cotas em cadeia (base): medidas individuais entre centros de dobras sucessivas.").FontSize((float)config.RelatorioDobraFonteTexto);
-                                textCol.Item().Text("· Linha vertical tracejada = dobra para cima. Linha vertical contínua = dobra para baixo. · Cota vermelha = medida interna. Cota azul = medida externa.").FontSize((float)config.RelatorioDobraFonteTexto);
-                            });
-                        });
+                        // Legenda: discreta e compacta (sempre igual em todo relatório, não merece destaque),
+                        // numa única linha por tópico para nunca empurrar o conteúdo para uma segunda página.
+                        const float fonteLegenda = 6.5f;
+                        col.Item().PaddingTop(6).Text("Legenda: fundo escuro/letra branca = medida externa  ·  fundo claro/letra escura = medida interna  ·  ângulo sublinhado = dobra não-reta  ·  linha tracejada = dobra p/ cima  ·  linha contínua = dobra p/ baixo")
+                            .FontSize(fonteLegenda).FontColor(Colors.Grey.Darken1);
+                        col.Item().Text("Cotas no topo da planificação = acumuladas desde o início da chapa  ·  cotas na base = entre dobras sucessivas")
+                            .FontSize(fonteLegenda).FontColor(Colors.Grey.Darken1);
                     });
 
                     page.Footer().AlignCenter().Text(t =>
@@ -180,11 +184,24 @@ namespace CapitalAco.DrawingMacro.App.Services
                     // Lista de Peças
                     page.Content().PaddingVertical(0.5f, Unit.Centimetre).Column(col =>
                     {
-                        // Dividimos as peças em slots
-                        foreach (var item in itens)
+                        int quantidadeTotalPecas = 0;
+                        double pesoTotalGeral = 0.0;
+
+                        // Dividimos as peças em slots, numerados e com fundo alternado (zebra) para facilitar a leitura
+                        for (int idx = 0; idx < itens.Count; idx++)
                         {
-                            col.Item().PaddingBottom(10).Border(0.5f).BorderColor(Colors.Grey.Lighten1).Height(95).Row(row =>
+                            var item = itens[idx];
+                            quantidadeTotalPecas += item.Quantidade;
+
+                            col.Item().PaddingBottom(10).Background(idx % 2 == 0 ? Colors.White : Colors.Grey.Lighten5)
+                                .Border(0.5f).BorderColor(Colors.Grey.Lighten1).Height(95).Row(row =>
                             {
+                                // Número do item
+                                row.ConstantItem(22).AlignMiddle().AlignCenter()
+                                    .Text($"{idx + 1:D2}").Bold().FontSize((float)config.RelatorioPedidoFonteDestaque).FontColor(Colors.Indigo.Darken4);
+
+                                row.ConstantItem(1).LineVertical(0.5f).LineColor(Colors.Grey.Lighten2);
+
                                 // 1. Imagem de Preview à esquerda (Skia via SVG)
                                 row.RelativeItem(5).Padding(3).Svg(size => RenderizarComoSvg(size.Width, size.Height, canvas =>
                                 {
@@ -206,7 +223,9 @@ namespace CapitalAco.DrawingMacro.App.Services
                                 // 2. Dados numéricos de produção à direita
                                 row.RelativeItem(3).Padding(5).Column(c =>
                                 {
-                                    c.Item().Row(r =>
+                                    c.Item().Text(item.NomePeca).Bold().FontSize((float)config.RelatorioPedidoFonteDestaque).FontColor(Colors.Indigo.Darken4);
+
+                                    c.Item().PaddingTop(2).Row(r =>
                                     {
                                         r.RelativeItem().Text($"Qtde: {item.Quantidade}").Bold().FontSize((float)config.RelatorioPedidoFonteDestaque);
                                         r.RelativeItem().Text($"Chapa: #{item.ChapaCodigo.Replace("#", "")}").FontSize((float)config.RelatorioPedidoFonteTexto);
@@ -218,7 +237,7 @@ namespace CapitalAco.DrawingMacro.App.Services
                                     {
                                         var polar = _geometryService.ConverterInstrucoesParaCoordenadasPolares(item.ChapaCodigo, item.Comprimento, item.Segmentos);
                                         corte = _geometryService.CalcularLarguraCorte(polar);
-                                        
+
                                         var chapaInfo = chapas.Find(x => string.Equals(x.Codigo, item.ChapaCodigo.StartsWith("#") ? item.ChapaCodigo : $"#{item.ChapaCodigo}", StringComparison.OrdinalIgnoreCase));
                                         if (chapaInfo != null)
                                         {
@@ -226,6 +245,8 @@ namespace CapitalAco.DrawingMacro.App.Services
                                         }
                                     }
                                     catch { }
+
+                                    pesoTotalGeral += peso;
 
                                     c.Item().PaddingTop(3).Text(t =>
                                     {
@@ -235,6 +256,10 @@ namespace CapitalAco.DrawingMacro.App.Services
 
                                     c.Item().Text($"Comprimento: {item.Comprimento:F0} mm").FontSize((float)config.RelatorioPedidoFonteTexto);
                                     c.Item().Text($"Peso: {peso:F0} kg").FontSize((float)config.RelatorioPedidoFonteTexto);
+                                    if (!string.IsNullOrWhiteSpace(item.Observacao))
+                                    {
+                                        c.Item().PaddingTop(2).Text($"Obs.: {item.Observacao}").FontSize((float)config.RelatorioPedidoFonteRotuloCampo).Italic();
+                                    }
                                 });
 
                                 // Checkbox de controle de fábrica
@@ -245,6 +270,14 @@ namespace CapitalAco.DrawingMacro.App.Services
                                 });
                             });
                         }
+
+                        // Resumo Geral do Pedido
+                        col.Item().PaddingTop(4).Background(Colors.Indigo.Lighten5).Border(1).BorderColor(Colors.Indigo.Lighten3).Padding(8).Row(r =>
+                        {
+                            r.RelativeItem().Text($"Total de Itens: {itens.Count}").Bold().FontSize((float)config.RelatorioPedidoFonteDestaque);
+                            r.RelativeItem().Text($"Total de Peças: {quantidadeTotalPecas}").Bold().FontSize((float)config.RelatorioPedidoFonteDestaque);
+                            r.RelativeItem().AlignRight().Text($"Peso Total Estimado: {pesoTotalGeral:F0} kg").Bold().FontSize((float)config.RelatorioPedidoFonteDestaque).FontColor(Colors.Indigo.Darken4);
+                        });
                     });
 
                     page.Footer().AlignCenter().Text(t =>

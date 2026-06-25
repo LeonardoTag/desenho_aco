@@ -111,18 +111,20 @@ namespace CapitalAco.DrawingMacro.App.Services
             if (dimX == 0) dimX = 1;
             if (dimY == 0) dimY = 1;
 
-            // A escala considera somente os segmentos da peça (a seção transversal desenhada), nunca o
-            // comprimento da extrusão: caso contrário, peças muito compridas encolheriam a seção a ponto
-            // de tornar os segmentos ilegíveis.
-            double escala = Math.Min(utilW / dimX, utilH / dimY);
-
-            // A extrusão 3D desloca o desenho na diagonal (ângulo3D); a profundidade exibida é estilizada
-            // (não fiel à escala real do comprimento) e limitada a uma fração do próprio perfil, para que
-            // peças muito compridas não façam a extrusão sangrar para fora da caixa.
+            // A extrusão 3D desloca o desenho na diagonal (ângulo3D); reservamos esse espaço ANTES de
+            // calcular a escala para a peça (perfil + extrusão) sempre caber dentro da caixa do desenho.
+            // A profundidade reservada NÃO cresce sem limite com o comprimento real (senão peças muito
+            // compridas encolheriam a seção transversal a ponto de ficar ilegível) — ela é limitada a uma
+            // fração do próprio perfil, então a extrusão exibida é estilizada, não fiel à escala real.
             double comprimento = polar.Comprimento;
             double angulo3D = 55.0 * (Math.PI / 180.0);
-            double profundidadeMaxima = Math.Max(dimX, dimY) * escala * 0.6;
-            double compEsboco = Math.Min(comprimento * escala * 0.25, profundidadeMaxima);
+            double profundidadeModelo = Math.Min(comprimento * 0.25, Math.Max(dimX, dimY) * 0.6);
+            double extrusaoFatorX = profundidadeModelo * Math.Cos(angulo3D);
+            double extrusaoFatorY = profundidadeModelo * Math.Sin(angulo3D);
+
+            double escala = Math.Min(utilW / (dimX + extrusaoFatorX), utilH / (dimY + extrusaoFatorY));
+
+            double compEsboco = profundidadeModelo * escala;
             float dx = (float)(compEsboco * Math.Cos(angulo3D));
             float dy = (float)(-compEsboco * Math.Sin(angulo3D));
 
@@ -447,24 +449,27 @@ namespace CapitalAco.DrawingMacro.App.Services
             // medida nunca ficar escondida atrás do traço espesso do perfil em chapas grossas.
             using var chamadaPaintExterna = new SKPaint { Color = CotaLinhaCor, Style = SKPaintStyle.Stroke, StrokeWidth = 1.0f, IsAntialias = true };
             using var chamadaPaintInterna = new SKPaint { Color = CotaInternaLinhaCor, Style = SKPaintStyle.Stroke, StrokeWidth = 1.0f, IsAntialias = true };
-            using var textoExterna = new SKPaint { Color = CotaTextoCor, TextSize = fonteCota, IsAntialias = true, TextAlign = SKTextAlign.Center };
+            // Em vez de diferenciar interna/externa só pela cor do texto (ou um sufixo "i"), cada medida
+            // ganha um "selo" com fundo preenchido: externa = letra branca em fundo escuro (azul), interna =
+            // letra escura em fundo claro (rosa) — funciona mesmo em impressão P&B, pela diferença de tom.
+            using var textoExterna = new SKPaint { Color = SKColors.White, TextSize = fonteCota, IsAntialias = true, TextAlign = SKTextAlign.Center };
             using var textoInterna = new SKPaint { Color = CotaInternaTextoCor, TextSize = fonteCota, IsAntialias = true, TextAlign = SKTextAlign.Center };
 
             float offsetExterna = (float)Math.Max(16.0, espessuraPx * 1.3 + fonteCota * 0.6);
             float offsetInterna = (float)Math.Max(12.0, espessuraPx * 1.1 + fonteCota * 0.4);
 
-            void DesenharMedida(SKPoint p0, SKPoint p1, float nx, float ny, float offset, string texto, SKPaint chamadaPaint, SKPaint textPaint)
+            void DesenharMedida(SKPoint p0, SKPoint p1, float nx, float ny, float offset, string texto, SKPaint chamadaPaint, SKPaint textPaint, SKColor fundoCor)
             {
                 float mx = (p0.X + p1.X) / 2.0f;
                 float my = (p0.Y + p1.Y) / 2.0f;
                 var pTexto = new SKPoint(mx + nx * offset, my + ny * offset);
 
                 canvas.DrawLine(new SKPoint(mx, my), pTexto, chamadaPaint);
-                canvas.DrawText(texto, pTexto.X, pTexto.Y - 4f, textPaint);
+                DesenharRotuloComFundo(canvas, new SKPoint(pTexto.X, pTexto.Y - 4f), texto, textPaint, fundoCor);
             }
 
-            // Para cada segmento desenhamos a medida externa (azul, lado de fora) e a interna (vermelha,
-            // lado de dentro, com sufixo "i" — em impressão P&B a cor desaparece, mas o sufixo não).
+            // Para cada segmento desenhamos a medida externa (selo azul escuro, lado de fora) e a interna
+            // (selo rosa claro, lado de dentro).
             for (int i = 0; i < pontos.Count - 1; i++)
             {
                 if (i >= segmentos.Count || i >= medidas.Count) break;
@@ -486,14 +491,44 @@ namespace CapitalAco.DrawingMacro.App.Services
                 string textoExt = seg.EhCurvo && seg.CurvaInfo != null
                     ? $"{medidas[i].Externa:F0} (Curva)"
                     : $"{medidas[i].Externa:F0}";
-                DesenharMedida(p0, p1, nx * -ladoInterno, ny * -ladoInterno, offsetExterna, textoExt, chamadaPaintExterna, textoExterna);
+                DesenharMedida(p0, p1, nx * -ladoInterno, ny * -ladoInterno, offsetExterna, textoExt, chamadaPaintExterna, textoExterna, CotaTextoCor);
 
                 if (!seg.EhCurvo)
                 {
-                    string textoInt = $"{medidas[i].Interna:F0}i";
-                    DesenharMedida(p0, p1, nx * ladoInterno, ny * ladoInterno, offsetInterna, textoInt, chamadaPaintInterna, textoInterna);
+                    string textoInt = $"{medidas[i].Interna:F0}";
+                    DesenharMedida(p0, p1, nx * ladoInterno, ny * ladoInterno, offsetInterna, textoInt, chamadaPaintInterna, textoInterna, CotaInternaLinhaCor);
                 }
             }
+        }
+
+        // Desenha um texto centrado em "pos" sobre um selo (retângulo arredondado preenchido), usado para
+        // diferenciar medida externa/interna por contraste de fundo em vez de cor de texto ou sufixo.
+        private static void DesenharRotuloComFundo(SKCanvas canvas, SKPoint pos, string texto, SKPaint textPaint, SKColor fundoCor)
+        {
+            // MeasureText(text, ref bounds) devolve os limites de tinta como se o texto fosse desenhado
+            // alinhado à esquerda a partir de "pos", ignorando o TextAlign do paint — por isso calculamos a
+            // borda esquerda manualmente de acordo com o alinhamento, em vez de usar bounds.Left/Right.
+            float largura = textPaint.MeasureText(texto);
+            var metrics = textPaint.FontMetrics;
+
+            float left = textPaint.TextAlign switch
+            {
+                SKTextAlign.Center => pos.X - largura / 2f,
+                SKTextAlign.Right => pos.X - largura,
+                _ => pos.X
+            };
+
+            float paddingX = textPaint.TextSize * 0.32f;
+            float paddingY = textPaint.TextSize * 0.16f;
+            var rect = new SKRect(
+                left - paddingX,
+                pos.Y + metrics.Ascent - paddingY,
+                left + largura + paddingX,
+                pos.Y + metrics.Descent + paddingY);
+
+            using var fundoPaint = new SKPaint { Color = fundoCor, Style = SKPaintStyle.Fill, IsAntialias = true };
+            canvas.DrawRoundRect(rect, 3f, 3f, fundoPaint);
+            canvas.DrawText(texto, pos.X, pos.Y, textPaint);
         }
 
         private static void DesenharGrausDobra(
@@ -593,6 +628,11 @@ namespace CapitalAco.DrawingMacro.App.Services
                     float tx = (float)(p1.X + dirX * distBase);
                     float ty = (float)(p1.Y + dirY * distBase + fonteAngulo * 0.3);
                     canvas.DrawText(texto, tx, ty, textPaint);
+
+                    // Ângulos não-retos são sublinhados, para diferenciar visualmente do esquadro de 90°.
+                    float larguraTexto = textPaint.MeasureText(texto);
+                    float ySublinhado = ty + fonteAngulo * 0.18f;
+                    canvas.DrawLine(tx - larguraTexto / 2f, ySublinhado, tx + larguraTexto / 2f, ySublinhado, anguloRetoPaint);
                 }
             }
         }
@@ -647,6 +687,14 @@ namespace CapitalAco.DrawingMacro.App.Services
                 IsAntialias = true
             };
 
+            using var sublinhadoAnguloPaint = new SKPaint
+            {
+                Color = PerfilContornoCor,
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = 1.0f,
+                IsAntialias = true
+            };
+
             using var textPaint = new SKPaint
             {
                 Color = PerfilContornoCor,
@@ -694,8 +742,11 @@ namespace CapitalAco.DrawingMacro.App.Services
                 }
                 canvas.DrawLine(x, y0 - 3, x, y1 + 3, marcaDobraPaint);
 
-                // Ângulo e sentido
-                canvas.DrawText($"{marca.AnguloDobra:F0}°", x, y0 - 15, textPaintAngulo);
+                // Ângulo (sublinhado, mesma convenção do desenho da peça) e sentido
+                string textoAngulo = $"{marca.AnguloDobra:F0}°";
+                canvas.DrawText(textoAngulo, x, y0 - 15, textPaintAngulo);
+                float larguraAngulo = textPaintAngulo.MeasureText(textoAngulo);
+                canvas.DrawLine(x - larguraAngulo / 2f, y0 - 13, x + larguraAngulo / 2f, y0 - 13, sublinhadoAnguloPaint);
                 string dirText = marca.Sentido == "h" ? "P.Baixo" : "P.Cima";
                 canvas.DrawText(dirText, x, y0 - 5, textPaintSentido);
             }

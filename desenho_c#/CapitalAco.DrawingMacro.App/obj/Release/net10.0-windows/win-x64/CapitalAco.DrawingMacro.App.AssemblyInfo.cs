@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CapitalAco.DrawingMacro.App")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4fc3b2063d2315e648484287e4572f0c0f949ee6")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c84b213f203317f8c041f55fd3453b157a79d0c5")]
 [assembly: System.Reflection.AssemblyProductAttribute("CapitalAco.DrawingMacro.App")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CapitalAco.DrawingMacro.App")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

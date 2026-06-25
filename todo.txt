@@ -4,13 +4,6 @@ Mantenha sempre um arquivo atualizado com a situação das mudanças de acordo c
 
 Existem inúmeras coisas que estão desfuncionais, irei listar coisas a consertar (Pode ser útil conferir como foi resolvido em python):
 
-- Faça com que os itens da UI sejam dinâmicos com o tamanho da aba.
-- O programa demora bastante para abrir (launch), algum motivo resolvível? Melhore este tempo
-- Gostaria que houvesse um botão que abrisse a pasta dos arquivos gerados de detalhamento de dobra e ordem de produção para o usuário pode selecionar o arquivo e destinar para onde quiser
-- Gostaria que quando o usuário clicasse para abrir o detalhamento de dobra ou a ordem de produção, o programa copiasse um "link" do arquivo para que se o usuário colasse em algum lugar, colasse o arquivo, como se tivesse dado ctrl+c no arquivo no windows explorer.
-- Quero que o programa inicie com a opção de Modo Rápido já selecionada.
-- Implemente o Ctrl+Z (Desfazer) para tudo que for possível no Editor de peça. (Desenho, exclusão de desenho, mudança de segmento existente, remoção de segmento, limpar tudo, enfim, tudo que for possível adicionar uma forma de voltar atrás, faça)
-- Faça com que todos os ícones do programa no windows seja a "só logo.png"
-- Mude as opções de direção ("Direção:") no programa para as setas ao invés de N E S e W, é mais intuitivo ao usuário. A mesma forma com o tipo de medida, represente por "Interna" e "Externa".
-- Há configurações inacessíveis na aba de configurações por conta da estaticidade da UI e da ausência de barras de rolagem. Além disso, existem textos com a cor da fonte branca em fundo claro, o que fica muito difícil de ler. (Isso tem em mais lugares do programa, vide nos títulos da lista da ordem de produção)
-- A escala do desenho deve considerar somente os segmentos da peça, não o comprimento, porque se a escala diminui com o comprimento e a peça é muito comprida, os segmentos ficam muito pequenos para a interpretação do desenho.
+- O desenho não encaixa direito nos quadro nem no detalhamento de dobra nem na ordem de produção, revise.
+- Deixe tanto o detalhamento de dobra quanto a ordem de produção mais profissionais e mais fáceis de visualizar.
+- Não gostei da solução do 50i, o "i" para indicar a medida interna, faça a medida externa uma letra branca com um "fundo" escuro, e a interna uma letra escura em fundo claro. O ângulo por ser sublinhado.
