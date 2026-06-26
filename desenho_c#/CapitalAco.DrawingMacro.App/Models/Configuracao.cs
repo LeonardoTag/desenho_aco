@@ -208,6 +208,9 @@ namespace CapitalAco.DrawingMacro.App.Models
         [JsonPropertyName("relatorio_pedido_fonte_rotulo_campo")]
         public double RelatorioPedidoFonteRotuloCampo { get; set; } = 8.0;
 
+        [JsonPropertyName("relatorio_ordenar_por_espessura")]
+        public bool RelatorioOrdenarPorEspessura { get; set; } = true;
+
         public static Configuracao CreateDefault() => new Configuracao();
     }
 }

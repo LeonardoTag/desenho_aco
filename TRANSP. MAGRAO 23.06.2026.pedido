@@ -1,7 +1,7 @@
 {
   "versao": 1,
-  "gerado_em": "2026-06-26T13:43:10.7977435-04:00",
-  "observacao": "",
+  "gerado_em": "2026-06-26T14:14:33.1781234-04:00",
+  "observacao": "MAIS TUBOS E BARRAS CHATAS DO PEDIDO",
   "itens": [
     {
       "ChapaCodigo": "#3/16",
@@ -703,6 +703,144 @@
           "N",
           90,
           30,
+          "e"
+        ]
+      ],
+      "Observacao": ""
+    },
+    {
+      "ChapaCodigo": "#8",
+      "Comprimento": 3100,
+      "Quantidade": 1,
+      "NomePeca": "Perfil com 4 Dobras",
+      "Segmentos": [
+        [
+          "S",
+          90,
+          100,
+          "e"
+        ],
+        [
+          "E",
+          45,
+          40,
+          "e"
+        ],
+        [
+          "E",
+          45,
+          90,
+          "e"
+        ],
+        [
+          "N",
+          90,
+          40,
+          "e"
+        ],
+        [
+          "W",
+          90,
+          30,
+          "e"
+        ]
+      ],
+      "Observacao": ""
+    },
+    {
+      "ChapaCodigo": "#8",
+      "Comprimento": 3000,
+      "Quantidade": 1,
+      "NomePeca": "Perfil U 100x55",
+      "Segmentos": [
+        [
+          "S",
+          90,
+          55,
+          "e"
+        ],
+        [
+          "E",
+          90,
+          100,
+          "e"
+        ],
+        [
+          "N",
+          90,
+          55,
+          "e"
+        ]
+      ],
+      "Observacao": ""
+    },
+    {
+      "ChapaCodigo": "#9",
+      "Comprimento": 3000,
+      "Quantidade": 1,
+      "NomePeca": "Chapa Plana 1200",
+      "Segmentos": [
+        [
+          "E",
+          90,
+          1200,
+          "e"
+        ]
+      ],
+      "Observacao": ""
+    },
+    {
+      "ChapaCodigo": "#11",
+      "Comprimento": 3000,
+      "Quantidade": 1,
+      "NomePeca": "Chapa Plana 1200",
+      "Segmentos": [
+        [
+          "E",
+          90,
+          1200,
+          "e"
+        ]
+      ],
+      "Observacao": ""
+    },
+    {
+      "ChapaCodigo": "#13",
+      "Comprimento": 3000,
+      "Quantidade": 2,
+      "NomePeca": "Perfil Cantoneira 70x70",
+      "Segmentos": [
+        [
+          "S",
+          90,
+          70,
+          "e"
+        ],
+        [
+          "E",
+          90,
+          70,
+          "e"
+        ]
+      ],
+      "Observacao": ""
+    },
+    {
+      "ChapaCodigo": "#13",
+      "Comprimento": 3000,
+      "Quantidade": 1,
+      "NomePeca": "Perfil Cantoneira 40x50",
+      "Segmentos": [
+        [
+          "S",
+          90,
+          40,
+          "e"
+        ],
+        [
+          "E",
+          90,
+          50,
           "e"
         ]
       ],

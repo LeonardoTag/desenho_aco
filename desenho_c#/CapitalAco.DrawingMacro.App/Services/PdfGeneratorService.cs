@@ -47,9 +47,90 @@ namespace CapitalAco.DrawingMacro.App.Services
             using var stream = new MemoryStream();
             using (var canvas = SKSvgCanvas.Create(new SKRect(0, 0, width, height), stream))
             {
+                canvas.Clear(SKColors.White);
                 desenhar(canvas);
             }
             return System.Text.Encoding.UTF8.GetString(stream.ToArray());
+        }
+
+        private void AdicionarPaginaDetalhamento(
+            IDocumentContainer container,
+            InstrucoesPolares polar,
+            string nomePeca,
+            string chapaCodigo,
+            double comprimento,
+            Configuracao config)
+        {
+            var dadosPlan = _geometryService.GerarDadosPlanificacao(polar);
+            var dimensoes = _geometryService.CalcularDimensoesAcabadas(polar);
+
+            bool portrait = dimensoes.HasValue && dimensoes.Value.Altura > dimensoes.Value.Largura;
+            var tamanho   = portrait ? PageSizes.A4 : PageSizes.A4.Landscape();
+
+            // Calcula alturas que garantem página única (sem footer).
+            // A4 em pontos (72 DPI): portrait 842, landscape 595.
+            // Reservado: margens (2×28.35) + header est. (105) + PaddingVertical (28) + labels/spacers (65) + buffer (15)
+            const float reservado = 2f * 28.35f + 105f + 28f + 65f + 15f;
+            float espacoDisp = (portrait ? 842f : 595f) - reservado;
+            // Planificação precisa de mínimo ~130pt para as anotações acima/abaixo caberem no canvas SVG
+            const float minAlturaPlani = 130f;
+            float alturaPlani   = Math.Max(minAlturaPlani, MathF.Floor(espacoDisp * 0.28f));
+            float alturaDesenho = espacoDisp - alturaPlani;
+
+            container.Page(page =>
+            {
+                page.Size(tamanho);
+                page.Margin(1.0f, Unit.Centimetre);
+                page.PageColor(Colors.White);
+
+                page.Header().Column(headerCol =>
+                {
+                    headerCol.Item().Row(row =>
+                    {
+                        row.RelativeItem().Column(col =>
+                        {
+                            col.Item().Text("DETALHAMENTO DE DOBRA").FontSize((float)config.RelatorioDobraFonteTitulo).Bold().FontColor(Colors.Indigo.Darken4);
+                            col.Item().PaddingTop(2).Text($"Peça: {nomePeca}").FontSize((float)config.RelatorioDobraFonteTexto).Bold();
+                            col.Item().Text($"Chapa: #{chapaCodigo.Replace("#", "")} (Esp.: {dadosPlan.Espessura:F2} mm)").FontSize((float)config.RelatorioDobraFonteTexto).Bold();
+                            col.Item().Text($"Comprimento da Peça: {comprimento:F0} mm").FontSize((float)config.RelatorioDobraFonteTexto).Bold();
+                            col.Item().Text($"Desenvolvimento Plano: {dadosPlan.CorteTotal} mm").FontSize((float)config.RelatorioDobraFonteTexto).Bold().FontColor(Colors.Indigo.Darken4);
+                            if (dimensoes.HasValue)
+                                col.Item().Text($"Dimensões Acabadas: {dimensoes.Value.Largura:F0} × {dimensoes.Value.Altura:F0} mm").FontSize((float)config.RelatorioDobraFonteTexto).Bold();
+                        });
+
+                        row.ConstantItem(200).AlignRight().Column(col =>
+                        {
+                            col.Item().Text($"Emissão: {DateTime.Now:dd/MM/yyyy HH:mm}").FontSize((float)config.RelatorioDobraFonteTexto);
+                            col.Item().Text($"Responsável: {config.RelatorioNomeResponsavel}").FontSize((float)config.RelatorioDobraFonteTexto);
+                        });
+                    });
+
+                    headerCol.Item().PaddingTop(6).LineHorizontal(1.2f).LineColor(Colors.Indigo.Darken4);
+                });
+
+                page.Content().PaddingVertical(0.5f, Unit.Centimetre).Column(col =>
+                {
+                    col.Item().Text("DESENHO DA PEÇA").FontSize((float)config.RelatorioDobraFonteSecao).Bold().FontColor(Colors.Grey.Darken2);
+                    col.Item().PaddingTop(2).Height(alturaDesenho).Background(Colors.Grey.Lighten5).Border(1).BorderColor(Colors.Grey.Lighten2).Svg(size =>
+                        RenderizarComoSvg(size.Width, size.Height, canvas =>
+                            SkiaRenderer.RenderizarPeca(canvas, new SKSize(size.Width, size.Height), polar, dimensoes, true, _geometryService,
+                                (float)config.RelatorioDobraFonteCota, (float)config.RelatorioDobraFonteAngulo)));
+
+                    col.Item().PaddingTop(10).Text("PLANIFICAÇÃO").FontSize((float)config.RelatorioDobraFonteSecao).Bold().FontColor(Colors.Grey.Darken2);
+
+                    col.Item().PaddingTop(2).Height(alturaPlani).Background(Colors.Grey.Lighten5).Border(1).BorderColor(Colors.Grey.Lighten2).Svg(size =>
+                        RenderizarComoSvg(size.Width, size.Height, canvas =>
+                            SkiaRenderer.RenderizarPlanificacao(canvas, new SKSize(size.Width, size.Height), dadosPlan,
+                                (float)config.RelatorioDobraFonteAngulo, (float)config.RelatorioDobraFonteSentido, (float)config.RelatorioDobraFonteCota)));
+
+                    const float fonteLegenda = 6.5f;
+                    col.Item().PaddingTop(6).Text("Legenda: fundo escuro/letra branca = medida externa  ·  fundo claro/letra escura = medida interna  ·  ângulo sublinhado = dobra não-reta  ·  linha tracejada = dobra p/ cima  ·  linha contínua = dobra p/ baixo")
+                        .FontSize(fonteLegenda).FontColor(Colors.Grey.Darken1);
+                    col.Item().Text("Cotas no topo da planificação = acumuladas desde o início da chapa  ·  cotas na base = entre dobras sucessivas")
+                        .FontSize(fonteLegenda).FontColor(Colors.Grey.Darken1);
+                });
+
+            });
         }
 
         public string GerarRelatorioDobra(InstrucoesPolares polar, string nomePeca, string chapaCodigo, double comprimento)
@@ -59,86 +140,12 @@ namespace CapitalAco.DrawingMacro.App.Services
             var nomeArquivo = $"DETALHAMENTO_DOBRA_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
             var caminhoPdf = Path.Combine(pastaSaida, nomeArquivo);
 
-            var dadosPlan = _geometryService.GerarDadosPlanificacao(polar);
-            var dimensoes = _geometryService.CalcularDimensoesAcabadas(polar);
-
-            // Seleciona orientação automaticamente: peças mais altas que largas usam portrait
-            // para aproveitar o espaço vertical do A4; demais usam landscape (mais área horizontal).
-            bool portrait = dimensoes.HasValue && dimensoes.Value.Altura > dimensoes.Value.Largura;
-            var tamanho          = portrait ? PageSizes.A4 : PageSizes.A4.Landscape();
-            float alturaDesenho  = portrait ? 420f : 215f;
-            // Planificação precisa de ~50pt acima da barra (acumuladas) + 28pt de barra + ~48pt abaixo (cadeia).
-            // Mínimo seguro: 130pt. Os valores anteriores (100/120) faziam as cotas transbordarem para fora da caixa.
-            float alturaPlani    = portrait ? 130f : 150f;
-
             Document.Create(container =>
             {
-                container.Page(page =>
-                {
-                    page.Size(tamanho);
-                    page.Margin(1.0f, Unit.Centimetre);
-                    page.PageColor(Colors.White);
-
-                    // Cabeçalho
-                    page.Header().Column(headerCol =>
-                    {
-                        headerCol.Item().Row(row =>
-                        {
-                            row.RelativeItem().Column(col =>
-                            {
-                                col.Item().Text("DETALHAMENTO DE DOBRA").FontSize((float)config.RelatorioDobraFonteTitulo).Bold().FontColor(Colors.Indigo.Darken4);
-                                col.Item().PaddingTop(2).Text($"Peça: {nomePeca}").FontSize((float)config.RelatorioDobraFonteTexto).Bold();
-                                col.Item().Text($"Chapa: #{chapaCodigo.Replace("#", "")} (Esp.: {dadosPlan.Espessura:F2} mm)").FontSize((float)config.RelatorioDobraFonteTexto).Bold();
-                                col.Item().Text($"Comprimento da Peça: {comprimento:F0} mm").FontSize((float)config.RelatorioDobraFonteTexto).Bold();
-                                col.Item().Text($"Desenvolvimento Plano: {dadosPlan.CorteTotal} mm").FontSize((float)config.RelatorioDobraFonteTexto).Bold().FontColor(Colors.Indigo.Darken4);
-                                if (dimensoes.HasValue)
-                                    col.Item().Text($"Dimensões Acabadas: {dimensoes.Value.Largura:F0} × {dimensoes.Value.Altura:F0} mm").FontSize((float)config.RelatorioDobraFonteTexto).Bold();
-                            });
-
-                            row.ConstantItem(200).AlignRight().Column(col =>
-                            {
-                                col.Item().Text($"Emissão: {DateTime.Now:dd/MM/yyyy HH:mm}").FontSize((float)config.RelatorioDobraFonteTexto);
-                                col.Item().Text($"Responsável: {config.RelatorioNomeResponsavel}").FontSize((float)config.RelatorioDobraFonteTexto);
-                            });
-                        });
-
-                        headerCol.Item().PaddingTop(6).LineHorizontal(1.2f).LineColor(Colors.Indigo.Darken4);
-                    });
-
-                    // Corpo: desenho da peça em cima, planificação embaixo
-                    page.Content().PaddingVertical(0.5f, Unit.Centimetre).Column(col =>
-                    {
-                        col.Item().Text("DESENHO DA PEÇA").FontSize((float)config.RelatorioDobraFonteSecao).Bold().FontColor(Colors.Grey.Darken2);
-                        col.Item().PaddingTop(2).Height(alturaDesenho).Background(Colors.Grey.Lighten5).Border(1).BorderColor(Colors.Grey.Lighten2).Svg(size =>
-                            RenderizarComoSvg(size.Width, size.Height, canvas =>
-                                SkiaRenderer.RenderizarPeca(canvas, new SKSize(size.Width, size.Height), polar, dimensoes, true, _geometryService,
-                                    (float)config.RelatorioDobraFonteCota, (float)config.RelatorioDobraFonteAngulo)));
-
-                        col.Item().PaddingTop(10).Text("PLANIFICAÇÃO").FontSize((float)config.RelatorioDobraFonteSecao).Bold().FontColor(Colors.Grey.Darken2);
-
-                        col.Item().PaddingTop(2).Height(alturaPlani).Background(Colors.Grey.Lighten5).Border(1).BorderColor(Colors.Grey.Lighten2).Svg(size =>
-                            RenderizarComoSvg(size.Width, size.Height, canvas =>
-                                SkiaRenderer.RenderizarPlanificacao(canvas, new SKSize(size.Width, size.Height), dadosPlan,
-                                    (float)config.RelatorioDobraFonteAngulo, (float)config.RelatorioDobraFonteSentido, (float)config.RelatorioDobraFonteCota)));
-
-                        const float fonteLegenda = 6.5f;
-                        col.Item().PaddingTop(6).Text("Legenda: fundo escuro/letra branca = medida externa  ·  fundo claro/letra escura = medida interna  ·  ângulo sublinhado = dobra não-reta  ·  linha tracejada = dobra p/ cima  ·  linha contínua = dobra p/ baixo")
-                            .FontSize(fonteLegenda).FontColor(Colors.Grey.Darken1);
-                        col.Item().Text("Cotas no topo da planificação = acumuladas desde o início da chapa  ·  cotas na base = entre dobras sucessivas")
-                            .FontSize(fonteLegenda).FontColor(Colors.Grey.Darken1);
-                    });
-
-                    page.Footer().AlignCenter().Text(t =>
-                    {
-                        t.CurrentPageNumber().FontSize((float)config.RelatorioDobraFonteTexto);
-                        t.Span(" / ").FontSize((float)config.RelatorioDobraFonteTexto);
-                        t.TotalPages().FontSize((float)config.RelatorioDobraFonteTexto);
-                    });
-                });
+                AdicionarPaginaDetalhamento(container, polar, nomePeca, chapaCodigo, comprimento, config);
             }).GeneratePdf(caminhoPdf);
 
-            Log.Information("PDF de Detalhamento de Dobra gerado ({Orientacao}) em: {Path}",
-                portrait ? "Portrait" : "Landscape", caminhoPdf);
+            Log.Information("PDF de Detalhamento de Dobra gerado em: {Path}", caminhoPdf);
             return caminhoPdf;
         }
 
@@ -150,10 +157,13 @@ namespace CapitalAco.DrawingMacro.App.Services
             var caminhoPdf = Path.Combine(pastaSaida, nomeArquivo);
 
             var chapas = _csvService.CarregarChapas();
-            var ordemChapas = chapas.Select((c, i) => (c.Codigo, i)).ToDictionary(x => x.Codigo, x => x.i);
-            itens = itens
-                .OrderBy(i => ordemChapas.TryGetValue(i.ChapaCodigo, out var ord) ? ord : int.MaxValue)
-                .ToList();
+            if (config.RelatorioOrdenarPorEspessura)
+            {
+                var ordemChapas = chapas.Select((c, i) => (c.Codigo, i)).ToDictionary(x => x.Codigo, x => x.i);
+                itens = itens
+                    .OrderBy(i => ordemChapas.TryGetValue(i.ChapaCodigo, out var ord) ? ord : int.MaxValue)
+                    .ToList();
+            }
 
             // Pré-computa geometria de cada peça fora das lambdas do QuestPDF para evitar
             // qualquer risco de avaliação deferida capturar o contexto errado.
@@ -289,6 +299,33 @@ namespace CapitalAco.DrawingMacro.App.Services
                             var dim    = dado.Dim;
                             int numero = idx + 1;
 
+                            // Separador de grupo por chapa (só quando a reorganização por espessura está ativa)
+                            if (config.RelatorioOrdenarPorEspessura)
+                            {
+                                string codAtual = item.ChapaCodigo.TrimStart('#');
+                                bool novoGrupo = idx == 0 || !string.Equals(
+                                    dadosPecas[idx - 1].Item.ChapaCodigo.TrimStart('#'),
+                                    codAtual, StringComparison.OrdinalIgnoreCase);
+
+                                if (novoGrupo)
+                                {
+                                    var chapaInfoSep = chapas.Find(c => string.Equals(
+                                        c.Codigo, $"#{codAtual}", StringComparison.OrdinalIgnoreCase));
+                                    string labelChapa = chapaInfoSep != null
+                                        ? $"CHAPA #{codAtual}  ·  {chapaInfoSep.Espessura:F2} mm"
+                                        : $"CHAPA #{codAtual}";
+
+                                    col.Item().PaddingTop(idx == 0 ? 0 : 8).PaddingBottom(4).Column(sep =>
+                                    {
+                                        sep.Item().LineHorizontal(0.6f).LineColor(Colors.Indigo.Lighten3);
+                                        sep.Item().PaddingVertical(3).AlignCenter()
+                                            .Text(labelChapa)
+                                            .FontSize(7.5f).Bold().FontColor(Colors.Indigo.Darken2);
+                                        sep.Item().LineHorizontal(0.6f).LineColor(Colors.Indigo.Lighten3);
+                                    });
+                                }
+                            }
+
                             float alturaItem = AlturaParaPeca(item, dim);
                             col.Item().ShowEntire().PaddingBottom(6)
                                 .Background(idx % 2 == 0 ? Colors.White : Colors.Grey.Lighten5)
@@ -346,6 +383,8 @@ namespace CapitalAco.DrawingMacro.App.Services
                                         });
                                         if (!string.IsNullOrWhiteSpace(item.Observacao))
                                             c.Item().PaddingTop(2).Text($"Obs.: {item.Observacao}").FontSize((float)config.RelatorioPedidoFonteRotuloCampo).Italic();
+                                        if (item.AnexarDetalhamentoDobra)
+                                            c.Item().PaddingTop(3).Text("★ Detalhamento de dobra em anexo").FontSize((float)config.RelatorioPedidoFonteRotuloCampo).Bold().FontColor(Colors.Indigo.Darken3);
                                     });
                                 });
                         }
@@ -365,6 +404,36 @@ namespace CapitalAco.DrawingMacro.App.Services
                         t.TotalPages().FontSize((float)config.RelatorioPedidoFonteTexto);
                     });
                 });
+
+                // Páginas de detalhamento em anexo para os itens marcados
+                var itensComAnexo = dadosPecas.Where(d => d.Item.AnexarDetalhamentoDobra && d.Polar != null).ToList();
+                if (itensComAnexo.Count > 0)
+                {
+                    container.Page(page =>
+                    {
+                        page.Size(PageSizes.A4);
+                        page.Margin(2.0f, Unit.Centimetre);
+                        page.PageColor(Colors.White);
+                        page.Content().AlignMiddle().AlignCenter().Column(col =>
+                        {
+                            col.Item().LineHorizontal(2).LineColor(Colors.Indigo.Darken4);
+                            col.Item().PaddingVertical(24).AlignCenter()
+                                .Text("DETALHAMENTOS DE DOBRA EM ANEXO")
+                                .FontSize(22).Bold().FontColor(Colors.Indigo.Darken4);
+                            col.Item().LineHorizontal(2).LineColor(Colors.Indigo.Darken4);
+                        });
+                    });
+
+                    foreach (var dado in itensComAnexo)
+                    {
+                        try
+                        {
+                            AdicionarPaginaDetalhamento(container, dado.Polar!, dado.Item.NomePeca,
+                                dado.Item.ChapaCodigo, dado.Item.Comprimento, config);
+                        }
+                        catch { /* ignora item que falhou ao gerar detalhamento */ }
+                    }
+                }
             }).GeneratePdf(caminhoPdf);
 
             Log.Information("PDF de Ordem de Produção gerado com sucesso em: {Path}", caminhoPdf);

@@ -81,6 +81,9 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         [ObservableProperty]
         private double _pedidoFonteRotuloCampo = 8.0;
 
+        [ObservableProperty]
+        private bool _ordenarPorEspessura = true;
+
         public ConfiguracaoViewModel(IConfigService configService)
         {
             _configService = configService;
@@ -117,6 +120,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             PedidoFonteDestaque = config.RelatorioPedidoFonteDestaque;
             PedidoFonteRotuloPeca = config.RelatorioPedidoFonteRotuloPeca;
             PedidoFonteRotuloCampo = config.RelatorioPedidoFonteRotuloCampo;
+            OrdenarPorEspessura = config.RelatorioOrdenarPorEspessura;
         }
 
         [RelayCommand]
@@ -150,6 +154,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             config.RelatorioPedidoFonteDestaque = PedidoFonteDestaque;
             config.RelatorioPedidoFonteRotuloPeca = PedidoFonteRotuloPeca;
             config.RelatorioPedidoFonteRotuloCampo = PedidoFonteRotuloCampo;
+            config.RelatorioOrdenarPorEspessura = OrdenarPorEspessura;
 
             _configService.SalvarConfiguracao(config);
         }

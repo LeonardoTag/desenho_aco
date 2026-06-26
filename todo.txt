@@ -1,8 +1,1 @@
-O programa em "desenho_c#" é uma adaptação do programa em "desenho_python", feito pelas instruções em instruções.md e pelas etapas em ESTADO_MIGRACAO.md.
-
 Mantenha sempre um arquivo atualizado com a situação das mudanças de acordo com este todo.txt.
-
-Existem inúmeras coisas que estão desfuncionais, irei listar coisas a consertar (Pode ser útil conferir como foi resolvido em python):
-
-- Adicionar popup de confirmar saída do programa (caso tenha progresso não salvo)
-- A lógica de posicionamento das medidas não está legal ainda. Os leaders estão desconexos com as caixas do texto, o texto de medida as vezes conflita com o texto de angulo, etc. Deixe a "caixa" do texto (o fundo) menor e o texto maior.

@@ -46,6 +46,8 @@
 
                     <TextBlock Text="Observação Geral Padrão (Ficha de Pedido):" FontSize="12" Foreground="#5B6472" Margin="0,0,0,5"/>
                     <TextBox Text="{Binding ObservacaoPadrao, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="True" Height="150" VerticalContentAlignment="Top" Padding="5" Background="#ECEEF3" Foreground="#1F2430" BorderBrush="#5B6472"/>
+
+                    <CheckBox Content="Reorganizar itens por espessura ao gerar Ordem de Produção" IsChecked="{Binding OrdenarPorEspessura}" Margin="0,15,0,0" FontSize="12" Foreground="#1F2430"/>
                 </StackPanel>
             </Border>
 

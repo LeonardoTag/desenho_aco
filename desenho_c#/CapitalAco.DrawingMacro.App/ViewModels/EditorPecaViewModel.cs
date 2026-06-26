@@ -348,7 +348,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         [RelayCommand]
         private void AdicionarSegmento()
         {
-            if (DirecaoInvalidaAposUltimoSegmento(SegDirecao, SegEhCurvo))
+            if (DirecaoInvalidaAposUltimoSegmento(SegDirecao, SegEhCurvo, SegAngulo))
             {
                 MessageBox.Show("Não é possível adicionar um segmento na mesma direção ou na direção oposta ao anterior (dobra de 0° ou 180°).", "Direção inválida", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
@@ -447,18 +447,22 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             AtualizarPreview();
         }
 
-        // Direção igual (0°) ou oposta (180°) ao último segmento reto não é uma dobra válida.
-        private bool DirecaoInvalidaAposUltimoSegmento(string novaDirecao, bool novoEhCurvo)
+        // Dobra inválida se o azimuto resultante for igual (0°) ou oposto (180°) ao azimuto anterior.
+        // Usa azimutos reais calculados, não strings de Direcao, para funcionar com ângulos não-90°.
+        private bool DirecaoInvalidaAposUltimoSegmento(string novaDirecao, bool novoEhCurvo, double novoAngulo = 90.0)
         {
             if (novoEhCurvo || Segmentos.Count == 0) return false;
+            if (Segmentos[^1].EhCurvo) return false;
 
-            var anterior = Segmentos[^1];
-            if (anterior.EhCurvo) return false;
+            var azimutes = _geometryService.ObterAzimutesDeSegmentos(Segmentos.ToList());
+            double azAnterior = azimutes.Last();
+            double azNovo = _geometryService.DefinirAzimute(novaDirecao, novoAngulo, azAnterior);
 
-            if (anterior.Direcao == novaDirecao) return true;
+            double delta = Math.Abs(azNovo - azAnterior) % 360.0;
+            if (delta > 180.0) delta = 360.0 - delta;
 
-            var opostos = new Dictionary<string, string> { ["N"] = "S", ["S"] = "N", ["E"] = "W", ["W"] = "E" };
-            return opostos.TryGetValue(anterior.Direcao, out var oposta) && oposta == novaDirecao;
+            const double tol = 0.5;
+            return delta < tol || Math.Abs(delta - 180.0) < tol;
         }
 
         public bool EstaNaFaseDesenho => FaseRapida == FaseModoRapido.Desenho;
@@ -494,14 +498,14 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         {
             if (!ModoRapidoAtivo || FaseRapida != FaseModoRapido.Desenho) return;
 
-            if (DirecaoInvalidaAposUltimoSegmento(direcao, false))
+            // O ângulo personalizado (via G) persiste para os próximos segmentos até ser alterado novamente.
+            double angulo = _proximoGrauPersonalizado ?? 90.0;
+
+            if (DirecaoInvalidaAposUltimoSegmento(direcao, false, angulo))
             {
                 StatusModoRapido = "Direção inválida: seria uma dobra de 0° ou 180°. Escolha outra direção.";
                 return;
             }
-
-            // O ângulo personalizado (via G) persiste para os próximos segmentos até ser alterado novamente.
-            double angulo = _proximoGrauPersonalizado ?? 90.0;
 
             var config = _configService.ObterConfiguracao();
             RegistrarEstadoParaDesfazer();
@@ -1024,18 +1028,35 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         // quantidade de segmentos, pelo sentido de giro das dobras (distingue U/gancho de Z/zigue-zague)
         // e pela proporção entre eles, com um nome genérico de reserva para formatos não reconhecidos.
         //
-        // Cantoneira, U, U Enrijecido e Z são, por definição, perfis de dobra reta (90°); o único caso
-        // que admite ângulo diferente de 90° é o lábio do Z Enrijecido (clássico nas terças Z, justamente
-        // para permitir o encaixe/empilhamento entre peças — ver literatura de perfis formados a frio).
-        // Sem essas dobras a 90° onde exigido, o formato não corresponde a nenhum desses perfis nomeados.
+        // Toda classificação usa apenas diferenças entre azimutes consecutivos — nunca os valores
+        // absolutos de Direcao/Angulo — para ser invariante à rotação da peça (0°/90°/180°/270°).
         private string SugerirNomePeca(IReadOnlyList<Segmento> segmentos)
         {
             if (segmentos.Count == 0) return "Peça Nova";
             if (segmentos.Any(s => s.EhCurvo)) return "Perfil Calandrado";
 
             string M(double v) => NumericUtils.FormatarCompacto(v);
-            bool Eh90(double angulo) => Math.Abs(angulo - 90.0) < 0.5;
             string generico() => $"Perfil com {segmentos.Count - 1} Dobras";
+
+            // Calcula os azimutes uma única vez para todas as verificações abaixo.
+            var az = _geometryService.ObterAzimutesDeSegmentos(segmentos.ToList());
+
+            // Ângulo geométrico real da j-ésima dobra (joint entre seg[j] e seg[j+1]).
+            // Não usa segmentos[j].Angulo (parâmetro de entrada), usa a diferença entre azimutes.
+            double AnguloJoint(int j)
+            {
+                double diff = (az[j + 1] - az[j] + 360.0) % 360.0;
+                return diff > 180.0 ? 360.0 - diff : diff;
+            }
+            bool EhDobraReta(int j) => Math.Abs(AnguloJoint(j) - 90.0) < 0.5;
+
+            // True se os giros nos joints firstJoint e firstJoint+1 têm o mesmo sentido (U vs Z).
+            bool MesmoSentido(int firstJoint)
+            {
+                double d0 = (az[firstJoint + 1] - az[firstJoint] + 360.0) % 360.0;
+                double d1 = (az[firstJoint + 2] - az[firstJoint + 1] + 360.0) % 360.0;
+                return (d0 < 180.0) == (d1 < 180.0);
+            }
 
             switch (segmentos.Count)
             {
@@ -1043,17 +1064,16 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
                     return $"Chapa Plana {M(segmentos[0].Medida)}";
 
                 case 2:
-                    if (!Eh90(segmentos[1].Angulo)) return generico();
+                    if (!EhDobraReta(0)) return generico();
                     return $"Perfil Cantoneira {M(segmentos[0].Medida)}x{M(segmentos[1].Medida)}";
 
                 case 3:
                 {
-                    if (!Eh90(segmentos[1].Angulo) || !Eh90(segmentos[2].Angulo)) return generico();
+                    if (!EhDobraReta(0) || !EhDobraReta(1)) return generico();
 
                     // Mesmo sentido de giro nas duas dobras = formato côncavo em gancho (U); sentidos
-                    // opostos = formato em zigue-zague (Z). Antes disso, qualquer perfil de 3 segmentos
-                    // (inclusive Z) era erroneamente chamado de U.
-                    string familia = MesmoSentidoDeGiro(segmentos, 0) ? "U" : "Z";
+                    // opostos = formato em zigue-zague (Z).
+                    string familia = MesmoSentido(0) ? "U" : "Z";
 
                     double aba1 = segmentos[0].Medida, alma = segmentos[1].Medida, aba2 = segmentos[2].Medida;
                     bool simetrico = Math.Abs(aba1 - aba2) < 1.0;
@@ -1066,7 +1086,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
                 {
                     // O núcleo (aba-alma-aba) tem que ser reto em qualquer um destes perfis, inclusive
                     // no Z Enrijecido — só o lábio (dobra das pontas) pode escapar de 90° nesse caso.
-                    if (!Eh90(segmentos[2].Angulo) || !Eh90(segmentos[3].Angulo)) return generico();
+                    if (!EhDobraReta(1) || !EhDobraReta(2)) return generico();
 
                     double pontaA = segmentos[0].Medida, pontaB = segmentos[4].Medida;
                     double meio1 = segmentos[1].Medida, alma = segmentos[2].Medida, meio2 = segmentos[3].Medida;
@@ -1079,11 +1099,11 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
 
                     // O núcleo (aba-alma-aba, ignorando os lábios das pontas) define se é um U ou um Z
                     // enrijecido — os lábios em si não mudam essa classificação.
-                    string familiaNucleo = MesmoSentidoDeGiro(segmentos, 1) ? "U" : "Z";
+                    string familiaNucleo = MesmoSentido(1) ? "U" : "Z";
 
                     // No U Enrijecido o lábio é sempre reto (90°); só o Z Enrijecido admite o lábio
                     // dobrado num ângulo diferente.
-                    bool labiosRetos = Eh90(segmentos[1].Angulo) && Eh90(segmentos[4].Angulo);
+                    bool labiosRetos = EhDobraReta(0) && EhDobraReta(3);
                     if (familiaNucleo == "U" && !labiosRetos) return generico();
 
                     return $"Perfil {familiaNucleo} Enrijecido {M(alma)}x{M(meio1)}x{M(pontaA)}";
@@ -1092,22 +1112,6 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
                 default:
                     return generico();
             }
-        }
-
-        // Compara o sentido de giro (horário/anti-horário) das dobras entre segmentos[i]→[i+1] e
-        // [i+1]→[i+2], usando os azimutes reais (que já tratam ângulos customizados, não só 90°).
-        private bool MesmoSentidoDeGiro(IReadOnlyList<Segmento> segmentos, int indiceInicial)
-        {
-            var azimutes = _geometryService.ObterAzimutesDeSegmentos(segmentos.ToList());
-
-            bool SentidoHorario(int i)
-            {
-                double diff = (azimutes[i + 1] - azimutes[i]) % 360.0;
-                if (diff < 0) diff += 360.0;
-                return diff < 180.0;
-            }
-
-            return SentidoHorario(indiceInicial) == SentidoHorario(indiceInicial + 1);
         }
 
         public void AtualizarPreview()
@@ -1138,7 +1142,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
                 float fonteAngulo = (float)Math.Max(config.DesenhoFonteBaseMinima - 1.0, 8.0);
                 int? destaque = EstaNaFaseMedidas ? IndiceMedidaRapida : (int?)null;
                 bool mostrarOrigem = ModoRapidoAtivo && EstaNaFaseDesenho && Segmentos.Count > 0;
-                PreviewImage = SkiaRenderer.RenderToImageSource(polar, 780, 600, _geometryService, fonteCota, fonteAngulo, segmentoDestacado: destaque, destacarProximaOrigem: mostrarOrigem);
+                PreviewImage = SkiaRenderer.RenderToImageSource(polar, 780, 600, _geometryService, fonteCota, fonteAngulo, segmentoDestacado: destaque, destacarProximaOrigem: mostrarOrigem, forcarDesenho3D: true);
 
                 // Dimensões totais acabadas da peça
                 var dimensoes = _geometryService.CalcularDimensoesAcabadas(polar);

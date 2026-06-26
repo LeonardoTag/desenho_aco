@@ -46,7 +46,7 @@ namespace CapitalAco.DrawingMacro.App.Services
         private static readonly SKTypeface FonteNegrito =
             SKTypeface.FromFamilyName("Segoe UI", SKFontStyle.Bold) ?? SKTypeface.Default;
 
-        public static System.Windows.Media.ImageSource RenderToImageSource(InstrucoesPolares polar, int width, int height, IGeometryService geometryService, float fonteCota = 12f, float fonteAngulo = 11f, bool mostrarMedidas = true, int? segmentoDestacado = null, bool destacarProximaOrigem = false)
+        public static System.Windows.Media.ImageSource RenderToImageSource(InstrucoesPolares polar, int width, int height, IGeometryService geometryService, float fonteCota = 12f, float fonteAngulo = 11f, bool mostrarMedidas = true, int? segmentoDestacado = null, bool destacarProximaOrigem = false, bool forcarDesenho3D = false)
         {
             using var bitmap = new SKBitmap(width, height);
             using var canvas = new SKCanvas(bitmap);
@@ -54,7 +54,7 @@ namespace CapitalAco.DrawingMacro.App.Services
             canvas.Clear(FundoCor);
 
             var dim = geometryService.CalcularDimensoesAcabadas(polar);
-            RenderizarPeca(canvas, new SKSize(width, height), polar, dim, mostrarMedidas, geometryService, fonteCota, fonteAngulo, segmentoDestacado, destacarProximaOrigem);
+            RenderizarPeca(canvas, new SKSize(width, height), polar, dim, mostrarMedidas, geometryService, fonteCota, fonteAngulo, segmentoDestacado, destacarProximaOrigem, forcarDesenho3D);
 
             using var image = SKImage.FromBitmap(bitmap);
             using var data = image.Encode(SKEncodedImageFormat.Png, 100);
@@ -81,10 +81,19 @@ namespace CapitalAco.DrawingMacro.App.Services
             float fonteCota = 12f,
             float fonteAngulo = 11f,
             int? segmentoDestacado = null,
-            bool destacarProximaOrigem = false)
+            bool destacarProximaOrigem = false,
+            bool forcarDesenho3D = false)
         {
             if (polar.CoordenadasPolares.Count == 0)
                 return;
+
+            // Chapa plana: exibe apenas dimensões em texto grande, sem desenho 3D.
+            // forcarDesenho3D mantém o comportamento original para o preview do editor durante o desenho.
+            if (!forcarDesenho3D && polar.SegmentosOriginal.Count == 1 && !polar.SegmentosOriginal[0].EhCurvo)
+            {
+                DesenharChapaLisa(canvas, size, polar.SegmentosOriginal[0].Medida, polar.Comprimento, fonteCota);
+                return;
+            }
 
             // 1. Calcular coordenadas retangulares
             var parciais = ((GeometryService)geometryService).GerarCoordenadasRetangularesParciais(polar.CoordenadasPolares);
@@ -343,6 +352,44 @@ namespace CapitalAco.DrawingMacro.App.Services
             canvas.DrawLine(outerTess[0], innerTess[0], contourPaint);
             canvas.DrawLine(outerTess[^1], innerTess[^1], contourPaint);
 
+            // Rótulo do comprimento paralelo à aresta extrudada inferior-direita
+            if (mostrarMedidas && compEsboco > 8.0)
+            {
+                // Seleciona o vértice da face interna mais inferior-direito (max Y + peso de X)
+                int idxComp = 0;
+                float maxScore = float.MinValue;
+                for (int k = 0; k < innerTess.Count; k++)
+                {
+                    float s = innerTess[k].Y + innerTess[k].X * 0.25f;
+                    if (s > maxScore) { maxScore = s; idxComp = k; }
+                }
+                float midCompX = (innerTess[idxComp].X + innerBack[idxComp].X) / 2f;
+                float midCompY = (innerTess[idxComp].Y + innerBack[idxComp].Y) / 2f;
+
+                // Offset perpendicular à extrusão para afastar o texto da aresta
+                float extLen = (float)Math.Sqrt(dx * dx + dy * dy);
+                float enx = extLen > 1e-6f ? -dy / extLen : 0f;
+                float eny = extLen > 1e-6f ?  dx / extLen : 1f;
+                float fonteComp = Math.Max(9f, fonteCota * 1.1f);
+                midCompX += enx * fonteComp * 0.85f;
+                midCompY += eny * fonteComp * 0.85f;
+
+                float angDeg = (float)(Math.Atan2(dy, dx) * 180.0 / Math.PI);
+                using var compPaint = new SKPaint
+                {
+                    Color = CotaTextoCor,
+                    TextSize = fonteComp,
+                    IsAntialias = true,
+                    TextAlign = SKTextAlign.Center,
+                    Typeface = FonteNegrito
+                };
+                canvas.Save();
+                canvas.Translate(midCompX, midCompY);
+                canvas.RotateDegrees(angDeg);
+                canvas.DrawText($"{comprimento:F0}", 0f, 0f, compPaint);
+                canvas.Restore();
+            }
+
             // Destacar segmento ativo (fase de inserção de medidas no modo rápido)
             if (segmentoDestacado.HasValue)
             {
@@ -478,6 +525,44 @@ namespace CapitalAco.DrawingMacro.App.Services
 
             using var perfilPaint = new SKPaint { Color = PerfilContornoCor, Style = SKPaintStyle.Stroke, StrokeWidth = 2.5f, StrokeJoin = SKStrokeJoin.Round, IsAntialias = true };
             canvas.DrawCircle(frente, raio, perfilPaint);
+        }
+
+        private static void DesenharChapaLisa(SKCanvas canvas, SKSize size, double medida, double comprimento, float fonteCota)
+        {
+            float cx = size.Width  / 2f;
+            float cy = size.Height / 2f;
+            float fonte = Math.Clamp(Math.Min(size.Width / 4.5f, size.Height / 3f), fonteCota * 1.2f, 72f);
+
+            using var dimPaint = new SKPaint
+            {
+                Color = CotaTextoCor, TextSize = fonte, IsAntialias = true,
+                TextAlign = SKTextAlign.Center, Typeface = FonteNegrito
+            };
+            using var subPaint = new SKPaint
+            {
+                Color = new SKColor(90, 100, 120), TextSize = Math.Max(7f, fonte * 0.32f),
+                IsAntialias = true, TextAlign = SKTextAlign.Center, Typeface = FonteNegrito
+            };
+
+            string textoUmaLinha = $"{medida:F0} × {comprimento:F0}";
+            bool duasLinhas = dimPaint.MeasureText(textoUmaLinha) > size.Width * 0.88f;
+
+            if (!duasLinhas)
+            {
+                canvas.DrawText(textoUmaLinha, cx, cy + fonte * 0.35f, dimPaint);
+                canvas.DrawText("CHAPA PLANA (mm)", cx, cy + fonte * 0.83f, subPaint);
+            }
+            else
+            {
+                // Duas linhas: medida em cima, "× comprimento" embaixo — evita overflow em canvases estreitos
+                float gap   = fonte * 0.20f;
+                float bloco = 2f * fonte + gap;
+                float y1    = cy - bloco / 2f + fonte * 0.75f; // baseline linha 1
+                float y2    = y1 + fonte + gap;                 // baseline linha 2
+                canvas.DrawText($"{medida:F0}", cx, y1, dimPaint);
+                canvas.DrawText($"× {comprimento:F0}", cx, y2, dimPaint);
+                canvas.DrawText("CHAPA PLANA (mm)", cx, y2 + fonte * 0.30f + subPaint.TextSize + 2f, subPaint);
+            }
         }
 
         private static void DesenharCotaTubo(SKCanvas canvas, SKPoint frente, float raio, float dx, float dy, Segmento.InformacaoCurva info, InstrucoesPolares polar, float fonteCota)
@@ -779,18 +864,10 @@ namespace CapitalAco.DrawingMacro.App.Services
                 double angulo = angulosDobra[idx];
                 if (Math.Abs(angulo - 90.0) < 0.5)
                 {
-                    // Símbolo de ângulo reto (esquadro) com fundo branco para contraste.
+                    // Símbolo de ângulo reto (esquadro) — apenas os traços, sem fundo
                     var a = new SKPoint((float)(p1.X - tInX  * tamAnguloReto), (float)(p1.Y - tInY  * tamAnguloReto));
                     var b = new SKPoint((float)(p1.X + tOutX * tamAnguloReto), (float)(p1.Y + tOutY * tamAnguloReto));
                     var c = new SKPoint((float)(a.X  + tOutX * tamAnguloReto), (float)(a.Y  + tOutY * tamAnguloReto));
-                    float bgMargin = 3f;
-                    float bgL = Math.Min(Math.Min(a.X, b.X), Math.Min(c.X, p1.X)) - bgMargin;
-                    float bgT = Math.Min(Math.Min(a.Y, b.Y), Math.Min(c.Y, p1.Y)) - bgMargin;
-                    float bgR = Math.Max(Math.Max(a.X, b.X), Math.Max(c.X, p1.X)) + bgMargin;
-                    float bgB = Math.Max(Math.Max(a.Y, b.Y), Math.Max(c.Y, p1.Y)) + bgMargin;
-                    using var bgPaint = new SKPaint
-                        { Color = new SKColor(255, 255, 255, 220), Style = SKPaintStyle.Fill, IsAntialias = true };
-                    canvas.DrawRect(new SKRect(bgL, bgT, bgR, bgB), bgPaint);
                     canvas.DrawLine(a, c, simboloPaint);
                     canvas.DrawLine(c, b, simboloPaint);
                 }
@@ -832,13 +909,20 @@ namespace CapitalAco.DrawingMacro.App.Services
         public static void RenderizarPlanificacao(SKCanvas canvas, SKSize size, DadosPlanificacao plano, float fonteAngulo = 10f, float fonteSentido = 10f, float fonteCota = 10f)
         {
             canvas.Clear(FundoCor);
+            canvas.ClipRect(new SKRect(0, 0, size.Width, size.Height));
 
             float margemX     = size.Width * 0.12f;
             float utilW       = size.Width - 2 * margemX;
             float alturaChapa = 28f;
-            float yBase       = size.Height / 2.0f;
-            float y0          = yBase - alturaChapa / 2.0f;
-            float y1          = yBase + alturaChapa / 2.0f;
+
+            // Posiciona yBase proporcionalmente: anotações acima precisam de ~50pt além da meia-chapa,
+            // anotações abaixo precisam de ~56pt — repartir o canvas nessa proporção evita overflow.
+            const float topNeed = 50f;
+            const float botNeed = 56f;
+            float yBase = size.Height * (alturaChapa / 2f + topNeed) / (alturaChapa + topNeed + botNeed);
+
+            float y0 = yBase - alturaChapa / 2.0f;
+            float y1 = yBase + alturaChapa / 2.0f;
 
             double corteTotal = plano.CorteTotal > 0 ? plano.CorteTotal : 1;
             float EscalaX(double p) => margemX + (float)(p / corteTotal * utilW);

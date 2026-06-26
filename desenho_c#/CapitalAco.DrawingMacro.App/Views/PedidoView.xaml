@@ -34,6 +34,9 @@
                             <Setter Property="Padding" Value="10,5"/>
                             <Setter Property="BorderThickness" Value="0"/>
                         </Style>
+                        <Style TargetType="DataGridCell">
+                            <EventSetter Event="PreviewMouseLeftButtonDown" Handler="DataGridCell_SingleClickEdit"/>
+                        </Style>
                     </DataGrid.Resources>
                     <DataGrid.Columns>
                         <DataGridTemplateColumn Header="Perfil" Width="90" IsReadOnly="True">
@@ -48,6 +51,20 @@
                         <DataGridTextColumn Header="Comprimento" Binding="{Binding Comprimento, StringFormat='{}{0} mm'}" Width="120" IsReadOnly="True"/>
                         <DataGridTextColumn Header="Qtd" Binding="{Binding Quantidade}" Width="80" IsReadOnly="True"/>
                         <DataGridTextColumn Header="Observação do Item" Binding="{Binding Observacao}" Width="2*" IsReadOnly="True"/>
+                        <DataGridCheckBoxColumn Header="Anexar&#10;Det. Dobra" Binding="{Binding AnexarDetalhamentoDobra, UpdateSourceTrigger=PropertyChanged}" Width="90">
+                            <DataGridCheckBoxColumn.ElementStyle>
+                                <Style TargetType="CheckBox">
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridCheckBoxColumn.ElementStyle>
+                            <DataGridCheckBoxColumn.EditingElementStyle>
+                                <Style TargetType="CheckBox">
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridCheckBoxColumn.EditingElementStyle>
+                        </DataGridCheckBoxColumn>
                         <DataGridTemplateColumn Header="Ações" Width="150">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
