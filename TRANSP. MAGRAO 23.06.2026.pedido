@@ -1,0 +1,712 @@
+{
+  "versao": 1,
+  "gerado_em": "2026-06-26T13:43:10.7977435-04:00",
+  "observacao": "",
+  "itens": [
+    {
+      "ChapaCodigo": "#3/16",
+      "Comprimento": 700,
+      "Quantidade": 54,
+      "NomePeca": "Perfil U 90x40 (700)",
+      "Segmentos": [
+        [
+          "S",
+          90,
+          40,
+          "e"
+        ],
+        [
+          "E",
+          90,
+          90,
+          "e"
+        ],
+        [
+          "N",
+          90,
+          40,
+          "e"
+        ]
+      ],
+      "Observacao": ""
+    },
+    {
+      "ChapaCodigo": "#3/16",
+      "Comprimento": 3000,
+      "Quantidade": 6,
+      "NomePeca": "Perfil U 90x40 (3000)",
+      "Segmentos": [
+        [
+          "S",
+          90,
+          40,
+          "e"
+        ],
+        [
+          "E",
+          90,
+          90,
+          "e"
+        ],
+        [
+          "N",
+          90,
+          40,
+          "e"
+        ]
+      ],
+      "Observacao": ""
+    },
+    {
+      "ChapaCodigo": "#3/16",
+      "Comprimento": 3600,
+      "Quantidade": 2,
+      "NomePeca": "Perfil U 90x40 (3600)",
+      "Segmentos": [
+        [
+          "S",
+          90,
+          40,
+          "e"
+        ],
+        [
+          "E",
+          90,
+          90,
+          "e"
+        ],
+        [
+          "N",
+          90,
+          40,
+          "e"
+        ]
+      ],
+      "Observacao": ""
+    },
+    {
+      "ChapaCodigo": "#3/16",
+      "Comprimento": 2300,
+      "Quantidade": 8,
+      "NomePeca": "Perfil U 90x40 (2300)",
+      "Segmentos": [
+        [
+          "S",
+          90,
+          40,
+          "e"
+        ],
+        [
+          "E",
+          90,
+          90,
+          "e"
+        ],
+        [
+          "N",
+          90,
+          40,
+          "e"
+        ]
+      ],
+      "Observacao": ""
+    },
+    {
+      "ChapaCodigo": "#9",
+      "Comprimento": 1900,
+      "Quantidade": 12,
+      "NomePeca": "Perfil U enrijecido 78x35 #9",
+      "Segmentos": [
+        [
+          "W",
+          90,
+          25,
+          "e"
+        ],
+        [
+          "S",
+          90,
+          35,
+          "e"
+        ],
+        [
+          "E",
+          90,
+          78,
+          "e"
+        ],
+        [
+          "N",
+          90,
+          35,
+          "e"
+        ],
+        [
+          "W",
+          90,
+          25,
+          "e"
+        ]
+      ],
+      "Observacao": ""
+    },
+    {
+      "ChapaCodigo": "#14",
+      "Comprimento": 3000,
+      "Quantidade": 7,
+      "NomePeca": "Perfil com 8 Dobras",
+      "Segmentos": [
+        [
+          "W",
+          90,
+          15,
+          "e"
+        ],
+        [
+          "N",
+          90,
+          25,
+          "e"
+        ],
+        [
+          "E",
+          90,
+          30,
+          "e"
+        ],
+        [
+          "S",
+          45,
+          33,
+          "e"
+        ],
+        [
+          "E",
+          45,
+          220,
+          "e"
+        ],
+        [
+          "N",
+          45,
+          33,
+          "e"
+        ],
+        [
+          "E",
+          45,
+          30,
+          "e"
+        ],
+        [
+          "S",
+          90,
+          25,
+          "e"
+        ],
+        [
+          "W",
+          90,
+          15,
+          "e"
+        ]
+      ],
+      "Observacao": ""
+    },
+    {
+      "ChapaCodigo": "#11",
+      "Comprimento": 2600,
+      "Quantidade": 2,
+      "NomePeca": "Boiadeira 500 #11",
+      "Segmentos": [
+        [
+          "S",
+          90,
+          20,
+          "e"
+        ],
+        [
+          "E",
+          90,
+          120,
+          "e"
+        ],
+        [
+          "N",
+          52.237,
+          22.173,
+          "e"
+        ],
+        [
+          "E",
+          52.237,
+          45,
+          "e"
+        ],
+        [
+          "S",
+          52.237,
+          22.173,
+          "e"
+        ],
+        [
+          "E",
+          52.237,
+          120,
+          "e"
+        ],
+        [
+          "N",
+          52.237,
+          22.173,
+          "e"
+        ],
+        [
+          "E",
+          52.237,
+          45,
+          "e"
+        ],
+        [
+          "S",
+          52.237,
+          22.173,
+          "e"
+        ],
+        [
+          "E",
+          90,
+          120,
+          "e"
+        ],
+        [
+          "N",
+          90,
+          20,
+          "e"
+        ]
+      ],
+      "Observacao": ""
+    },
+    {
+      "ChapaCodigo": "#3/8",
+      "Comprimento": 1300,
+      "Quantidade": 1,
+      "NomePeca": "Chapa Plana 1100",
+      "Segmentos": [
+        [
+          "E",
+          90,
+          1100,
+          "e"
+        ]
+      ],
+      "Observacao": ""
+    },
+    {
+      "ChapaCodigo": "#13",
+      "Comprimento": 700,
+      "Quantidade": 20,
+      "NomePeca": "Boiadeira 250 #13 (700)",
+      "Segmentos": [
+        [
+          "S",
+          90,
+          18,
+          "e"
+        ],
+        [
+          "E",
+          90,
+          38,
+          "e"
+        ],
+        [
+          "N",
+          45.272,
+          22.77,
+          "e"
+        ],
+        [
+          "E",
+          45.272,
+          38,
+          "e"
+        ],
+        [
+          "S",
+          45.272,
+          22.77,
+          "e"
+        ],
+        [
+          "E",
+          45.272,
+          38,
+          "e"
+        ],
+        [
+          "N",
+          45.272,
+          22.77,
+          "e"
+        ],
+        [
+          "E",
+          45.272,
+          38,
+          "e"
+        ],
+        [
+          "S",
+          45.272,
+          22.77,
+          "e"
+        ],
+        [
+          "E",
+          90,
+          38,
+          "e"
+        ],
+        [
+          "N",
+          90,
+          18,
+          "e"
+        ]
+      ],
+      "Observacao": ""
+    },
+    {
+      "ChapaCodigo": "#13",
+      "Comprimento": 3000,
+      "Quantidade": 6,
+      "NomePeca": "Boiadeira 250 #13 (3000)",
+      "Segmentos": [
+        [
+          "S",
+          90,
+          18,
+          "e"
+        ],
+        [
+          "E",
+          90,
+          38,
+          "e"
+        ],
+        [
+          "N",
+          45.272,
+          22.77,
+          "e"
+        ],
+        [
+          "E",
+          45.272,
+          38,
+          "e"
+        ],
+        [
+          "S",
+          45.272,
+          22.77,
+          "e"
+        ],
+        [
+          "E",
+          45.272,
+          38,
+          "e"
+        ],
+        [
+          "N",
+          45.272,
+          22.77,
+          "e"
+        ],
+        [
+          "E",
+          45.272,
+          38,
+          "e"
+        ],
+        [
+          "S",
+          45.272,
+          22.77,
+          "e"
+        ],
+        [
+          "E",
+          90,
+          38,
+          "e"
+        ],
+        [
+          "N",
+          90,
+          18,
+          "e"
+        ]
+      ],
+      "Observacao": ""
+    },
+    {
+      "ChapaCodigo": "#9",
+      "Comprimento": 3000,
+      "Quantidade": 1,
+      "NomePeca": "Perfil Cantoneira 25x250",
+      "Segmentos": [
+        [
+          "S",
+          90,
+          25,
+          "e"
+        ],
+        [
+          "E",
+          90,
+          250,
+          "e"
+        ]
+      ],
+      "Observacao": ""
+    },
+    {
+      "ChapaCodigo": "#11",
+      "Comprimento": 3000,
+      "Quantidade": 3,
+      "NomePeca": "Perfil U 55x18",
+      "Segmentos": [
+        [
+          "S",
+          90,
+          18,
+          "e"
+        ],
+        [
+          "E",
+          90,
+          55,
+          "e"
+        ],
+        [
+          "N",
+          90,
+          18,
+          "e"
+        ]
+      ],
+      "Observacao": ""
+    },
+    {
+      "ChapaCodigo": "#1/4",
+      "Comprimento": 700,
+      "Quantidade": 2,
+      "NomePeca": "Perfil Cartola 135x50",
+      "Segmentos": [
+        [
+          "N",
+          90,
+          30,
+          "e"
+        ],
+        [
+          "E",
+          90,
+          50,
+          "e"
+        ],
+        [
+          "S",
+          90,
+          135,
+          "e"
+        ],
+        [
+          "E",
+          90,
+          45,
+          "e"
+        ],
+        [
+          "S",
+          90,
+          30,
+          "e"
+        ]
+      ],
+      "Observacao": ""
+    },
+    {
+      "ChapaCodigo": "#3/16",
+      "Comprimento": 700,
+      "Quantidade": 1,
+      "NomePeca": "Perfil com 3 Dobras",
+      "Segmentos": [
+        [
+          "N",
+          90,
+          30,
+          "e"
+        ],
+        [
+          "E",
+          90,
+          50,
+          "e"
+        ],
+        [
+          "S",
+          90,
+          100,
+          "e"
+        ],
+        [
+          "W",
+          90,
+          30,
+          "e"
+        ]
+      ],
+      "Observacao": ""
+    },
+    {
+      "ChapaCodigo": "#3/16",
+      "Comprimento": 2600,
+      "Quantidade": 4,
+      "NomePeca": "Perfil Cartola 80x60",
+      "Segmentos": [
+        [
+          "W",
+          90,
+          30,
+          "e"
+        ],
+        [
+          "S",
+          90,
+          60,
+          "e"
+        ],
+        [
+          "E",
+          90,
+          80,
+          "e"
+        ],
+        [
+          "N",
+          90,
+          60,
+          "e"
+        ],
+        [
+          "E",
+          90,
+          30,
+          "e"
+        ]
+      ],
+      "Observacao": ""
+    },
+    {
+      "ChapaCodigo": "#3/16",
+      "Comprimento": 2600,
+      "Quantidade": 1,
+      "NomePeca": "Perfil Cartola 100x60",
+      "Segmentos": [
+        [
+          "W",
+          90,
+          35,
+          "e"
+        ],
+        [
+          "S",
+          90,
+          60,
+          "e"
+        ],
+        [
+          "E",
+          90,
+          100,
+          "e"
+        ],
+        [
+          "N",
+          90,
+          60,
+          "e"
+        ],
+        [
+          "W",
+          90,
+          35,
+          "e"
+        ]
+      ],
+      "Observacao": ""
+    },
+    {
+      "ChapaCodigo": "#1/2",
+      "Comprimento": 1000,
+      "Quantidade": 1,
+      "NomePeca": "Chapa Plana 130",
+      "Segmentos": [
+        [
+          "E",
+          90,
+          130,
+          "e"
+        ]
+      ],
+      "Observacao": ""
+    },
+    {
+      "ChapaCodigo": "#1/4",
+      "Comprimento": 2000,
+      "Quantidade": 1,
+      "NomePeca": "Chapa Plana 255",
+      "Segmentos": [
+        [
+          "E",
+          90,
+          255,
+          "e"
+        ]
+      ],
+      "Observacao": ""
+    },
+    {
+      "ChapaCodigo": "#11",
+      "Comprimento": 1700,
+      "Quantidade": 1,
+      "NomePeca": "Perfil U 54x30",
+      "Segmentos": [
+        [
+          "S",
+          90,
+          30,
+          "e"
+        ],
+        [
+          "E",
+          90,
+          54,
+          "e"
+        ],
+        [
+          "N",
+          90,
+          30,
+          "e"
+        ]
+      ],
+      "Observacao": ""
+    }
+  ]
+}

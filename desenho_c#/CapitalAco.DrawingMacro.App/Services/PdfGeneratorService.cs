@@ -289,10 +289,10 @@ namespace CapitalAco.DrawingMacro.App.Services
                             var dim    = dado.Dim;
                             int numero = idx + 1;
 
-                            col.Item().PaddingBottom(6)
+                            float alturaItem = AlturaParaPeca(item, dim);
+                            col.Item().ShowEntire().PaddingBottom(6)
                                 .Background(idx % 2 == 0 ? Colors.White : Colors.Grey.Lighten5)
                                 .Border(0.5f).BorderColor(Colors.Grey.Lighten1)
-                                .Height(AlturaParaPeca(item, dim))
                                 .Row(row =>
                                 {
                                     row.ConstantItem(22).AlignMiddle().AlignCenter()
@@ -300,8 +300,8 @@ namespace CapitalAco.DrawingMacro.App.Services
 
                                     row.ConstantItem(1).LineVertical(0.5f).LineColor(Colors.Grey.Lighten2);
 
-                                    // Desenho (SVG) — usa polar já calculado, sem chamar geometryService aqui
-                                    row.RelativeItem(7).Padding(3).Svg(size => RenderizarComoSvg(size.Width, size.Height, canvas =>
+                                    // Desenho (SVG) — MinHeight define o tamanho do canvas de desenho; o Row se ajusta à coluna mais alta
+                                    row.RelativeItem(7).MinHeight(alturaItem).Padding(3).Svg(size => RenderizarComoSvg(size.Width, size.Height, canvas =>
                                     {
                                         if (polar != null)
                                         {
