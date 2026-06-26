@@ -294,7 +294,19 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Margin="0,0,3,0">
                             <TextBlock Text="Comp. (mm) — C:" FontSize="9" Foreground="#5B6472"/>
-                            <TextBox x:Name="ComprimentoTextBox" Text="{Binding ComprimentoPeca, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" IsEnabled="{Binding ComprimentoUnicoHabilitado}" Margin="0,2,0,0"/>
+                            <TextBox x:Name="ComprimentoTextBox" Text="{Binding ComprimentoPeca, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" IsEnabled="{Binding ComprimentoUnicoHabilitado}" Margin="0,2,0,0">
+                                <TextBox.Style>
+                                    <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ComprimentoInvalido}" Value="True">
+                                                <Setter Property="BorderBrush" Value="#E74C3C"/>
+                                                <Setter Property="BorderThickness" Value="1.5"/>
+                                                <Setter Property="ToolTip" Value="Informe um comprimento maior que zero."/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBox.Style>
+                            </TextBox>
                         </StackPanel>
                         <StackPanel Grid.Column="1">
                             <TextBlock Text="Chapa — E:" FontSize="9" Foreground="#5B6472"/>
@@ -324,10 +336,13 @@
                         <TextBox Text="{Binding ComprimentosMultiplosTexto, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,6"/>
                     </StackPanel>
 
-                    <Button Content="{Binding TextoBotaoAddPedido}" Command="{Binding AdicionarAoPedidoCommand}" Margin="0,2,0,4" Background="#27AE60" Foreground="White" BorderThickness="0" Height="26"/>
+                    <Button Content="{Binding TextoBotaoAddPedido}" Command="{Binding AdicionarAoPedidoCommand}" Margin="0,2,0,2" Background="#27AE60" Foreground="White" BorderThickness="0" Height="26"/>
+                    <TextBlock Text="{Binding MensagemStatus}" FontSize="9" Foreground="#27AE60" FontWeight="SemiBold"
+                               TextAlignment="Center" Margin="0,0,0,4"
+                               Visibility="{Binding StatusVisivel, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                     <UniformGrid Columns="2" Margin="0,0,0,4">
                         <Button Content="Salvar Biblioteca" Command="{Binding SalvarNaBibliotecaCommand}" Margin="2" Background="#12153F" Foreground="White" BorderThickness="0" Height="26"/>
-                        <Button Content="Ficha Dobra (PDF)" Command="{Binding GerarFichaDobraCommand}" Margin="2" Background="#8E44AD" Foreground="White" BorderThickness="0" Height="26"/>
+                        <Button Content="Ficha Dobra (Ctrl+F)" Command="{Binding GerarFichaDobraCommand}" Margin="2" Background="#8E44AD" Foreground="White" BorderThickness="0" Height="26"/>
                     </UniformGrid>
                     <UniformGrid Columns="2">
                         <Button Content="Nova Peça (Ctrl+N)" Command="{Binding NovaPecaCommand}" Margin="2" Background="#2980B9" Foreground="White" BorderThickness="0" Height="26"/>

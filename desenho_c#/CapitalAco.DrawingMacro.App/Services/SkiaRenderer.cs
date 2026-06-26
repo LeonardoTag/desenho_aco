@@ -22,7 +22,7 @@ namespace CapitalAco.DrawingMacro.App.Services
      * 4. Planificação: Desenhamos a chapa esticada (retângulo plano) com linhas tracejadas/contínuas de dobra (cima/baixo) e cotas acumuladas.
      * 5. Interoperabilidade WPF: Fornecemos um método utilitário que converte a imagem SkiaSharp em BitmapSource WPF (via memory stream PNG) sem travas ou leaks.
      */
-    public static class SkiaRenderer
+    public class SkiaRenderer : ISkiaRenderer
     {
         private static readonly SKColor FundoCor            = new SKColor(255, 255, 255);
         private static readonly SKColor PerfilContornoCor    = new SKColor(38,  52,  70);
@@ -46,7 +46,7 @@ namespace CapitalAco.DrawingMacro.App.Services
         private static readonly SKTypeface FonteNegrito =
             SKTypeface.FromFamilyName("Segoe UI", SKFontStyle.Bold) ?? SKTypeface.Default;
 
-        public static System.Windows.Media.ImageSource RenderToImageSource(InstrucoesPolares polar, int width, int height, IGeometryService geometryService, float fonteCota = 12f, float fonteAngulo = 11f, bool mostrarMedidas = true, int? segmentoDestacado = null, bool destacarProximaOrigem = false, bool forcarDesenho3D = false)
+        public System.Windows.Media.ImageSource RenderToImageSource(InstrucoesPolares polar, int width, int height, IGeometryService geometryService, float fonteCota = 12f, float fonteAngulo = 11f, bool mostrarMedidas = true, int? segmentoDestacado = null, bool destacarProximaOrigem = false, bool forcarDesenho3D = false)
         {
             using var bitmap = new SKBitmap(width, height);
             using var canvas = new SKCanvas(bitmap);
@@ -71,7 +71,7 @@ namespace CapitalAco.DrawingMacro.App.Services
             return bitmapImage;
         }
 
-        public static void RenderizarPeca(
+        public void RenderizarPeca(
             SKCanvas canvas,
             SKSize size,
             InstrucoesPolares polar,
@@ -96,8 +96,8 @@ namespace CapitalAco.DrawingMacro.App.Services
             }
 
             // 1. Calcular coordenadas retangulares
-            var parciais = ((GeometryService)geometryService).GerarCoordenadasRetangularesParciais(polar.CoordenadasPolares);
-            var absolutas = ((GeometryService)geometryService).GerarCoordenadasRetangularesAbsolutas(parciais);
+            var parciais = geometryService.GerarCoordenadasRetangularesParciais(polar.CoordenadasPolares);
+            var absolutas = geometryService.GerarCoordenadasRetangularesAbsolutas(parciais);
 
             // Ajustar escala para caber na tela com margem
             double margem = 0.15;
@@ -116,10 +116,10 @@ namespace CapitalAco.DrawingMacro.App.Services
                 if (!seg.EhCurvo || seg.CurvaInfo == null) continue;
 
                 double rInternoBbox = seg.CurvaInfo.TipoRaio == "interno" ? seg.CurvaInfo.Raio : seg.CurvaInfo.Raio - polar.Espessura;
-                double rNeutroBbox = rInternoBbox + polar.KFactor * polar.Espessura;
+                double rExternoBbox = rInternoBbox + polar.Espessura;
                 var (cx, cy) = absolutas[i];
-                pontosParaEscala.Add((cx - rNeutroBbox, cy - rNeutroBbox));
-                pontosParaEscala.Add((cx + rNeutroBbox, cy + rNeutroBbox));
+                pontosParaEscala.Add((cx - rExternoBbox, cy - rExternoBbox));
+                pontosParaEscala.Add((cx + rExternoBbox, cy + rExternoBbox));
             }
 
             double minX = pontosParaEscala.Min(p => p.X);
@@ -906,7 +906,7 @@ namespace CapitalAco.DrawingMacro.App.Services
             return $"{(long)Math.Round(angulo)}°";
         }
 
-        public static void RenderizarPlanificacao(SKCanvas canvas, SKSize size, DadosPlanificacao plano, float fonteAngulo = 10f, float fonteSentido = 10f, float fonteCota = 10f)
+        public void RenderizarPlanificacao(SKCanvas canvas, SKSize size, DadosPlanificacao plano, float fonteAngulo = 10f, float fonteSentido = 10f, float fonteCota = 10f)
         {
             canvas.Clear(FundoCor);
             canvas.ClipRect(new SKRect(0, 0, size.Width, size.Height));

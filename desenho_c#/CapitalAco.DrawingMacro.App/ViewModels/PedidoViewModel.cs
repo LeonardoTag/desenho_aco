@@ -3,9 +3,13 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
@@ -20,6 +24,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         private readonly IPdfGeneratorService _pdfGenerator;
         private readonly IConfigService _configService;
         private readonly IGeometryService _geometryService;
+        private readonly ISkiaRenderer _skiaRenderer;
 
         [ObservableProperty]
         private string _observacao = string.Empty;
@@ -31,16 +36,28 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
 
         public ObservableCollection<PecaPedidoItem> Itens { get; } = new();
 
-        public PedidoViewModel(IPdfGeneratorService pdfGenerator, IConfigService configService, IGeometryService geometryService)
+        public int ContagemItens => Itens.Count;
+
+        public string TituloOrdemProducao => Itens.Count > 0
+            ? $"Ordem de Produção ({Itens.Count})"
+            : "Ordem de Produção";
+
+        public PedidoViewModel(IPdfGeneratorService pdfGenerator, IConfigService configService, IGeometryService geometryService, ISkiaRenderer skiaRenderer)
         {
             _pdfGenerator = pdfGenerator;
             _configService = configService;
             _geometryService = geometryService;
+            _skiaRenderer = skiaRenderer;
 
             Observacao = configService.ObterConfiguracao().RelatorioObservacao;
             _alteradoDesdeUltimoSalvamento = false;
 
-            Itens.CollectionChanged += (_, _) => _alteradoDesdeUltimoSalvamento = true;
+            Itens.CollectionChanged += (_, _) =>
+            {
+                _alteradoDesdeUltimoSalvamento = true;
+                OnPropertyChanged(nameof(ContagemItens));
+                OnPropertyChanged(nameof(TituloOrdemProducao));
+            };
         }
 
         private class PedidoArquivo
@@ -49,9 +66,25 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             [JsonPropertyName("gerado_em")] public DateTime GeradoEm { get; set; }
             [JsonPropertyName("observacao")] public string Observacao { get; set; } = "";
             [JsonPropertyName("itens")]     public List<PecaPedidoItem> Itens { get; set; } = new();
+            [JsonPropertyName("hash")]      public string? Hash { get; set; }
         }
 
         private static readonly JsonSerializerOptions _jsonOpts = new() { WriteIndented = true };
+
+        private static string ComputarHash(PedidoArquivo arquivo)
+        {
+            var semHash = new PedidoArquivo
+            {
+                Versao = arquivo.Versao,
+                GeradoEm = arquivo.GeradoEm,
+                Observacao = arquivo.Observacao,
+                Itens = arquivo.Itens,
+                Hash = null
+            };
+            var payload = JsonSerializer.Serialize(semHash, _jsonOpts);
+            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(payload));
+            return Convert.ToHexString(bytes).ToLowerInvariant();
+        }
 
         private System.Windows.Media.ImageSource? GerarThumbnail(PecaPedidoItem item)
         {
@@ -59,7 +92,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             {
                 var polar = _geometryService.ConverterInstrucoesParaCoordenadasPolares(
                     item.ChapaCodigo, item.Comprimento, item.Segmentos);
-                return SkiaRenderer.RenderToImageSource(polar, 80, 60, _geometryService, mostrarMedidas: false);
+                return _skiaRenderer.RenderToImageSource(polar, 80, 60, _geometryService, mostrarMedidas: false);
             }
             catch { return null; }
         }
@@ -90,6 +123,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
                     Observacao = Observacao,
                     Itens = Itens.ToList()
                 };
+                arquivo.Hash = ComputarHash(arquivo);
                 var json = JsonSerializer.Serialize(arquivo, _jsonOpts);
                 File.WriteAllText(dlg.FileName, json);
                 _alteradoDesdeUltimoSalvamento = false;
@@ -103,10 +137,10 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         [RelayCommand]
         private void AbrirPedido()
         {
-            if (Itens.Count > 0)
+            if (_alteradoDesdeUltimoSalvamento)
             {
                 var r = MessageBox.Show(
-                    "Isso substituirá o pedido atual. Deseja continuar?",
+                    "O pedido atual tem alterações não salvas. Deseja descartá-las e abrir outro?",
                     "Abrir Pedido", MessageBoxButton.YesNo, MessageBoxImage.Question);
                 if (r != MessageBoxResult.Yes) return;
             }
@@ -123,6 +157,28 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
                 var json = File.ReadAllText(dlg.FileName);
                 var arquivo = JsonSerializer.Deserialize<PedidoArquivo>(json);
                 if (arquivo == null) throw new InvalidDataException("Arquivo inválido.");
+
+                const int VersaoSuportada = 1;
+                if (arquivo.Versao > VersaoSuportada)
+                {
+                    var r = MessageBox.Show(
+                        $"Este arquivo foi salvo com uma versão mais nova do aplicativo (v{arquivo.Versao}). " +
+                        $"Abrir pode resultar em dados incompletos.\n\nDeseja continuar?",
+                        "Versão Incompatível", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    if (r != MessageBoxResult.Yes) return;
+                }
+
+                if (arquivo.Hash != null)
+                {
+                    var hashEsperado = ComputarHash(arquivo);
+                    if (!string.Equals(arquivo.Hash, hashEsperado, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var continuar = MessageBox.Show(
+                            "O hash de integridade do arquivo não corresponde. O arquivo pode ter sido editado manualmente ou estar corrompido.\n\nDeseja abri-lo mesmo assim?",
+                            "Integridade do Arquivo", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                        if (continuar != MessageBoxResult.Yes) return;
+                    }
+                }
 
                 Itens.Clear();
                 Observacao = arquivo.Observacao;
@@ -171,7 +227,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         }
 
         [RelayCommand]
-        private void VisualizarPdf()
+        private async Task VisualizarPdf()
         {
             if (Itens.Count == 0)
             {
@@ -179,31 +235,39 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
                 return;
             }
 
+            // Captura dados na thread de UI antes de ir para o background
+            var list = Itens.ToList();
+            var observacao = Observacao;
+            string caminho;
+
+            Mouse.OverrideCursor = Cursors.Wait;
             try
             {
-                var list = Itens.ToList();
-                var caminho = _pdfGenerator.GerarRelatorioPedido(list, Observacao);
-
-                if (File.Exists(caminho))
-                {
-                    FileShellHelper.CopiarArquivoParaAreaDeTransferencia(caminho);
-
-                    // Abrir PDF automaticamente
-                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                    {
-                        FileName = caminho,
-                        UseShellExecute = true
-                    });
-                }
+                caminho = await Task.Run(() => _pdfGenerator.GerarRelatorioPedido(list, observacao));
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Erro ao gerar PDF da Ordem de Produção: {ex.Message}", "Erro de Geração", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            finally
+            {
+                Mouse.OverrideCursor = null;
+            }
+
+            if (File.Exists(caminho))
+            {
+                FileShellHelper.CopiarArquivoParaAreaDeTransferencia(caminho);
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = caminho,
+                    UseShellExecute = true
+                });
             }
         }
 
         [RelayCommand]
-        private void ImprimirPedido()
+        private async Task ImprimirPedido()
         {
             if (Itens.Count == 0)
             {
@@ -211,20 +275,27 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
                 return;
             }
 
+            var list = Itens.ToList();
+            var observacao = Observacao;
+            string caminho;
+
+            Mouse.OverrideCursor = Cursors.Wait;
             try
             {
-                var list = Itens.ToList();
-                var caminho = _pdfGenerator.GerarRelatorioPedido(list, Observacao);
-
-                if (File.Exists(caminho))
-                {
-                    FileShellHelper.ImprimirArquivo(caminho);
-                }
+                caminho = await Task.Run(() => _pdfGenerator.GerarRelatorioPedido(list, observacao));
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Erro ao imprimir a Ordem de Produção: {ex.Message}", "Erro de Impressão", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
             }
+            finally
+            {
+                Mouse.OverrideCursor = null;
+            }
+
+            if (File.Exists(caminho))
+                FileShellHelper.ImprimirArquivo(caminho);
         }
 
         [RelayCommand]

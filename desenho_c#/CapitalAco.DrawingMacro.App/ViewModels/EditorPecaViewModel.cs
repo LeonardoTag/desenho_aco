@@ -4,7 +4,9 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -29,6 +31,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         private readonly ICsvService _csvService;
         private readonly IPdfGeneratorService _pdfGeneratorService;
         private readonly IConfigService _configService;
+        private readonly ISkiaRenderer _skiaRenderer;
 
         // Propriedades da Peça
         [ObservableProperty]
@@ -198,7 +201,11 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         // O comprimento único só faz sentido quando os múltiplos comprimentos estão desligados.
         public bool ComprimentoUnicoHabilitado => !MultiplosComprimentosHabilitado;
 
-        partial void OnMultiplosComprimentosHabilitadoChanged(bool value) => OnPropertyChanged(nameof(ComprimentoUnicoHabilitado));
+        partial void OnMultiplosComprimentosHabilitadoChanged(bool value)
+        {
+            OnPropertyChanged(nameof(ComprimentoUnicoHabilitado));
+            OnPropertyChanged(nameof(ComprimentoInvalido));
+        }
 
         // Evento para enviar itens ao carrinho do pedido
         public event Action<PecaPedidoItem>? EnviarAoPedido;
@@ -208,6 +215,19 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
 
         // Sinaliza à View que a adição concluiu — View devolve foco ao UserControl
         public event Action? PecaAdicionadaAoPedido;
+
+        // Sinaliza que um modelo foi salvo na biblioteca (MainViewModel recarrega a lista)
+        public event Action? BibliotecaSalva;
+
+        [ObservableProperty]
+        private string _mensagemStatus = string.Empty;
+
+        public bool StatusVisivel => !string.IsNullOrEmpty(MensagemStatus);
+
+        partial void OnMensagemStatusChanged(string value) => OnPropertyChanged(nameof(StatusVisivel));
+
+        private System.Windows.Threading.DispatcherTimer? _timerStatus;
+        private System.Windows.Threading.DispatcherTimer? _timerPreview;
 
         private PecaPedidoItem? _itemEditando;
 
@@ -222,13 +242,15 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             IBibliotecaPecasService bibliotecaService,
             ICsvService csvService,
             IPdfGeneratorService pdfGeneratorService,
-            IConfigService configService)
+            IConfigService configService,
+            ISkiaRenderer skiaRenderer)
         {
             _geometryService = geometryService;
             _geradorPecaService = geradorPecaService;
             _bibliotecaService = bibliotecaService;
             _csvService = csvService;
             _pdfGeneratorService = pdfGeneratorService;
+            _skiaRenderer = skiaRenderer;
             _configService = configService;
 
             // Inicializar chapas
@@ -244,13 +266,20 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
 
         private void CarregarChapas()
         {
-            Chapas.Clear();
-            var lista = _csvService.CarregarChapas();
-            foreach (var chapa in lista)
+            try
             {
-                Chapas.Add(chapa);
+                Chapas.Clear();
+                var lista = _csvService.CarregarChapas();
+                foreach (var chapa in lista)
+                    Chapas.Add(chapa);
+                ChapaSelecionada = Chapas.FirstOrDefault(c => c.Codigo == "#14") ?? Chapas.FirstOrDefault();
             }
-            ChapaSelecionada = Chapas.FirstOrDefault(c => c.Codigo == "#14") ?? Chapas.FirstOrDefault();
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Não foi possível carregar a lista de chapas.\n\nVerifique o arquivo chapas.csv.\n\n{ex.Message}",
+                    "Erro ao Carregar Chapas", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void Segmentos_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -258,12 +287,31 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             AtualizarPreview();
         }
 
-        partial void OnChapaSelecionadaChanged(Chapa? value) => AtualizarPreview();
-        partial void OnComprimentoPecaChanged(double? value) => AtualizarPreview();
+        public bool ComprimentoInvalido => ComprimentoUnicoHabilitado && (ComprimentoPeca == null || ComprimentoPeca <= 0);
+
+        partial void OnChapaSelecionadaChanged(Chapa? value)
+        {
+            if (value != null && Segmentos.Count > 0)
+                MostrarStatus($"Chapa alterada para {value.Codigo} — verifique os avisos de dobra mínima.");
+            AtualizarPreview();
+        }
+        partial void OnComprimentoPecaChanged(double? value)
+        {
+            OnPropertyChanged(nameof(ComprimentoInvalido));
+            AtualizarPreview();
+        }
         partial void OnModoEdicaoChanged(bool value) => OnPropertyChanged(nameof(TextoBotaoAddPedido));
 
         public void CarregarPecaDoModelo(ModeloPeca peca)
         {
+            if (Segmentos.Count > 0)
+            {
+                var r = MessageBox.Show(
+                    $"O editor tem uma peça em andamento. Carregar \"{peca.Nome}\" vai substituí-la.\n\nDeseja continuar?",
+                    "Carregar da Biblioteca", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (r != MessageBoxResult.Yes) return;
+            }
+
             NomePeca = peca.Nome;
             ComprimentoPeca = peca.Comprimento;
             ChapaSelecionada = Chapas.FirstOrDefault(c => string.Equals(c.Codigo, peca.Chapa, StringComparison.OrdinalIgnoreCase)) ?? ChapaSelecionada;
@@ -351,6 +399,18 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             if (DirecaoInvalidaAposUltimoSegmento(SegDirecao, SegEhCurvo, SegAngulo))
             {
                 MessageBox.Show("Não é possível adicionar um segmento na mesma direção ou na direção oposta ao anterior (dobra de 0° ou 180°).", "Direção inválida", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (!SegEhCurvo && SegMedida <= 0)
+            {
+                MessageBox.Show("A medida do segmento deve ser maior que zero.", "Medida inválida", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (SegEhCurvo && (SegCurvaRaio <= 0 || SegCurvaAngulo <= 0))
+            {
+                MessageBox.Show("O raio e o ângulo da curva devem ser maiores que zero.", "Curva inválida", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -485,8 +545,6 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         {
             if (value)
             {
-                if (Segmentos.Count > 0) RegistrarEstadoParaDesfazer();
-                Segmentos.Clear();
                 FaseRapida = FaseModoRapido.Desenho;
                 _proximoGrauPersonalizado = null;
             }
@@ -539,7 +597,13 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         {
             if (!ModoRapidoAtivo || FaseRapida != FaseModoRapido.Grau) return;
 
-            _proximoGrauPersonalizado = GrauRapidoAtual is > 0 and < 180 ? GrauRapidoAtual : 90.0;
+            if (GrauRapidoAtual is <= 0 or >= 180)
+            {
+                MostrarStatus($"Ângulo inválido ({GrauRapidoAtual:F0}°). Use um valor entre 1° e 179°.");
+                return;
+            }
+
+            _proximoGrauPersonalizado = GrauRapidoAtual;
             FaseRapida = FaseModoRapido.Desenho;
             AtualizarStatusModoRapido();
         }
@@ -776,11 +840,35 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             }
         }
 
+        private void MostrarStatus(string mensagem, int duracaoMs = 3000)
+        {
+            MensagemStatus = mensagem;
+            _timerStatus?.Stop();
+            _timerStatus = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(duracaoMs)
+            };
+            _timerStatus.Tick += (_, _) =>
+            {
+                MensagemStatus = string.Empty;
+                _timerStatus?.Stop();
+            };
+            _timerStatus.Start();
+        }
+
         [RelayCommand]
         private void SalvarNaBiblioteca()
         {
             if (ChapaSelecionada == null) return;
             if (!ValidarPecaPronta()) return;
+
+            if (!_nomeEditadoManualmente)
+            {
+                var r = MessageBox.Show(
+                    $"O nome \"{NomePeca}\" foi gerado automaticamente.\n\nDeseja salvar com esse nome mesmo assim?",
+                    "Salvar na Biblioteca", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (r != MessageBoxResult.Yes) return;
+            }
 
             try
             {
@@ -791,7 +879,8 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
                     Segmentos.ToList()
                 );
 
-                MessageBox.Show($"Peça '{modelo.Nome}' salva na biblioteca local com sucesso!", "Salvar Biblioteca", MessageBoxButton.OK, MessageBoxImage.Information);
+                BibliotecaSalva?.Invoke();
+                MostrarStatus($"'{modelo.Nome}' salva na biblioteca.");
             }
             catch (Exception ex)
             {
@@ -832,9 +921,15 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             return true;
         }
 
+        private bool _adicionandoAoPedido = false;
+
         [RelayCommand]
         private void AdicionarAoPedido()
         {
+            if (_adicionandoAoPedido) return;
+            _adicionandoAoPedido = true;
+            try
+            {
             if (ChapaSelecionada == null) return;
             if (!ValidarPecaPronta()) return;
             if (!ChecarAvisosAntesDeProsseguir()) return;
@@ -925,8 +1020,10 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             PedidoObservacao = string.Empty;
             ComprimentosMultiplosTexto = string.Empty;
 
-            MessageBox.Show("Peça adicionada ao carrinho da Ordem de Produção!", "Carrinho", MessageBoxButton.OK, MessageBoxImage.Information);
+            MostrarStatus("Peça adicionada à Ordem de Produção.");
             PecaAdicionadaAoPedido?.Invoke();
+            }
+            finally { _adicionandoAoPedido = false; }
         }
 
         private System.Windows.Media.ImageSource? RenderizarThumbnail(List<Segmento> segmentos, string chapaCodigo, double comprimento)
@@ -934,7 +1031,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             try
             {
                 var polar = _geometryService.ConverterInstrucoesParaCoordenadasPolares(chapaCodigo, comprimento, segmentos);
-                return SkiaRenderer.RenderToImageSource(polar, 80, 60, _geometryService, mostrarMedidas: false);
+                return _skiaRenderer.RenderToImageSource(polar, 80, 60, _geometryService, mostrarMedidas: false);
             }
             catch
             {
@@ -945,7 +1042,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         private static List<(double Quantidade, double Comprimento)> ParseComprimentosMultiplos(string texto)
         {
             var resultados = new List<(double Quantidade, double Comprimento)>();
-            var regex = new System.Text.RegularExpressions.Regex(@"^(\d+)\s*(?:[xX*]|\s+)\s*(\d+(?:[.,]\d+)?)$");
+            var regex = new System.Text.RegularExpressions.Regex(@"^(\d+)\s*(?:[xX×*]|\s+)\s*(\d+(?:[.,]\d+)?)$");
 
             foreach (var parteCrua in texto.Split(','))
             {
@@ -974,7 +1071,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         }
 
         [RelayCommand]
-        private void GerarFichaDobra()
+        private async Task GerarFichaDobra()
         {
             if (ChapaSelecionada == null) return;
             if (!ValidarPecaPronta()) return;
@@ -986,25 +1083,40 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
                 return;
             }
 
+            // Captura estado da UI antes de ir para o background
+            var chapaCodigo   = ChapaSelecionada.Codigo;
+            var segmentos     = Segmentos.ToList();
+            var nomePeca      = NomePeca;
+            string caminho;
+
+            Mouse.OverrideCursor = Cursors.Wait;
             try
             {
-                var polar = _geometryService.ConverterInstrucoesParaCoordenadasPolares(ChapaSelecionada.Codigo, comprimentoDefinido, Segmentos.ToList());
-                var caminho = _pdfGeneratorService.GerarRelatorioDobra(polar, NomePeca, ChapaSelecionada.Codigo, comprimentoDefinido);
-
-                if (File.Exists(caminho))
+                caminho = await Task.Run(() =>
                 {
-                    FileShellHelper.CopiarArquivoParaAreaDeTransferencia(caminho);
-
-                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                    {
-                        FileName = caminho,
-                        UseShellExecute = true
-                    });
-                }
+                    var polar = _geometryService.ConverterInstrucoesParaCoordenadasPolares(
+                        chapaCodigo, comprimentoDefinido, segmentos);
+                    return _pdfGeneratorService.GerarRelatorioDobra(polar, nomePeca, chapaCodigo, comprimentoDefinido);
+                });
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Erro ao gerar ficha de dobra: {ex.Message}", "Erro de PDF", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            finally
+            {
+                Mouse.OverrideCursor = null;
+            }
+
+            if (File.Exists(caminho))
+            {
+                FileShellHelper.CopiarArquivoParaAreaDeTransferencia(caminho);
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = caminho,
+                    UseShellExecute = true
+                });
             }
         }
 
@@ -1082,6 +1194,22 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
                         : $"Perfil {familia} Manco {M(aba1)}x{M(alma)}x{M(aba2)}";
                 }
 
+                case 4:
+                {
+                    if (!EhDobraReta(0) || !EhDobraReta(1) || !EhDobraReta(2)) return generico();
+
+                    // Três dobras a 90° no mesmo sentido → Perfil C (canal com dois flanges paralelos).
+                    bool todosIguais = MesmoSentido(0) && MesmoSentido(1);
+                    if (!todosIguais) return generico();
+
+                    double a1 = segmentos[0].Medida, alma = segmentos[1].Medida;
+                    double a2 = segmentos[2].Medida, labio = segmentos[3].Medida;
+                    bool simetrico = Math.Abs(a1 - a2) < 1.0 && Math.Abs(a1 - labio) < 1.0;
+                    return simetrico
+                        ? $"Perfil C {M(alma)}x{M(a1)}"
+                        : $"Perfil C {M(a1)}x{M(alma)}x{M(a2)}x{M(labio)}";
+                }
+
                 case 5:
                 {
                     // O núcleo (aba-alma-aba) tem que ser reto em qualquer um destes perfis, inclusive
@@ -1116,6 +1244,28 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
 
         public void AtualizarPreview()
         {
+            var debounceMs = _configService.ObterConfiguracao().PreviewDebounceMs;
+            if (debounceMs <= 0)
+            {
+                ExecutarPreview();
+                return;
+            }
+
+            _timerPreview?.Stop();
+            _timerPreview = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(debounceMs)
+            };
+            _timerPreview.Tick += (_, _) =>
+            {
+                _timerPreview?.Stop();
+                ExecutarPreview();
+            };
+            _timerPreview.Start();
+        }
+
+        private void ExecutarPreview()
+        {
             AtualizarNomeAutomatico();
 
             if (ChapaSelecionada == null || Segmentos.Count == 0)
@@ -1142,12 +1292,12 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
                 float fonteAngulo = (float)Math.Max(config.DesenhoFonteBaseMinima - 1.0, 8.0);
                 int? destaque = EstaNaFaseMedidas ? IndiceMedidaRapida : (int?)null;
                 bool mostrarOrigem = ModoRapidoAtivo && EstaNaFaseDesenho && Segmentos.Count > 0;
-                PreviewImage = SkiaRenderer.RenderToImageSource(polar, 780, 600, _geometryService, fonteCota, fonteAngulo, segmentoDestacado: destaque, destacarProximaOrigem: mostrarOrigem, forcarDesenho3D: true);
+                PreviewImage = _skiaRenderer.RenderToImageSource(polar, 780, 600, _geometryService, fonteCota, fonteAngulo, segmentoDestacado: destaque, destacarProximaOrigem: mostrarOrigem, forcarDesenho3D: true);
 
                 // Dimensões totais acabadas da peça
                 var dimensoes = _geometryService.CalcularDimensoesAcabadas(polar);
                 DimensoesTotaisTexto = dimensoes != null
-                    ? $"Dimensões Totais: {dimensoes.Value.Largura:F0} mm (L) x {dimensoes.Value.Altura:F0} mm (A)"
+                    ? $"{dimensoes.Value.Largura:F0} × {dimensoes.Value.Altura:F0} mm  (L × A)"
                     : string.Empty;
 
                 // Atualizar avisos (só indicadores na UI — popups somente ao adicionar ao pedido ou abrir detalhamento)

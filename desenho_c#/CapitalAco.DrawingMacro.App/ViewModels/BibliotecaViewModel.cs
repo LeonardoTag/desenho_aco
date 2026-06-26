@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CapitalAco.DrawingMacro.App.Models;
@@ -53,13 +54,17 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         [RelayCommand]
         private void ExcluirPeca(ModeloPeca? peca)
         {
-            if (peca != null)
+            if (peca == null) return;
+            try
             {
                 var sucesso = _bibliotecaService.ExcluirModelo(peca.Id);
                 if (sucesso)
-                {
                     CarregarModelos();
-                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Não foi possível excluir a peça da biblioteca.\n\n{ex.Message}",
+                    "Erro ao Excluir", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

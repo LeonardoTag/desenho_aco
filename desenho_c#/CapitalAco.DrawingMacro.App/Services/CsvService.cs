@@ -11,11 +11,14 @@ namespace CapitalAco.DrawingMacro.App.Services
     public class CsvService : ICsvService
     {
         private readonly IConfigService _configService;
+        private List<Chapa>? _cache;
 
         public CsvService(IConfigService configService)
         {
             _configService = configService;
         }
+
+        public void InvalidarCache() => _cache = null;
 
         private sealed class ChapaMap : ClassMap<Chapa>
         {
@@ -34,6 +37,9 @@ namespace CapitalAco.DrawingMacro.App.Services
 
         public List<Chapa> CarregarChapas()
         {
+            if (_cache != null)
+                return _cache;
+
             var filePath = _configService.ObterCaminhoChapas();
 
             if (!File.Exists(filePath))
@@ -55,12 +61,45 @@ namespace CapitalAco.DrawingMacro.App.Services
             
             try
             {
-                return new List<Chapa>(csv.GetRecords<Chapa>());
+                var chapas = new List<Chapa>(csv.GetRecords<Chapa>());
+                ValidarChapas(chapas, filePath);
+                _cache = chapas;
+                return _cache;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not InvalidOperationException)
             {
                 throw new InvalidOperationException($"Erro ao processar chapas.csv: {ex.Message}", ex);
             }
+        }
+        private static void ValidarChapas(List<Chapa> chapas, string filePath)
+        {
+            if (chapas.Count == 0)
+                throw new InvalidOperationException($"chapas.csv não contém nenhuma linha de dados em: {filePath}");
+
+            var erros = new List<string>();
+            var codigosVistos = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            for (int i = 0; i < chapas.Count; i++)
+            {
+                var c = chapas[i];
+                int linha = i + 2; // linha 1 = cabeçalho
+
+                if (string.IsNullOrWhiteSpace(c.Codigo))
+                    erros.Add($"Linha {linha}: código vazio.");
+                else if (!codigosVistos.Add(c.Codigo))
+                    erros.Add($"Linha {linha}: código '{c.Codigo}' duplicado.");
+
+                if (c.Espessura <= 0)
+                    erros.Add($"Linha {linha} ({c.Codigo}): espessura inválida ({c.Espessura}).");
+                if (c.RaioDeDobra < 0)
+                    erros.Add($"Linha {linha} ({c.Codigo}): raio_de_dobra negativo ({c.RaioDeDobra}).");
+                if (c.KFactor <= 0 || c.KFactor >= 1)
+                    erros.Add($"Linha {linha} ({c.Codigo}): k_factor fora do intervalo (0,1): {c.KFactor}.");
+            }
+
+            if (erros.Count > 0)
+                throw new InvalidOperationException(
+                    $"chapas.csv contém {erros.Count} erro(s):\n" + string.Join("\n", erros));
         }
     }
 }

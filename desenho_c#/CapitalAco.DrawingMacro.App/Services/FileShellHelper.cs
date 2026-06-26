@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
+using Serilog;
 
 namespace CapitalAco.DrawingMacro.App.Services
 {
@@ -14,19 +16,35 @@ namespace CapitalAco.DrawingMacro.App.Services
         {
             if (!File.Exists(caminhoArquivo)) return;
 
-            var colecao = new StringCollection { caminhoArquivo };
-            Clipboard.SetFileDropList(colecao);
+            try
+            {
+                var colecao = new StringCollection { caminhoArquivo };
+                Clipboard.SetFileDropList(colecao);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Não foi possível copiar o arquivo para a área de transferência: {Arquivo}", caminhoArquivo);
+                MessageBox.Show("Não foi possível copiar o arquivo para a área de transferência.\n\n" + ex.Message,
+                    "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
 
         public static void AbrirPasta(string caminhoPasta)
         {
             if (!Directory.Exists(caminhoPasta)) return;
 
-            Process.Start(new ProcessStartInfo
+            try
             {
-                FileName = caminhoPasta,
-                UseShellExecute = true
-            });
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = caminhoPasta,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Não foi possível abrir a pasta: {Pasta}", caminhoPasta);
+            }
         }
 
         // Usa o verbo "print" do shell do Windows, que envia o arquivo diretamente para a impressora
@@ -35,14 +53,23 @@ namespace CapitalAco.DrawingMacro.App.Services
         {
             if (!File.Exists(caminhoArquivo)) return;
 
-            Process.Start(new ProcessStartInfo
+            try
             {
-                FileName = caminhoArquivo,
-                Verb = "print",
-                UseShellExecute = true,
-                CreateNoWindow = true,
-                WindowStyle = ProcessWindowStyle.Hidden
-            });
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = caminhoArquivo,
+                    Verb = "print",
+                    UseShellExecute = true,
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                });
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Não foi possível imprimir o arquivo: {Arquivo}", caminhoArquivo);
+                MessageBox.Show("Não foi possível enviar o arquivo para impressão.\n\n" + ex.Message,
+                    "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
     }
 }

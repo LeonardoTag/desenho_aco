@@ -29,12 +29,14 @@ namespace CapitalAco.DrawingMacro.App.Services
         private readonly IConfigService _configService;
         private readonly IGeometryService _geometryService;
         private readonly ICsvService _csvService;
+        private readonly ISkiaRenderer _skiaRenderer;
 
-        public PdfGeneratorService(IConfigService configService, IGeometryService geometryService, ICsvService csvService)
+        public PdfGeneratorService(IConfigService configService, IGeometryService geometryService, ICsvService csvService, ISkiaRenderer skiaRenderer)
         {
             _configService = configService;
             _geometryService = geometryService;
             _csvService = csvService;
+            _skiaRenderer = skiaRenderer;
 
             // Registrar licença da comunidade
             QuestPDF.Settings.License = LicenseType.Community;
@@ -113,14 +115,14 @@ namespace CapitalAco.DrawingMacro.App.Services
                     col.Item().Text("DESENHO DA PEÇA").FontSize((float)config.RelatorioDobraFonteSecao).Bold().FontColor(Colors.Grey.Darken2);
                     col.Item().PaddingTop(2).Height(alturaDesenho).Background(Colors.Grey.Lighten5).Border(1).BorderColor(Colors.Grey.Lighten2).Svg(size =>
                         RenderizarComoSvg(size.Width, size.Height, canvas =>
-                            SkiaRenderer.RenderizarPeca(canvas, new SKSize(size.Width, size.Height), polar, dimensoes, true, _geometryService,
+                            _skiaRenderer.RenderizarPeca(canvas, new SKSize(size.Width, size.Height), polar, dimensoes, true, _geometryService,
                                 (float)config.RelatorioDobraFonteCota, (float)config.RelatorioDobraFonteAngulo)));
 
                     col.Item().PaddingTop(10).Text("PLANIFICAÇÃO").FontSize((float)config.RelatorioDobraFonteSecao).Bold().FontColor(Colors.Grey.Darken2);
 
                     col.Item().PaddingTop(2).Height(alturaPlani).Background(Colors.Grey.Lighten5).Border(1).BorderColor(Colors.Grey.Lighten2).Svg(size =>
                         RenderizarComoSvg(size.Width, size.Height, canvas =>
-                            SkiaRenderer.RenderizarPlanificacao(canvas, new SKSize(size.Width, size.Height), dadosPlan,
+                            _skiaRenderer.RenderizarPlanificacao(canvas, new SKSize(size.Width, size.Height), dadosPlan,
                                 (float)config.RelatorioDobraFonteAngulo, (float)config.RelatorioDobraFonteSentido, (float)config.RelatorioDobraFonteCota)));
 
                     const float fonteLegenda = 6.5f;
@@ -133,12 +135,24 @@ namespace CapitalAco.DrawingMacro.App.Services
             });
         }
 
+        private static string CaminhoSeguro(string pasta, string nomeArquivo)
+        {
+            var pastaNorm = Path.GetFullPath(pasta).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var candidato = Path.GetFullPath(Path.Combine(pastaNorm, nomeArquivo));
+            if (!candidato.StartsWith(pastaNorm + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+            {
+                Log.Warning("Caminho de saída '{C}' foge do diretório permitido; usando pasta temporária.", candidato);
+                return Path.Combine(Path.GetTempPath(), nomeArquivo);
+            }
+            return candidato;
+        }
+
         public string GerarRelatorioDobra(InstrucoesPolares polar, string nomePeca, string chapaCodigo, double comprimento)
         {
             var config = _configService.ObterConfiguracao();
             var pastaSaida = _configService.ObterCaminhoSaidaRelatorios();
             var nomeArquivo = $"DETALHAMENTO_DOBRA_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
-            var caminhoPdf = Path.Combine(pastaSaida, nomeArquivo);
+            var caminhoPdf = CaminhoSeguro(pastaSaida, nomeArquivo);
 
             Document.Create(container =>
             {
@@ -154,9 +168,15 @@ namespace CapitalAco.DrawingMacro.App.Services
             var config = _configService.ObterConfiguracao();
             var pastaSaida = _configService.ObterCaminhoSaidaRelatorios();
             var nomeArquivo = $"ORDEM_PRODUCAO_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
-            var caminhoPdf = Path.Combine(pastaSaida, nomeArquivo);
+            var caminhoPdf = CaminhoSeguro(pastaSaida, nomeArquivo);
 
             var chapas = _csvService.CarregarChapas();
+            // Dicionário para lookup O(1) por código normalizado (sempre com '#')
+            var chapasPorCodigo = chapas.ToDictionary(
+                c => c.Codigo.StartsWith("#") ? c.Codigo.ToUpperInvariant() : ("#" + c.Codigo).ToUpperInvariant(),
+                c => c,
+                StringComparer.OrdinalIgnoreCase);
+
             if (config.RelatorioOrdenarPorEspessura)
             {
                 var ordemChapas = chapas.Select((c, i) => (c.Codigo, i)).ToDictionary(x => x.Codigo, x => x.i);
@@ -181,14 +201,15 @@ namespace CapitalAco.DrawingMacro.App.Services
                     corte = _geometryService.CalcularLarguraCorte(polar);
                     dim = _geometryService.CalcularDimensoesAcabadas(polar);
 
-                    var chapaInfo = chapas.Find(x => string.Equals(
-                        x.Codigo,
-                        item.ChapaCodigo.StartsWith("#") ? item.ChapaCodigo : $"#{item.ChapaCodigo}",
-                        StringComparison.OrdinalIgnoreCase));
-                    if (chapaInfo != null)
+                    var codigoNorm = item.ChapaCodigo.StartsWith("#") ? item.ChapaCodigo : $"#{item.ChapaCodigo}";
+                    if (chapasPorCodigo.TryGetValue(codigoNorm, out var chapaInfo))
                         peso = _geometryService.CalcularPesoKg(polar, item.Quantidade, chapaInfo);
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Falha ao calcular geometria do item '{Nome}' (chapa {Chapa}); item será incluído sem desenho",
+                        item.NomePeca, item.ChapaCodigo);
+                }
 
                 return (Item: item, Polar: polar, Corte: corte, Peso: peso, Dim: dim);
             }).ToList();
@@ -309,8 +330,7 @@ namespace CapitalAco.DrawingMacro.App.Services
 
                                 if (novoGrupo)
                                 {
-                                    var chapaInfoSep = chapas.Find(c => string.Equals(
-                                        c.Codigo, $"#{codAtual}", StringComparison.OrdinalIgnoreCase));
+                                    chapasPorCodigo.TryGetValue($"#{codAtual}", out var chapaInfoSep);
                                     string labelChapa = chapaInfoSep != null
                                         ? $"CHAPA #{codAtual}  ·  {chapaInfoSep.Espessura:F2} mm"
                                         : $"CHAPA #{codAtual}";
@@ -344,7 +364,7 @@ namespace CapitalAco.DrawingMacro.App.Services
                                         {
                                             try
                                             {
-                                                SkiaRenderer.RenderizarPeca(canvas, new SKSize(size.Width, size.Height), polar, dim, true, _geometryService, fonteCota: 7f, fonteAngulo: 6.5f);
+                                                _skiaRenderer.RenderizarPeca(canvas, new SKSize(size.Width, size.Height), polar, dim, true, _geometryService, fonteCota: 7f, fonteAngulo: 6.5f);
                                             }
                                             catch { canvas.Clear(SKColors.White); }
                                         }

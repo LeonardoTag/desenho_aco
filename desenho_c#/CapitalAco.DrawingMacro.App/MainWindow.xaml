@@ -55,7 +55,7 @@
             <TabItem Header="Biblioteca de Peças">
                 <views:BibliotecaView DataContext="{Binding Biblioteca}"/>
             </TabItem>
-            <TabItem Header="Ordem de Produção">
+            <TabItem Header="{Binding Pedido.TituloOrdemProducao}">
                 <views:PedidoView DataContext="{Binding Pedido}"/>
             </TabItem>
             <TabItem Header="Configurações">

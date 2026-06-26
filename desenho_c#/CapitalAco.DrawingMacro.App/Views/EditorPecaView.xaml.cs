@@ -172,6 +172,15 @@ namespace CapitalAco.DrawingMacro.App.Views
                 return;
             }
 
+            // Ctrl+F: gera a Ficha de Dobra em PDF (atalho global).
+            if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                if (vm.GerarFichaDobraCommand.CanExecute(null))
+                    vm.GerarFichaDobraCommand.Execute(null);
+                e.Handled = true;
+                return;
+            }
+
             if (!vm.ModoRapidoAtivo) return;
 
             // Enter (sem Shift) confirma a fase atual do Modo Rápido (esqueleto, ângulo ou medida).

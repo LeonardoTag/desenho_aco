@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using CapitalAco.DrawingMacro.App.Models;
+using Serilog;
 
 namespace CapitalAco.DrawingMacro.App.Services
 {
@@ -86,21 +88,11 @@ namespace CapitalAco.DrawingMacro.App.Services
             var segmentos = MontarSegmentosBoiadeira(alturaAba, primeiroGomo, tamanhoGomoSuperior, tamanhoGomoInferior, diagonal, numGomos, angulo);
             
             var polar = _geometryService.ConverterInstrucoesParaCoordenadasPolares(chapa, comprimento, segmentos);
-            var parciais = ((GeometryService)_geometryService).GerarCoordenadasRetangularesParciais(polar.CoordenadasPolares);
-            var absolutas = ((GeometryService)_geometryService).GerarCoordenadasRetangularesAbsolutas(parciais);
+            var parciais = _geometryService.GerarCoordenadasRetangularesParciais(polar.CoordenadasPolares);
+            var absolutas = _geometryService.GerarCoordenadasRetangularesAbsolutas(parciais);
 
             if (polar.Espessura > 0 && absolutas.Count >= 2)
-            {
-                // Como CoordenadasExternasPerfil é private/internal, chamamos de forma reflexiva ou mapeamos no GeometryService
-                // Como já implementamos no GeometryService, podemos usá-la. Para simplificar, faremos a chamada do método exposto ou a
-                // versão privada do GeometryService. No GeometryService adicionamos a lógica de coordenadas externas na geração da bbox.
-                // Mas precisamos saber as absolutas deslocadas para calcular o topo dos gomos!
-                // Vamos expor o método de coordenadas externas ou re-copiar a lógica aqui.
-                // Para manter a arquitetura limpa, vamos re-calcular usando o método auxiliar que podemos invocar.
-                // Como está na mesma camada, podemos simplesmente usar reflexão ou criar uma função interna.
-                // Vamos usar a mesma matemática inline para garantir velocidade.
-                absolutas = CoordenadasExternas(absolutas, polar.Espessura);
-            }
+                absolutas = _geometryService.CalcularCoordenadasExternas(absolutas, polar.Espessura);
 
             var dim = CalcularDim(absolutas);
             double topoFlange = absolutas[0].Y;
@@ -111,99 +103,6 @@ namespace CapitalAco.DrawingMacro.App.Services
 
             double desvioTopo = Math.Abs(topoGomos - topoFlange);
             return (dim.Width, dim.Height, desvioTopo);
-        }
-
-        private List<(double X, double Y)> CoordenadasExternas(List<(double X, double Y)> coordenadas, double espessura)
-        {
-            double meiaEspessura = espessura / 2.0;
-            var externas = new List<(double X, double Y)>();
-
-            for (int i = 0; i < coordenadas.Count; i++)
-            {
-                var deslocamentos = new List<(double DX, double DY)>();
-                if (i > 0)
-                {
-                    deslocamentos.Add(Deslocamento(i - 1, coordenadas, meiaEspessura));
-                }
-                if (i < coordenadas.Count - 1)
-                {
-                    deslocamentos.Add(Deslocamento(i, coordenadas, meiaEspessura));
-                }
-
-                if (deslocamentos.Count == 0)
-                {
-                    externas.Add(coordenadas[i]);
-                    continue;
-                }
-
-                double ox, oy;
-                if (deslocamentos.Count == 1)
-                {
-                    ox = deslocamentos[0].DX;
-                    oy = deslocamentos[0].DY;
-                }
-                else
-                {
-                    var (d0_x, d0_y) = deslocamentos[0];
-                    var (d1_x, d1_y) = deslocamentos[1];
-
-                    if (meiaEspessura > 0)
-                    {
-                        double n0_x = d0_x / meiaEspessura;
-                        double n0_y = d0_y / meiaEspessura;
-                        double n1_x = d1_x / meiaEspessura;
-                        double n1_y = d1_y / meiaEspessura;
-
-                        double dot = n0_x * n1_x + n0_y * n1_y;
-                        if (1.0 + dot > 0.001)
-                        {
-                            double factor = meiaEspessura / (1.0 + dot);
-                            ox = (n0_x + n1_x) * factor;
-                            oy = (n0_y + n1_y) * factor;
-                        }
-                        else
-                        {
-                            ox = d0_x;
-                            oy = d0_y;
-                        }
-                    }
-                    else
-                    {
-                        ox = 0.0;
-                        oy = 0.0;
-                    }
-                }
-
-                externas.Add((coordenadas[i].X + ox, coordenadas[i].Y + oy));
-            }
-
-            return externas;
-        }
-
-        private (double DX, double DY) Deslocamento(int index, List<(double X, double Y)> coordenadas, double meiaEspessura)
-        {
-            var (x0, y0) = coordenadas[index];
-            var (x1, y1) = coordenadas[index + 1];
-            double comp = Math.Sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
-            double nx = comp == 0 ? 0.0 : -(y1 - y0) / comp;
-            double ny = comp == 0 ? 0.0 : (x1 - x0) / comp;
-
-            int ladoInterno;
-            double mx = (x0 + x1) / 2.0;
-            double my = (y0 + y1) / 2.0;
-            var scores = new List<double>();
-            if (index > 0)
-            {
-                scores.Add((coordenadas[index - 1].X - mx) * nx + (coordenadas[index - 1].Y - my) * ny);
-            }
-            if (index + 2 < coordenadas.Count)
-            {
-                scores.Add((coordenadas[index + 2].X - mx) * nx + (coordenadas[index + 2].Y - my) * ny);
-            }
-            ladoInterno = scores.Count == 0 ? 1 : (scores.Average() >= 0 ? 1 : -1);
-
-            double fator = -ladoInterno * meiaEspessura;
-            return (nx * fator, ny * fator);
         }
 
         private struct SizeD
@@ -274,7 +173,12 @@ namespace CapitalAco.DrawingMacro.App.Services
             double limiteDiagonal = Math.Max(alturaAba * 4.0, Math.Max(tamanhoGomoSuperior * 2.0, Math.Max(tamanhoGomoInferior * 2.0, 80.0)));
             var bounds = new[] { (0.1, 89.9), (0.1, limiteDiagonal) };
 
+            // Timeout de segurança: 30 s para os 10 starts de Nelder-Mead.
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
             double[] angulosIniciais = { 25.0, 30.0, 35.0, 40.0, 45.0, 50.0, 55.0, 60.0, 65.0, 70.0 };
+            try
+            {
             foreach (double anguloIni in angulosIniciais)
             {
                 double rad = anguloIni * (Math.PI / 180.0);
@@ -295,7 +199,7 @@ namespace CapitalAco.DrawingMacro.App.Services
                     };
                 }
 
-                double[] sol = NelderMeadSolver.Optimize(Residuos, x0, bounds, tol: 1e-12, maxIter: 150);
+                double[] sol = NelderMeadSolver.Optimize(Residuos, x0, bounds, tol: 1e-12, maxIter: 150, cts.Token);
                 double aSol = sol[0];
                 double dSol = sol[1];
 
@@ -308,6 +212,13 @@ namespace CapitalAco.DrawingMacro.App.Services
                     melhorAngulo = aSol;
                     melhorDiagonal = dSol;
                 }
+            }
+            } // fim do try Nelder-Mead
+            catch (OperationCanceledException)
+            {
+                Log.Warning("Otimização Nelder-Mead interrompida por timeout (30 s); usando melhor solução parcial.");
+                if (melhorAngulo == 0.0)
+                    throw new TimeoutException("O cálculo da boiadeira excedeu 30 segundos sem convergir. Tente ajustar os parâmetros.");
             }
 
             // 2. Polimento em malha fina (três passes de precisão decimal crescente)

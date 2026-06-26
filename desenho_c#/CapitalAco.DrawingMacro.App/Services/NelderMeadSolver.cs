@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace CapitalAco.DrawingMacro.App.Services
 {
@@ -13,7 +14,8 @@ namespace CapitalAco.DrawingMacro.App.Services
             double[] x0,
             (double Low, double High)[] bounds,
             double tol = 1e-12,
-            int maxIter = 250)
+            int maxIter = 250,
+            CancellationToken cancellationToken = default)
         {
             int n = x0.Length;
 
@@ -73,6 +75,8 @@ namespace CapitalAco.DrawingMacro.App.Services
 
             for (int iter = 0; iter < maxIter; iter++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var indices = Enumerable.Range(0, n + 1).OrderBy(idx => fVal[idx]).ToList();
                 simplex = indices.Select(idx => simplex[idx]).ToList();
                 fVal = indices.Select(idx => fVal[idx]).ToList();

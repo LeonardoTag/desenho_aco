@@ -1,3 +1,4 @@
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -44,6 +45,12 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             Editor.EnviarAoPedido += (item) =>
             {
                 Pedido.Itens.Add(item);
+                if (Pedido.Itens.Count == 101)
+                {
+                    MessageBox.Show(
+                        "O pedido já tem mais de 100 itens.\n\nPedidos muito grandes podem tornar a geração do PDF lenta. Considere salvar e iniciar um novo pedido.",
+                        "Pedido Extenso", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
             };
 
             Editor.AtualizarNoPedido += (original, novo) =>
@@ -51,6 +58,8 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
                 Pedido.AtualizarItem(original, novo);
                 SelectedTabIndex = 2; // Volta para aba Ordem de Produção
             };
+
+            Editor.BibliotecaSalva += () => Biblioteca.CarregarModelos();
 
             Pedido.EditarItemSolicitado += (item) =>
             {

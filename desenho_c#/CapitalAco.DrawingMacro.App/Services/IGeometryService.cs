@@ -93,5 +93,10 @@ namespace CapitalAco.DrawingMacro.App.Services
         // Medidas internas/externas (cotas vermelha/azul) e lado interno do perfil para anotação de desenhos
         List<(double Livre, double Interna, double Externa)> GerarMedidasInternaExterna(InstrucoesPolares instrucoes);
         int DeterminarLadoInternoSegmento(int n, List<(double X, double Y)> coordenadas);
+
+        // Conversão de coordenadas polares → retangulares (usada por SkiaRenderer e GeradorPecaService)
+        List<(double X, double Y)> GerarCoordenadasRetangularesParciais(List<(double Azimute, double Comprimento)> coordenadasPolares);
+        List<(double X, double Y)> GerarCoordenadasRetangularesAbsolutas(List<(double X, double Y)> coordenadasParciais);
+        List<(double X, double Y)> CalcularCoordenadasExternas(List<(double X, double Y)> coordenadas, double espessura);
     }
 }

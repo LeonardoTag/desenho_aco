@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using CapitalAco.DrawingMacro.App.Models;
+using Serilog;
 
 namespace CapitalAco.DrawingMacro.App.Services
 {
@@ -12,6 +13,8 @@ namespace CapitalAco.DrawingMacro.App.Services
     {
         private readonly IConfigService _configService;
         private const int VersaoBiblioteca = 1;
+
+        private BibliotecaPecasDados? _cache;
 
         public BibliotecaPecasService(IConfigService configService)
         {
@@ -29,11 +32,13 @@ namespace CapitalAco.DrawingMacro.App.Services
 
         private BibliotecaPecasDados CarregarDados()
         {
+            if (_cache != null) return _cache;
+
             var filePath = _configService.ObterCaminhoBiblioteca();
 
             if (!File.Exists(filePath))
             {
-                return new BibliotecaPecasDados();
+                return _cache = new BibliotecaPecasDados();
             }
 
             try
@@ -42,21 +47,24 @@ namespace CapitalAco.DrawingMacro.App.Services
                 var dados = JsonSerializer.Deserialize<BibliotecaPecasDados>(jsonContent);
                 if (dados == null)
                 {
-                    return new BibliotecaPecasDados();
+                    return _cache = new BibliotecaPecasDados();
                 }
                 dados.Versao = VersaoBiblioteca;
-                return dados;
+                return _cache = dados;
             }
             catch (Exception)
             {
+                // Preserva o arquivo corrompido antes de sobrescrever com estrutura vazia
+                try { File.Move(filePath, filePath + ".corrupt", overwrite: true); } catch { }
                 var fallback = new BibliotecaPecasDados();
                 GravarDados(fallback);
-                return fallback;
+                return _cache = fallback;
             }
         }
 
         private void GravarDados(BibliotecaPecasDados dados)
         {
+            _cache = null;
             var filePath = _configService.ObterCaminhoBiblioteca();
             try
             {
@@ -72,11 +80,15 @@ namespace CapitalAco.DrawingMacro.App.Services
                     WriteIndented = true
                 };
                 var jsonContent = JsonSerializer.Serialize(dados, options);
-                File.WriteAllText(filePath, jsonContent);
+                // Escrita atômica: gravar em .tmp e renomear para evitar corrupção por interrupção
+                var tmpPath = filePath + ".tmp";
+                File.WriteAllText(tmpPath, jsonContent);
+                File.Move(tmpPath, filePath, overwrite: true);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Silencia erros de gravação ou delega para logging mais tarde
+                Log.Error(ex, "Falha ao gravar biblioteca de peças em {FilePath}", filePath);
+                throw;
             }
         }
 

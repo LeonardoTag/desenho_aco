@@ -1,3 +1,5 @@
+using System;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CapitalAco.DrawingMacro.App.Models;
@@ -125,6 +127,19 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
 
         [RelayCommand]
         private void SalvarConfiguracoes()
+        {
+            try
+            {
+            SalvarConfiguracoesInterno();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Não foi possível salvar as configurações.\n\n{ex.Message}",
+                    "Erro ao Salvar", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void SalvarConfiguracoesInterno()
         {
             var config = _configService.ObterConfiguracao();
             config.RelatorioNomeResponsavel = Responsavel;

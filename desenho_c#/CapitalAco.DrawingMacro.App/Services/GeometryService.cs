@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using CapitalAco.DrawingMacro.App.Models;
+using Serilog;
 
 namespace CapitalAco.DrawingMacro.App.Services
 {
@@ -33,7 +34,9 @@ namespace CapitalAco.DrawingMacro.App.Services
             var chapa = chapas.FirstOrDefault(c => string.Equals(c.Codigo, codigoFormatado, StringComparison.OrdinalIgnoreCase));
             if (chapa == null)
             {
-                throw new InvalidOperationException($"Chapa não encontrada na lista: {codigoFormatado}");
+                throw new InvalidOperationException(
+                    $"Chapa '{codigoFormatado}' não encontrada no arquivo de chapas (chapas.csv). " +
+                    $"Verifique se o código está correto ou se o arquivo de chapas foi editado.");
             }
             return chapa;
         }
@@ -93,6 +96,9 @@ namespace CapitalAco.DrawingMacro.App.Services
             {
                 if (azimuteAnterior == null)
                 {
+                    // Primeiro segmento não-ortogonal: inclina (90°–grau) graus no sentido anti-horário
+                    // a partir da direção cardeal. grau=90° → sem inclinação; grau=45° → 45° para o oeste
+                    // da direção indicada. Comportamento intencionalmente simétrico com a branch seguinte.
                     azimute = azimuteDirecao - (90.0 - grau);
                 }
                 else
@@ -290,7 +296,7 @@ namespace CapitalAco.DrawingMacro.App.Services
             int qtda = Math.Max(1, quantidade);
 
             double peso = corte * comp * coef / 1000000.0 * qtda;
-            return Math.Ceiling(peso); // Equivalente ao ceil(peso) com arredondamento seguro
+            return Math.Round(peso, 2);
         }
 
         public List<string> VerificarDobrasAbaixoMinima(InstrucoesPolares instrucoes, Chapa chapaInfo)
@@ -372,16 +378,11 @@ namespace CapitalAco.DrawingMacro.App.Services
             double somaExterna = 0.0;
             foreach (double angulo in angulosDobra)
             {
-                if (angulo < 90.0)
-                {
-                    somaInterna += (angulo * Math.PI * raioDeDobra) / 360.0;
-                    somaExterna += (angulo * Math.PI * (raioDeDobra + espessura)) / 360.0;
-                }
-                else
-                {
-                    somaInterna += raioDeDobra;
-                    somaExterna += raioDeDobra + espessura;
-                }
+                // Comprimento de tangente r*tan(α/2): medição da ponta do segmento até o ponto de
+                // tangência do arco interno/externo. Para 90° reduz a r (confirmado pelo caso ≥90°).
+                double halfRad = angulo * Math.PI / 360.0; // α/2 em radianos
+                somaInterna += raioDeDobra * Math.Tan(halfRad);
+                somaExterna += (raioDeDobra + espessura) * Math.Tan(halfRad);
             }
             return (medidaLivre + somaInterna, medidaLivre + somaExterna);
         }
@@ -433,7 +434,7 @@ namespace CapitalAco.DrawingMacro.App.Services
 
             if (instrucoes.Espessura > 0 && absolutas.Count >= 2)
             {
-                absolutas = CoordenadasExternasPerfil(absolutas, instrucoes.Espessura);
+                absolutas = CalcularCoordenadasExternas(absolutas, instrucoes.Espessura);
             }
 
             // Segmentos curvos podem se afastar da corda (no caso de um tubo calandrado a 360°, a corda mede zero),
@@ -480,8 +481,11 @@ namespace CapitalAco.DrawingMacro.App.Services
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                // Falha interna (ex: chapa inexistente, NaN em coordenadas). Retorna false (sem cruzamento
+                // detectado) para não bloquear o fluxo, mas registra o erro para diagnóstico.
+                Log.Warning(ex, "PerfilCruzaASiMesmo falhou internamente para chapa {Chapa}; assumindo sem cruzamento", chapaCodigo);
                 return false;
             }
 
@@ -496,14 +500,17 @@ namespace CapitalAco.DrawingMacro.App.Services
             double kFactor = instrucoes.KFactor;
             var segmentosOriginal = instrucoes.SegmentosOriginal;
 
-            var dobrasPolares = ObterAngulosDobraDeAzimutes(coordenadasPolares.Select(cp => cp.Azimute).ToList());
-            var azimutes = ObterAzimutesDeSegmentos(segmentosOriginal);
+            // Usa os azimutes já computados nas coordenadas polares como única fonte de verdade
+            // para ângulos E sentido — evita segunda chamada a ObterAzimutesDeSegmentos que
+            // poderia divergir em casos extremos se a lógica de azimute mudar.
+            var azimutesPolares = coordenadasPolares.Select(cp => cp.Azimute).ToList();
+            var dobrasPolares = ObterAngulosDobraDeAzimutes(azimutesPolares);
 
             var dobras = new List<DobraInfo>();
             for (int i = 0; i < dobrasPolares.Count; i++)
             {
-                double az0 = azimutes[i];
-                double az1 = azimutes[i + 1];
+                double az0 = azimutesPolares[i];
+                double az1 = azimutesPolares[i + 1];
                 double diff = az1 - az0;
                 if (diff < 0) diff += 360.0;
                 string sentido = diff < 180.0 ? "h" : "a";
@@ -721,7 +728,7 @@ namespace CapitalAco.DrawingMacro.App.Services
             return seccoesCorte;
         }
 
-        private List<(double X, double Y)> CoordenadasExternasPerfil(List<(double X, double Y)> coordenadas, double espessura)
+        public List<(double X, double Y)> CalcularCoordenadasExternas(List<(double X, double Y)> coordenadas, double espessura)
         {
             double meiaEspessura = espessura / 2.0;
             var externas = new List<(double X, double Y)>();
@@ -864,10 +871,36 @@ namespace CapitalAco.DrawingMacro.App.Services
 
             if (Math.Abs(o1) < 1e-9 && Math.Abs(o2) < 1e-9 && Math.Abs(o3) < 1e-9 && Math.Abs(o4) < 1e-9)
             {
-                return false;
+                // Segmentos colineares: verificar sobreposição por projeção em cada eixo.
+                return SegmentosColinearesSesSobrepoe(a1, a2, b1, b2);
             }
 
             return (o1 > 0 != o2 > 0) && (o3 > 0 != o4 > 0);
+        }
+
+        private static bool SegmentosColinearesSesSobrepoe(
+            (double X, double Y) a1, (double X, double Y) a2,
+            (double X, double Y) b1, (double X, double Y) b2)
+        {
+            // Projeta os 4 pontos na direção da reta (dot product com o vetor diretor de A).
+            // Para um segmento horizontal dx≠0,dy=0 a projeção nos eixos separados falharia;
+            // a projeção escalar única funciona em todos os casos (horizontal, vertical, diagonal).
+            double dx = a2.X - a1.X;
+            double dy = a2.Y - a1.Y;
+
+            if (Math.Abs(dx) < 1e-12 && Math.Abs(dy) < 1e-12)
+                return false; // segmento degenerado (ponto)
+
+            double pA1 = a1.X * dx + a1.Y * dy;
+            double pA2 = a2.X * dx + a2.Y * dy;
+            double pB1 = b1.X * dx + b1.Y * dy;
+            double pB2 = b2.X * dx + b2.Y * dy;
+
+            double minA = Math.Min(pA1, pA2), maxA = Math.Max(pA1, pA2);
+            double minB = Math.Min(pB1, pB2), maxB = Math.Max(pB1, pB2);
+
+            // Sobreposição estrita: exclui endpoints que apenas se tocam (normal em vértices adjacentes).
+            return maxA > minB + 1e-9 && maxB > minA + 1e-9;
         }
 
         private double Orientacao2d((double X, double Y) a, (double X, double Y) b, (double X, double Y) c)

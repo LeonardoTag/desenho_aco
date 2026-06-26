@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -27,8 +28,9 @@ namespace CapitalAco.DrawingMacro.App
 
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Information()
-                .WriteTo.File(logPath, 
-                    rollingInterval: RollingInterval.Infinite, 
+                .WriteTo.File(logPath,
+                    rollingInterval: RollingInterval.Day,
+                    retainedFileCountLimit: 14,
                     outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
                 .CreateLogger();
 
@@ -36,13 +38,31 @@ namespace CapitalAco.DrawingMacro.App
             Log.Information("Diretório Base: {BaseDir}", AppDomain.CurrentDomain.BaseDirectory);
             Log.Information("Arquivo de Log configurado em: {LogPath}", logPath);
 
-            // 3. Executar Teste de Carga de Dados (Pre-flight checks e verificação da Fase 2)
+            // 3. Executar Pre-flight checks (cópia de arquivos, carga de CSV e biblioteca)
             ExecutarPreFlightCheck();
 
             // 4. Inicializar MainWindow
             var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
             mainWindow.Title = configService.ObterTituloAplicacao();
             mainWindow.Show();
+
+#if DEBUG
+            // Testes de regressão rodando em background para não bloquear a inicialização da janela.
+            Task.Run(() =>
+            {
+                try
+                {
+                    var geometryService = ServiceProvider.GetRequiredService<IGeometryService>();
+                    var geradorPecaService = ServiceProvider.GetRequiredService<IGeradorPecaService>();
+                    var pdfGeneratorService = ServiceProvider.GetRequiredService<IPdfGeneratorService>();
+                    GeometryTests.ExecutarTestes(geometryService, geradorPecaService, pdfGeneratorService);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Falha nos testes de regressão em background (apenas DEBUG)");
+                }
+            });
+#endif
         }
 
         private void ConfigureServices(IServiceCollection services)
@@ -53,6 +73,7 @@ namespace CapitalAco.DrawingMacro.App
             services.AddSingleton<IBibliotecaPecasService, BibliotecaPecasService>();
             services.AddSingleton<IGeometryService, GeometryService>();
             services.AddSingleton<IGeradorPecaService, GeradorPecaService>();
+            services.AddSingleton<ISkiaRenderer, SkiaRenderer>();
             services.AddSingleton<IPdfGeneratorService, PdfGeneratorService>();
 
             // Registrar ViewModels
@@ -85,15 +106,6 @@ namespace CapitalAco.DrawingMacro.App
                 var biblioteca = bibliotecaService.ListarModelos();
                 Log.Information("Pré-carregamento: {Count} modelos de peça carregados da biblioteca JSON com sucesso.", biblioteca.Count);
 
-#if DEBUG
-                // Testes de Regressão da Fase 3 e Integração da Fase 4 (geram PDFs de teste em disco):
-                // só fazem sentido durante o desenvolvimento. Em Release isso apenas atrasa a abertura do
-                // programa para o usuário final sem nenhum benefício, então são pulados fora do modo Debug.
-                var geometryService = ServiceProvider.GetRequiredService<IGeometryService>();
-                var geradorPecaService = ServiceProvider.GetRequiredService<IGeradorPecaService>();
-                var pdfGeneratorService = ServiceProvider.GetRequiredService<IPdfGeneratorService>();
-                GeometryTests.ExecutarTestes(geometryService, geradorPecaService, pdfGeneratorService);
-#endif
             }
             catch (Exception ex)
             {
