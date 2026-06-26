@@ -1,2 +1,0 @@
-C:\Users\leona\Documents\desenho_macro\desenho_c#\dist\publish\CapitalAco.DrawingMacro.App.pdb
-C:\Users\leona\Documents\desenho_macro\desenho_c#\dist\publish\CapitalAco.DrawingMacro.App.exe
