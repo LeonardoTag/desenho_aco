@@ -233,3 +233,72 @@ System.IO.FileNotFoundException: Arquivo de chapas não encontrado em: C:\Users\
 2026-06-25 17:01:07 [INF] Pré-carregamento: 27 especificações de chapa lidas de chapas.csv com sucesso.
 2026-06-25 17:01:07 [INF] Pré-carregamento: 5 modelos de peça carregados da biblioteca JSON com sucesso.
 2026-06-25 17:01:58 [INF] === Capital Aço Detalhador — Aplicação Finalizada ===
+2026-06-25 17:06:56 [INF] === Capital Aço Detalhador — Sessão Inicializada ===
+2026-06-25 17:06:56 [INF] Diretório Base: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\
+2026-06-25 17:06:56 [INF] Arquivo de Log configurado em: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\logs\app_log_2026-06-25.txt
+2026-06-25 17:06:56 [INF] Pré-carregamento: 27 especificações de chapa lidas de chapas.csv com sucesso.
+2026-06-25 17:06:56 [INF] Pré-carregamento: 5 modelos de peça carregados da biblioteca JSON com sucesso.
+2026-06-25 17:07:08 [INF] === Capital Aço Detalhador — Aplicação Finalizada ===
+2026-06-25 17:07:17 [INF] === Capital Aço Detalhador — Sessão Inicializada ===
+2026-06-25 17:07:17 [INF] Diretório Base: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\
+2026-06-25 17:07:17 [INF] Arquivo de Log configurado em: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\logs\app_log_2026-06-25.txt
+2026-06-25 17:07:17 [INF] Pré-carregamento: 27 especificações de chapa lidas de chapas.csv com sucesso.
+2026-06-25 17:07:17 [INF] Pré-carregamento: 5 modelos de peça carregados da biblioteca JSON com sucesso.
+2026-06-25 17:07:36 [INF] === Capital Aço Detalhador — Aplicação Finalizada ===
+2026-06-25 17:41:51 [INF] === Capital Aço Detalhador — Sessão Inicializada ===
+2026-06-25 17:41:51 [INF] Diretório Base: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\
+2026-06-25 17:41:51 [INF] Arquivo de Log configurado em: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\logs\app_log_2026-06-25.txt
+2026-06-25 17:41:51 [INF] Pré-carregamento: 27 especificações de chapa lidas de chapas.csv com sucesso.
+2026-06-25 17:41:51 [INF] Pré-carregamento: 5 modelos de peça carregados da biblioteca JSON com sucesso.
+2026-06-25 17:42:28 [INF] PDF de Detalhamento de Dobra gerado com sucesso em: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\files\DETALHAMENTO_DOBRA_20260625_174226.pdf
+2026-06-25 17:43:08 [INF] PDF de Detalhamento de Dobra gerado com sucesso em: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\files\DETALHAMENTO_DOBRA_20260625_174305.pdf
+2026-06-25 17:44:30 [INF] PDF de Ordem de Produção gerado com sucesso em: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\files\ORDEM_PRODUCAO_20260625_174429.pdf
+2026-06-25 17:46:34 [INF] PDF de Detalhamento de Dobra gerado com sucesso em: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\files\DETALHAMENTO_DOBRA_20260625_174633.pdf
+2026-06-25 17:47:06 [INF] PDF de Ordem de Produção gerado com sucesso em: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\files\ORDEM_PRODUCAO_20260625_174705.pdf
+2026-06-25 17:48:55 [INF] PDF de Ordem de Produção gerado com sucesso em: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\files\ORDEM_PRODUCAO_20260625_174854.pdf
+2026-06-25 17:49:29 [INF] === Capital Aço Detalhador — Aplicação Finalizada ===
+2026-06-25 17:49:39 [INF] === Capital Aço Detalhador — Sessão Inicializada ===
+2026-06-25 17:49:39 [INF] Diretório Base: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\
+2026-06-25 17:49:39 [INF] Arquivo de Log configurado em: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\logs\app_log_2026-06-25.txt
+2026-06-25 17:49:39 [INF] Pré-carregamento: 27 especificações de chapa lidas de chapas.csv com sucesso.
+2026-06-25 17:49:39 [INF] Pré-carregamento: 5 modelos de peça carregados da biblioteca JSON com sucesso.
+2026-06-25 17:50:11 [INF] PDF de Ordem de Produção gerado com sucesso em: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\files\ORDEM_PRODUCAO_20260625_175010.pdf
+2026-06-25 17:55:29 [INF] === Capital Aço Detalhador — Aplicação Finalizada ===
+2026-06-25 17:56:25 [INF] === Capital Aço Detalhador — Sessão Inicializada ===
+2026-06-25 17:56:25 [INF] Diretório Base: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\
+2026-06-25 17:56:25 [INF] Arquivo de Log configurado em: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\logs\app_log_2026-06-25.txt
+2026-06-25 17:56:26 [INF] Pré-carregamento: 27 especificações de chapa lidas de chapas.csv com sucesso.
+2026-06-25 17:56:26 [INF] Pré-carregamento: 5 modelos de peça carregados da biblioteca JSON com sucesso.
+2026-06-25 17:57:05 [INF] PDF de Detalhamento de Dobra gerado (Portrait) em: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\files\DETALHAMENTO_DOBRA_20260625_175703.pdf
+2026-06-25 17:57:17 [INF] PDF de Detalhamento de Dobra gerado (Landscape) em: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\files\DETALHAMENTO_DOBRA_20260625_175715.pdf
+2026-06-25 17:57:53 [INF] PDF de Ordem de Produção gerado com sucesso em: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\files\ORDEM_PRODUCAO_20260625_175752.pdf
+2026-06-25 18:02:39 [INF] === Capital Aço Detalhador — Aplicação Finalizada ===
+2026-06-25 18:10:55 [INF] === Capital Aço Detalhador — Sessão Inicializada ===
+2026-06-25 18:10:55 [INF] Diretório Base: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\
+2026-06-25 18:10:55 [INF] Arquivo de Log configurado em: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\logs\app_log_2026-06-25.txt
+2026-06-25 18:10:55 [INF] Pré-carregamento: 27 especificações de chapa lidas de chapas.csv com sucesso.
+2026-06-25 18:10:55 [INF] Pré-carregamento: 6 modelos de peça carregados da biblioteca JSON com sucesso.
+2026-06-25 18:11:29 [INF] === Capital Aço Detalhador — Aplicação Finalizada ===
+2026-06-25 18:20:23 [INF] === Capital Aço Detalhador — Sessão Inicializada ===
+2026-06-25 18:20:23 [INF] Diretório Base: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\
+2026-06-25 18:20:23 [INF] Arquivo de Log configurado em: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\logs\app_log_2026-06-25.txt
+2026-06-25 18:20:23 [INF] Pré-carregamento: 27 especificações de chapa lidas de chapas.csv com sucesso.
+2026-06-25 18:20:23 [INF] Pré-carregamento: 6 modelos de peça carregados da biblioteca JSON com sucesso.
+2026-06-25 18:20:44 [INF] PDF de Detalhamento de Dobra gerado (Portrait) em: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\files\DETALHAMENTO_DOBRA_20260625_182042.pdf
+2026-06-25 18:28:10 [INF] === Capital Aço Detalhador — Aplicação Finalizada ===
+2026-06-25 18:28:31 [INF] === Capital Aço Detalhador — Sessão Inicializada ===
+2026-06-25 18:28:31 [INF] Diretório Base: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\
+2026-06-25 18:28:31 [INF] Arquivo de Log configurado em: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\logs\app_log_2026-06-25.txt
+2026-06-25 18:28:31 [INF] Pré-carregamento: 27 especificações de chapa lidas de chapas.csv com sucesso.
+2026-06-25 18:28:31 [INF] Pré-carregamento: 6 modelos de peça carregados da biblioteca JSON com sucesso.
+2026-06-25 18:29:49 [INF] PDF de Detalhamento de Dobra gerado (Portrait) em: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\files\DETALHAMENTO_DOBRA_20260625_182947.pdf
+2026-06-25 18:39:11 [INF] === Capital Aço Detalhador — Aplicação Finalizada ===
+2026-06-25 18:39:20 [INF] === Capital Aço Detalhador — Sessão Inicializada ===
+2026-06-25 18:39:20 [INF] Diretório Base: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\
+2026-06-25 18:39:20 [INF] Arquivo de Log configurado em: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\logs\app_log_2026-06-25.txt
+2026-06-25 18:39:20 [INF] Pré-carregamento: 27 especificações de chapa lidas de chapas.csv com sucesso.
+2026-06-25 18:39:20 [INF] Pré-carregamento: 6 modelos de peça carregados da biblioteca JSON com sucesso.
+2026-06-25 18:39:38 [INF] PDF de Detalhamento de Dobra gerado (Portrait) em: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\files\DETALHAMENTO_DOBRA_20260625_183937.pdf
+2026-06-25 18:40:07 [INF] PDF de Ordem de Produção gerado com sucesso em: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\files\ORDEM_PRODUCAO_20260625_184006.pdf
+2026-06-25 18:42:49 [INF] PDF de Ordem de Produção gerado com sucesso em: C:\Users\leona\Documents\desenho_macro\desenho_c#\CapitalAco.DrawingMacro.App\bin\Release\net10.0-windows\files\ORDEM_PRODUCAO_20260625_184248.pdf
+2026-06-25 18:43:29 [INF] === Capital Aço Detalhador — Aplicação Finalizada ===

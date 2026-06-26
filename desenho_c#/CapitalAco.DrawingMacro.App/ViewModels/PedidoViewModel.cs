@@ -24,6 +24,11 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
         [ObservableProperty]
         private string _observacao = string.Empty;
 
+        private bool _alteradoDesdeUltimoSalvamento = false;
+        public bool TemAlteracoesNaoSalvas => _alteradoDesdeUltimoSalvamento;
+
+        partial void OnObservacaoChanged(string value) => _alteradoDesdeUltimoSalvamento = true;
+
         public ObservableCollection<PecaPedidoItem> Itens { get; } = new();
 
         public PedidoViewModel(IPdfGeneratorService pdfGenerator, IConfigService configService, IGeometryService geometryService)
@@ -33,6 +38,9 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
             _geometryService = geometryService;
 
             Observacao = configService.ObterConfiguracao().RelatorioObservacao;
+            _alteradoDesdeUltimoSalvamento = false;
+
+            Itens.CollectionChanged += (_, _) => _alteradoDesdeUltimoSalvamento = true;
         }
 
         private class PedidoArquivo
@@ -84,6 +92,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
                 };
                 var json = JsonSerializer.Serialize(arquivo, _jsonOpts);
                 File.WriteAllText(dlg.FileName, json);
+                _alteradoDesdeUltimoSalvamento = false;
             }
             catch (Exception ex)
             {
@@ -122,6 +131,7 @@ namespace CapitalAco.DrawingMacro.App.ViewModels
                     item.ImagemPerfil = GerarThumbnail(item);
                     Itens.Add(item);
                 }
+                _alteradoDesdeUltimoSalvamento = false;
             }
             catch (Exception ex)
             {

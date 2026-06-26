@@ -34,12 +34,17 @@ namespace CapitalAco.DrawingMacro.App.Services
         private static readonly SKColor AcoFundoCor         = new SKColor(148, 162, 178);  // tampa traseira
         private static readonly SKColor AcoAresta           = new SKColor(38,  52,  70);   // contorno frontal
         private static readonly SKColor AcoArestaBack       = new SKColor(80,  94,  112);  // arestas traseiras / conexão
-        private static readonly SKColor CotaLinhaCor        = new SKColor(160, 170, 184);
-        private static readonly SKColor CotaTextoCor        = new SKColor(21,  101, 192);
-        private static readonly SKColor CotaInternaLinhaCor = new SKColor(229, 154, 154);
-        private static readonly SKColor CotaInternaTextoCor = new SKColor(183, 28,  28);
-        private static readonly SKColor AnguloTextoCor      = new SKColor(46,  125, 50);
+        // Paleta de cotas — segura para impressão P&B (alto contraste em qualquer modo de cor)
+        private static readonly SKColor CotaLinhaCor        = new SKColor(30,  30,  40);   // quase-preto
+        private static readonly SKColor CotaTextoCor        = new SKColor(12,  22,  52);   // marinho escuro → fundo badge externo
+        private static readonly SKColor CotaInternaLinhaCor = new SKColor(30,  30,  40);   // quase-preto
+        private static readonly SKColor CotaInternaTextoCor = new SKColor(20,  20,  20);   // preto → texto badge interno
+        private static readonly SKColor AnguloTextoCor      = new SKColor(20,  20,  20);   // preto
         private static readonly SKColor SegmentoDestaqueCor = new SKColor(255, 120, 0);
+
+        // Fonte negrito real (superior ao FakeBoldText em impressão).
+        private static readonly SKTypeface FonteNegrito =
+            SKTypeface.FromFamilyName("Segoe UI", SKFontStyle.Bold) ?? SKTypeface.Default;
 
         public static System.Windows.Media.ImageSource RenderToImageSource(InstrucoesPolares polar, int width, int height, IGeometryService geometryService, float fonteCota = 12f, float fonteAngulo = 11f, bool mostrarMedidas = true, int? segmentoDestacado = null, bool destacarProximaOrigem = false)
         {
@@ -371,8 +376,8 @@ namespace CapitalAco.DrawingMacro.App.Services
             if (mostrarMedidas)
             {
                 var medidas = geometryService.GerarMedidasInternaExterna(polar);
-                DesenharCotas(canvas, coordenadasNoCanvas, polar.SegmentosOriginal, absolutas, medidas, geometryService, fonteCota, espessuraPx, segmentoDestacado);
-                DesenharGrausDobra(canvas, coordenadasNoCanvas, absolutas, polar, geometryService, escala, fonteAngulo);
+                var labelsCotas = DesenharCotas(canvas, coordenadasNoCanvas, polar.SegmentosOriginal, absolutas, medidas, geometryService, fonteCota, espessuraPx, segmentoDestacado);
+                DesenharGrausDobra(canvas, coordenadasNoCanvas, absolutas, polar, geometryService, escala, fonteAngulo, labelsCotas);
             }
         }
 
@@ -543,7 +548,10 @@ namespace CapitalAco.DrawingMacro.App.Services
                 (byte)(a.Blue  + t * (b.Blue  - a.Blue)));
         }
 
-        private static void DesenharCotas(
+        private static bool Colide(SKRect a, SKRect b) =>
+            a.Left < b.Right && a.Right > b.Left && a.Top < b.Bottom && a.Bottom > b.Top;
+
+        private static List<SKRect> DesenharCotas(
             SKCanvas canvas,
             List<SKPoint> pontos,
             List<Segmento> segmentos,
@@ -554,110 +562,135 @@ namespace CapitalAco.DrawingMacro.App.Services
             double espessuraPx,
             int? segmentoDestacado = null)
         {
-            // Sem caixas de cota (sem linhas de extensão nem linha dupla): só uma linha de chamada curta
-            // do meio do segmento até o texto. O deslocamento cresce com a espessura da chapa para a
-            // medida nunca ficar escondida atrás do traço espesso do perfil em chapas grossas.
-            using var chamadaPaintExterna = new SKPaint { Color = CotaLinhaCor, Style = SKPaintStyle.Stroke, StrokeWidth = 1.0f, IsAntialias = true };
-            using var chamadaPaintInterna = new SKPaint { Color = CotaInternaLinhaCor, Style = SKPaintStyle.Stroke, StrokeWidth = 1.0f, IsAntialias = true };
-            // Em vez de diferenciar interna/externa só pela cor do texto (ou um sufixo "i"), cada medida
-            // ganha um "selo" com fundo preenchido: externa = letra branca em fundo escuro (azul), interna =
-            // letra escura em fundo claro (rosa) — funciona mesmo em impressão P&B, pela diferença de tom.
-            using var textoExterna = new SKPaint { Color = SKColors.White, TextSize = fonteCota, IsAntialias = true, TextAlign = SKTextAlign.Center, FakeBoldText = true };
-            using var textoInterna = new SKPaint { Color = CotaInternaTextoCor, TextSize = fonteCota, IsAntialias = true, TextAlign = SKTextAlign.Center, FakeBoldText = true };
+            using var chamadaPaint = new SKPaint
+                { Color = CotaLinhaCor, Style = SKPaintStyle.Stroke, StrokeWidth = 1.5f, IsAntialias = true };
+            using var textoExterna = new SKPaint
+                { Color = SKColors.White, TextSize = fonteCota, IsAntialias = true,
+                  TextAlign = SKTextAlign.Center, Typeface = FonteNegrito };
+            using var textoInterna = new SKPaint
+                { Color = CotaInternaTextoCor, TextSize = fonteCota, IsAntialias = true,
+                  TextAlign = SKTextAlign.Center, Typeface = FonteNegrito };
 
-            float offsetExterna = (float)Math.Max(16.0, espessuraPx * 1.3 + fonteCota * 0.6);
-            float offsetInterna = (float)Math.Max(12.0, espessuraPx * 1.1 + fonteCota * 0.4);
+            float offsetBase = (float)Math.Max(20.0, espessuraPx * 1.5 + fonteCota * 1.0);
 
-            void DesenharMedida(SKPoint p0, SKPoint p1, float nx, float ny, float offset, string texto, SKPaint chamadaPaint, SKPaint textPaint, SKColor fundoCor)
+            var labelsColocados = new List<SKRect>();
+
+            float OffsetSemColisao(float mx, float my, float nx, float ny, float offset, string texto, SKPaint paint)
+            {
+                for (int t = 0; t < 6; t++)
+                {
+                    float px  = mx + nx * offset;
+                    float py  = my + ny * offset - 4f;
+                    float larg = paint.MeasureText(texto);
+                    float padX = paint.TextSize * 0.28f;
+                    float padY = paint.TextSize * 0.14f;
+                    var fm = paint.FontMetrics;
+                    var test = new SKRect(px - larg / 2f - padX, py + fm.Ascent  - padY,
+                                         px + larg / 2f + padX, py + fm.Descent + padY);
+                    if (!labelsColocados.Any(r => Colide(r, test)))
+                        return offset;
+                    offset += offsetBase * 0.65f;
+                }
+                return offset;
+            }
+
+            void DesenharMedida(SKPoint p0, SKPoint p1, float nx, float ny, float baseOffset,
+                                 string texto, SKPaint textPaint, SKColor fundoCor, SKColor? bordaCor)
             {
                 float mx = (p0.X + p1.X) / 2.0f;
                 float my = (p0.Y + p1.Y) / 2.0f;
-                var pTexto = new SKPoint(mx + nx * offset, my + ny * offset);
-
-                canvas.DrawLine(new SKPoint(mx, my), pTexto, chamadaPaint);
-                DesenharRotuloComFundo(canvas, new SKPoint(pTexto.X, pTexto.Y - 4f), texto, textPaint, fundoCor);
+                float offset = OffsetSemColisao(mx, my, nx, ny, baseOffset, texto, textPaint);
+                float lx = mx + nx * offset;
+                float ly = my + ny * offset - 4f;
+                canvas.DrawLine(new SKPoint(mx, my), new SKPoint(lx, ly), chamadaPaint);
+                var bounds = DesenharRotuloComFundo(canvas, new SKPoint(lx, ly),
+                    texto, textPaint, fundoCor, bordaCor);
+                labelsColocados.Add(bounds);
             }
 
-            // Para cada segmento desenhamos a medida externa (selo azul escuro, lado de fora) e a interna
-            // (selo rosa claro, lado de dentro).
             for (int i = 0; i < pontos.Count - 1; i++)
             {
                 if (i >= segmentos.Count || i >= medidas.Count) break;
 
-                var p0 = pontos[i];
-                var p1 = pontos[i + 1];
+                var p0  = pontos[i];
+                var p1  = pontos[i + 1];
                 var seg = segmentos[i];
 
-                float dx = p1.X - p0.X;
-                float dy = p1.Y - p0.Y;
-                float len = (float)Math.Sqrt(dx * dx + dy * dy);
-                if (len == 0) continue;
+                float ddx = p1.X - p0.X, ddy = p1.Y - p0.Y;
+                float len = MathF.Sqrt(ddx * ddx + ddy * ddy);
+                if (len < 0.5f) continue;
 
-                float nx = -dy / len;
-                float ny = dx / len;
-
+                float nx = -ddy / len, ny = ddx / len;
                 int ladoInterno = geometryService.DeterminarLadoInternoSegmento(i, absolutas);
+                bool destacado  = segmentoDestacado.HasValue && i == segmentoDestacado.Value;
 
-                bool destacado = segmentoDestacado.HasValue && i == segmentoDestacado.Value;
-                SKColor fundoExt = destacado ? SegmentoDestaqueCor : CotaTextoCor;
-                SKPaint chamadaExt = destacado
-                    ? new SKPaint { Color = SegmentoDestaqueCor, Style = SKPaintStyle.Stroke, StrokeWidth = 2.0f, IsAntialias = true }
-                    : chamadaPaintExterna;
-                SKPaint textoExt2 = destacado
-                    ? new SKPaint { Color = SKColors.White, TextSize = fonteCota * 1.15f, IsAntialias = true, TextAlign = SKTextAlign.Center, FakeBoldText = true }
+                // Badge EXTERNO: fundo marinho + texto branco  (P&B: preto/branco = máximo contraste)
+                var pTextoExt = destacado
+                    ? new SKPaint { Color = SKColors.White, TextSize = fonteCota * 1.15f,
+                                    IsAntialias = true, TextAlign = SKTextAlign.Center, Typeface = FonteNegrito }
                     : textoExterna;
+                SKColor fundoExt = destacado ? SegmentoDestaqueCor : CotaTextoCor;
+                string textoExt  = seg.EhCurvo && seg.CurvaInfo != null
+                    ? $"{medidas[i].Externa:F0}c" : $"{medidas[i].Externa:F0}";
+                DesenharMedida(p0, p1, nx * -ladoInterno, ny * -ladoInterno,
+                               offsetBase * (destacado ? 1.4f : 1f), textoExt, pTextoExt, fundoExt, null);
+                if (destacado) pTextoExt.Dispose();
 
-                string textoExtStr = seg.EhCurvo && seg.CurvaInfo != null
-                    ? $"{medidas[i].Externa:F0} (Curva)"
-                    : $"{medidas[i].Externa:F0}";
-                DesenharMedida(p0, p1, nx * -ladoInterno, ny * -ladoInterno, offsetExterna * (destacado ? 1.3f : 1f), textoExtStr, chamadaExt, textoExt2, fundoExt);
-
-                if (destacado) { chamadaExt.Dispose(); textoExt2.Dispose(); }
-
+                // Badge INTERNO: fundo branco + borda escura + texto preto  (P&B: branco+borda preta = legível)
                 if (!seg.EhCurvo)
                 {
-                    string textoIntStr = $"{medidas[i].Interna:F0}";
-                    SKColor fundoInt = destacado ? SegmentoDestaqueCor.WithAlpha(180) : CotaInternaLinhaCor;
-                    SKPaint chamadaInt = destacado
-                        ? new SKPaint { Color = SegmentoDestaqueCor, Style = SKPaintStyle.Stroke, StrokeWidth = 2.0f, IsAntialias = true }
-                        : chamadaPaintInterna;
-                    SKPaint textoInt2 = destacado
-                        ? new SKPaint { Color = SKColors.White, TextSize = fonteCota * 1.15f, IsAntialias = true, TextAlign = SKTextAlign.Center, FakeBoldText = true }
+                    var pTextoInt = destacado
+                        ? new SKPaint { Color = SKColors.White, TextSize = fonteCota * 1.15f,
+                                        IsAntialias = true, TextAlign = SKTextAlign.Center, Typeface = FonteNegrito }
                         : textoInterna;
-                    DesenharMedida(p0, p1, nx * ladoInterno, ny * ladoInterno, offsetInterna * (destacado ? 1.3f : 1f), textoIntStr, chamadaInt, textoInt2, fundoInt);
-                    if (destacado) { chamadaInt.Dispose(); textoInt2.Dispose(); }
+                    SKColor  fundoInt = destacado ? SegmentoDestaqueCor : SKColors.White;
+                    SKColor? bordaInt = destacado ? null : CotaLinhaCor;
+                    DesenharMedida(p0, p1, nx * ladoInterno, ny * ladoInterno,
+                                   offsetBase * (destacado ? 1.4f : 0.82f),
+                                   $"{medidas[i].Interna:F0}", pTextoInt, fundoInt, bordaInt);
+                    if (destacado) pTextoInt.Dispose();
                 }
             }
+            return labelsColocados;
         }
 
-        // Desenha um texto centrado em "pos" sobre um selo (retângulo arredondado preenchido), usado para
-        // diferenciar medida externa/interna por contraste de fundo em vez de cor de texto ou sufixo.
-        private static void DesenharRotuloComFundo(SKCanvas canvas, SKPoint pos, string texto, SKPaint textPaint, SKColor fundoCor)
+        // Desenha um texto sobre um selo (retângulo arredondado preenchido) e retorna os limites do selo
+        // para que o chamador possa registrá-lo na lista de colisão.
+        // bordaCor: quando informado, desenha contorno adicional no selo (útil para badges brancos).
+        private static SKRect DesenharRotuloComFundo(SKCanvas canvas, SKPoint pos, string texto,
+                                                     SKPaint textPaint, SKColor fundoCor,
+                                                     SKColor? bordaCor = null)
         {
-            // MeasureText(text, ref bounds) devolve os limites de tinta como se o texto fosse desenhado
-            // alinhado à esquerda a partir de "pos", ignorando o TextAlign do paint — por isso calculamos a
-            // borda esquerda manualmente de acordo com o alinhamento, em vez de usar bounds.Left/Right.
             float largura = textPaint.MeasureText(texto);
             var metrics = textPaint.FontMetrics;
 
             float left = textPaint.TextAlign switch
             {
                 SKTextAlign.Center => pos.X - largura / 2f,
-                SKTextAlign.Right => pos.X - largura,
+                SKTextAlign.Right  => pos.X - largura,
                 _ => pos.X
             };
 
-            float paddingX = textPaint.TextSize * 0.32f;
-            float paddingY = textPaint.TextSize * 0.16f;
+            float paddingX = textPaint.TextSize * 0.28f;
+            float paddingY = textPaint.TextSize * 0.14f;
             var rect = new SKRect(
-                left - paddingX,
-                pos.Y + metrics.Ascent - paddingY,
-                left + largura + paddingX,
-                pos.Y + metrics.Descent + paddingY);
+                left   - paddingX,
+                pos.Y  + metrics.Ascent  - paddingY,
+                left   + largura + paddingX,
+                pos.Y  + metrics.Descent + paddingY);
 
             using var fundoPaint = new SKPaint { Color = fundoCor, Style = SKPaintStyle.Fill, IsAntialias = true };
             canvas.DrawRoundRect(rect, 3f, 3f, fundoPaint);
+
+            if (bordaCor.HasValue)
+            {
+                using var bordaPaint = new SKPaint
+                    { Color = bordaCor.Value, Style = SKPaintStyle.Stroke, StrokeWidth = 1.3f, IsAntialias = true };
+                canvas.DrawRoundRect(rect, 3f, 3f, bordaPaint);
+            }
+
             canvas.DrawText(texto, pos.X, pos.Y, textPaint);
+            return rect;
         }
 
         private static void DesenharGrausDobra(
@@ -667,7 +700,8 @@ namespace CapitalAco.DrawingMacro.App.Services
             InstrucoesPolares polar,
             IGeometryService geometryService,
             double escala,
-            float fonteAngulo)
+            float fonteAngulo,
+            List<SKRect>? labelsOcupados = null)
         {
             if (pontos.Count < 3) return;
 
@@ -681,20 +715,20 @@ namespace CapitalAco.DrawingMacro.App.Services
                 TextSize = fonteAngulo,
                 IsAntialias = true,
                 TextAlign = SKTextAlign.Center,
-                FakeBoldText = true
+                Typeface = FonteNegrito
             };
 
-            using var anguloRetoPaint = new SKPaint
+            using var simboloPaint = new SKPaint
             {
                 Color = AnguloTextoCor,
                 Style = SKPaintStyle.Stroke,
-                StrokeWidth = 1.3f,
+                StrokeWidth = 1.8f,
                 IsAntialias = true
             };
 
             double espessuraLinhaPx = Math.Max(2.5, polar.Espessura * escala);
-            double distBase = Math.Max(espessuraLinhaPx * 0.8 + fonteAngulo * 0.5, fonteAngulo * 1.1);
-            double tamAnguloReto = Math.Max(5.0, Math.Max(fonteAngulo * 0.38, espessuraLinhaPx * 0.42));
+            double distBase = Math.Max(espessuraLinhaPx * 1.2 + fonteAngulo * 1.4, fonteAngulo * 2.4);
+            double tamAnguloReto = Math.Max(7.0, Math.Max(fonteAngulo * 0.55, espessuraLinhaPx * 0.55));
 
             for (int idx = 0; idx < angulosDobra.Count; idx++)
             {
@@ -745,24 +779,47 @@ namespace CapitalAco.DrawingMacro.App.Services
                 double angulo = angulosDobra[idx];
                 if (Math.Abs(angulo - 90.0) < 0.5)
                 {
-                    // Dobras de 90° são indicadas por um símbolo de esquadro (ângulo reto), não por texto.
-                    var a = new SKPoint((float)(p1.X - tInX * tamAnguloReto), (float)(p1.Y - tInY * tamAnguloReto));
+                    // Símbolo de ângulo reto (esquadro) com fundo branco para contraste.
+                    var a = new SKPoint((float)(p1.X - tInX  * tamAnguloReto), (float)(p1.Y - tInY  * tamAnguloReto));
                     var b = new SKPoint((float)(p1.X + tOutX * tamAnguloReto), (float)(p1.Y + tOutY * tamAnguloReto));
-                    var c = new SKPoint((float)(a.X + tOutX * tamAnguloReto), (float)(a.Y + tOutY * tamAnguloReto));
-                    canvas.DrawLine(a, c, anguloRetoPaint);
-                    canvas.DrawLine(c, b, anguloRetoPaint);
+                    var c = new SKPoint((float)(a.X  + tOutX * tamAnguloReto), (float)(a.Y  + tOutY * tamAnguloReto));
+                    float bgMargin = 3f;
+                    float bgL = Math.Min(Math.Min(a.X, b.X), Math.Min(c.X, p1.X)) - bgMargin;
+                    float bgT = Math.Min(Math.Min(a.Y, b.Y), Math.Min(c.Y, p1.Y)) - bgMargin;
+                    float bgR = Math.Max(Math.Max(a.X, b.X), Math.Max(c.X, p1.X)) + bgMargin;
+                    float bgB = Math.Max(Math.Max(a.Y, b.Y), Math.Max(c.Y, p1.Y)) + bgMargin;
+                    using var bgPaint = new SKPaint
+                        { Color = new SKColor(255, 255, 255, 220), Style = SKPaintStyle.Fill, IsAntialias = true };
+                    canvas.DrawRect(new SKRect(bgL, bgT, bgR, bgB), bgPaint);
+                    canvas.DrawLine(a, c, simboloPaint);
+                    canvas.DrawLine(c, b, simboloPaint);
                 }
                 else
                 {
                     string texto = FormatarAnguloDobra(angulo);
-                    float tx = (float)(p1.X + dirX * distBase);
-                    float ty = (float)(p1.Y + dirY * distBase + fonteAngulo * 0.3);
-                    canvas.DrawText(texto, tx, ty, textPaint);
-
-                    // Ângulos não-retos são sublinhados, para diferenciar visualmente do esquadro de 90°.
-                    float larguraTexto = textPaint.MeasureText(texto);
-                    float ySublinhado = ty + fonteAngulo * 0.18f;
-                    canvas.DrawLine(tx - larguraTexto / 2f, ySublinhado, tx + larguraTexto / 2f, ySublinhado, anguloRetoPaint);
+                    float dist = (float)distBase;
+                    if (labelsOcupados != null)
+                    {
+                        for (int t = 0; t < 5; t++)
+                        {
+                            float cx = (float)(p1.X + dirX * dist);
+                            float cy = (float)(p1.Y + dirY * dist) - 4f;
+                            float lw = textPaint.MeasureText(texto);
+                            var fm2 = textPaint.FontMetrics;
+                            float px2 = textPaint.TextSize * 0.28f, py2 = textPaint.TextSize * 0.14f;
+                            var test = new SKRect(cx - lw/2f - px2, cy + fm2.Ascent - py2,
+                                                  cx + lw/2f + px2, cy + fm2.Descent + py2);
+                            if (!labelsOcupados.Any(r => Colide(r, test))) break;
+                            dist += (float)distBase * 0.6f;
+                        }
+                    }
+                    float tx = (float)(p1.X + dirX * dist);
+                    float ty = (float)(p1.Y + dirY * dist) - 4f;
+                    var angBounds = DesenharRotuloComFundo(canvas, new SKPoint(tx, ty), texto, textPaint, SKColors.White, CotaLinhaCor);
+                    labelsOcupados?.Add(angBounds);
+                    float larg = textPaint.MeasureText(texto);
+                    float ySub = ty + fonteAngulo * 0.25f;
+                    canvas.DrawLine(tx - larg / 2f, ySub, tx + larg / 2f, ySub, simboloPaint);
                 }
             }
         }
@@ -776,170 +833,90 @@ namespace CapitalAco.DrawingMacro.App.Services
         {
             canvas.Clear(FundoCor);
 
-            float margemX = size.Width * 0.12f;
-            float utilW = size.Width - 2 * margemX;
-
-            float yBase = size.Height / 2.0f;
+            float margemX     = size.Width * 0.12f;
+            float utilW       = size.Width - 2 * margemX;
             float alturaChapa = 28f;
+            float yBase       = size.Height / 2.0f;
+            float y0          = yBase - alturaChapa / 2.0f;
+            float y1          = yBase + alturaChapa / 2.0f;
 
-            float y0 = yBase - alturaChapa / 2.0f;
-            float y1 = yBase + alturaChapa / 2.0f;
+            double corteTotal = plano.CorteTotal > 0 ? plano.CorteTotal : 1;
+            float EscalaX(double p) => margemX + (float)(p / corteTotal * utilW);
 
-            double corteTotal = plano.CorteTotal;
-            if (corteTotal == 0) corteTotal = 1;
+            // — Paints —
+            using var chapaPaint  = new SKPaint { Color = PerfilPreenchimentoCor, Style = SKPaintStyle.Fill, IsAntialias = true };
+            using var bordaPaint  = new SKPaint { Color = PerfilContornoCor, Style = SKPaintStyle.Stroke, StrokeWidth = 1.5f, IsAntialias = true };
+            using var marcaPaint  = new SKPaint { Color = PerfilContornoCor, Style = SKPaintStyle.Stroke, StrokeWidth = 1.2f, IsAntialias = true };
+            using var cotaPaint   = new SKPaint { Color = CotaLinhaCor,     Style = SKPaintStyle.Stroke, StrokeWidth = 1.1f, IsAntialias = true };
+            using var subPaint    = new SKPaint { Color = CotaLinhaCor,     Style = SKPaintStyle.Stroke, StrokeWidth = 1.1f, IsAntialias = true };
 
-            float EscalaX(double rawPos) => margemX + (float)(rawPos / corteTotal * utilW);
+            using var pAngulo  = new SKPaint { Color = AnguloTextoCor, TextSize = fonteAngulo,  IsAntialias = true, TextAlign = SKTextAlign.Center, Typeface = FonteNegrito };
+            using var pSentido = new SKPaint { Color = AnguloTextoCor, TextSize = fonteSentido, IsAntialias = true, TextAlign = SKTextAlign.Center, Typeface = FonteNegrito };
+            using var pCota    = new SKPaint { Color = CotaLinhaCor,   TextSize = fonteCota,    IsAntialias = true, TextAlign = SKTextAlign.Center, Typeface = FonteNegrito };
+            using var pCaland  = new SKPaint { Color = CotaTextoCor,   TextSize = Math.Max(fonteCota, 8f), IsAntialias = true, TextAlign = SKTextAlign.Center, Typeface = FonteNegrito };
 
-            // 1. Desenhar retângulo da chapa esticada
-            using var chapaPaint = new SKPaint
-            {
-                Color = PerfilPreenchimentoCor,
-                Style = SKPaintStyle.Fill,
-                IsAntialias = true
-            };
+            // — 1. Chapa esticada —
             canvas.DrawRect(margemX, y0, utilW, alturaChapa, chapaPaint);
-
-            using var bordaPaint = new SKPaint
-            {
-                Color = PerfilContornoCor,
-                Style = SKPaintStyle.Stroke,
-                StrokeWidth = 1.5f,
-                IsAntialias = true
-            };
             canvas.DrawRect(margemX, y0, utilW, alturaChapa, bordaPaint);
 
-            // 2. Desenhar marcas de dobras
-            using var marcaDobraPaint = new SKPaint
-            {
-                Color = PerfilContornoCor,
-                Style = SKPaintStyle.Stroke,
-                StrokeWidth = 1.0f,
-                IsAntialias = true
-            };
-
-            using var sublinhadoAnguloPaint = new SKPaint
-            {
-                Color = PerfilContornoCor,
-                Style = SKPaintStyle.Stroke,
-                StrokeWidth = 1.0f,
-                IsAntialias = true
-            };
-
-            using var textPaint = new SKPaint
-            {
-                Color = PerfilContornoCor,
-                TextSize = fonteCota,
-                IsAntialias = true,
-                TextAlign = SKTextAlign.Center,
-                FakeBoldText = true
-            };
-
-            using var textPaintAngulo = new SKPaint
-            {
-                Color = PerfilContornoCor,
-                TextSize = fonteAngulo,
-                IsAntialias = true,
-                TextAlign = SKTextAlign.Center,
-                FakeBoldText = true
-            };
-
-            using var textPaintSentido = new SKPaint
-            {
-                Color = PerfilContornoCor,
-                TextSize = fonteSentido,
-                IsAntialias = true,
-                TextAlign = SKTextAlign.Center,
-                FakeBoldText = true
-            };
-
-            using var textBluePaint = new SKPaint
-            {
-                Color = new SKColor(21, 101, 192),
-                TextSize = 10f,
-                IsAntialias = true,
-                FakeBoldText = true,
-                TextAlign = SKTextAlign.Center
-            };
-
+            // — 2. Marcas de dobra —
             foreach (var marca in plano.MarcasDobra)
             {
                 float x = EscalaX(marca.Posicao);
 
-                // Dobra contínua ou tracejada dependendo do sentido
-                if (marca.Sentido == "a")
-                {
-                    marcaDobraPaint.PathEffect = SKPathEffect.CreateDash(new float[] { 4, 3 }, 0);
-                }
-                else
-                {
-                    marcaDobraPaint.PathEffect = null;
-                }
-                canvas.DrawLine(x, y0 - 3, x, y1 + 3, marcaDobraPaint);
+                marcaPaint.PathEffect = marca.Sentido == "a"
+                    ? SKPathEffect.CreateDash(new float[] { 4, 3 }, 0) : null;
+                canvas.DrawLine(x, y0 - 3f, x, y1 + 3f, marcaPaint);
 
-                // Ângulo (sublinhado, mesma convenção do desenho da peça) e sentido
-                string textoAngulo = $"{marca.AnguloDobra:F0}°";
-                canvas.DrawText(textoAngulo, x, y0 - 15, textPaintAngulo);
-                float larguraAngulo = textPaintAngulo.MeasureText(textoAngulo);
-                canvas.DrawLine(x - larguraAngulo / 2f, y0 - 13, x + larguraAngulo / 2f, y0 - 13, sublinhadoAnguloPaint);
+                // Ângulo: badge branco + borda escura (visível sobre qualquer fundo)
+                string textoAng = $"{marca.AnguloDobra:F0}°";
+                DesenharRotuloComFundo(canvas, new SKPoint(x, y0 - 15f), textoAng, pAngulo,
+                                       SKColors.White, CotaLinhaCor);
+                float largAng = pAngulo.MeasureText(textoAng);
+                canvas.DrawLine(x - largAng / 2f, y0 - 13f,
+                                x + largAng / 2f, y0 - 13f, subPaint);
+
+                // Sentido: texto simples (está sobre fundo claro)
                 string dirText = marca.Sentido == "h" ? "P.Baixo" : "P.Cima";
-                canvas.DrawText(dirText, x, y0 - 5, textPaintSentido);
+                canvas.DrawText(dirText, x, y0 - 5f, pSentido);
             }
 
-            // 3. Desenhar marcas de calandragem (curvas)
+            // — 3. Calandragem —
             using var calandraPaint = new SKPaint
-            {
-                Color = new SKColor(21, 101, 192),
-                Style = SKPaintStyle.Stroke,
-                StrokeWidth = 1.2f,
-                IsAntialias = true
-            };
+                { Color = CotaTextoCor, Style = SKPaintStyle.Stroke, StrokeWidth = 1.3f, IsAntialias = true };
             calandraPaint.PathEffect = SKPathEffect.CreateDash(new float[] { 5, 3 }, 0);
-
             foreach (var mc in plano.MarcasCalandragem)
             {
-                float xIni = EscalaX(mc.PosicaoInicio);
-                float xFim = EscalaX(mc.PosicaoFim);
-
-                canvas.DrawLine(xIni, y0 - 2, xIni, y1 + 2, calandraPaint);
-                canvas.DrawLine(xFim, y0 - 2, xFim, y1 + 2, calandraPaint);
-
-                // Rótulo
-                float xMeio = (xIni + xFim) / 2.0f;
-                canvas.DrawText("CALANDRAGEM", xMeio, y0 - 15, textBluePaint);
-                canvas.DrawText($"R={mc.Raio:F0} / A={mc.AnguloCurva:F0}°", xMeio, y0 - 5, textBluePaint);
+                float xIni  = EscalaX(mc.PosicaoInicio);
+                float xFim  = EscalaX(mc.PosicaoFim);
+                canvas.DrawLine(xIni, y0 - 2f, xIni, y1 + 2f, calandraPaint);
+                canvas.DrawLine(xFim, y0 - 2f, xFim, y1 + 2f, calandraPaint);
+                DesenharRotuloComFundo(canvas, new SKPoint((xIni + xFim) / 2f, y0 - 15f),
+                    $"CAL  R={mc.Raio:F0}  {mc.AnguloCurva:F0}°", pCaland, SKColors.White, CotaTextoCor);
             }
 
-            // 4. Desenhar cotas ordenadas no topo
-            using var cotaPaint = new SKPaint
+            // — 4. Cotas acumuladas (topo) — mesmas posições do original, só fonte negrito
+            if (plano.PosicoesOrdenadas.Count > 0)
             {
-                Color = CotaLinhaCor,
-                Style = SKPaintStyle.Stroke,
-                StrokeWidth = 0.8f,
-                IsAntialias = true
-            };
-
-            for (int i = 0; i < plano.PosicoesOrdenadas.Count; i++)
-            {
-                double pos = plano.PosicoesOrdenadas[i];
-                float x = EscalaX(pos);
-                canvas.DrawLine(x, y0 - 25, x, y0 - 32, cotaPaint);
-
-                canvas.DrawText($"{pos:F0}", x, y0 - 36, textPaint);
+                canvas.DrawLine(EscalaX(plano.PosicoesOrdenadas[0]),    y0 - 28f,
+                                EscalaX(plano.PosicoesOrdenadas.Last()), y0 - 28f, cotaPaint);
+                foreach (int pos in plano.PosicoesOrdenadas)
+                {
+                    float x = EscalaX(pos);
+                    canvas.DrawLine(x, y0 - 25f, x, y0 - 32f, cotaPaint);
+                    canvas.DrawText($"{pos}", x, y0 - 36f, pCota);
+                }
             }
-            canvas.DrawLine(EscalaX(plano.PosicoesOrdenadas[0]), y0 - 28, EscalaX(plano.PosicoesOrdenadas.Last()), y0 - 28, cotaPaint);
 
-            // 5. Desenhar cotas em cadeia na base
-            for (int i = 0; i < plano.TrechosCadeia.Count; i++)
+            // — 5. Cotas em cadeia (base) — mesmas posições do original, só fonte negrito
+            foreach (var trecho in plano.TrechosCadeia)
             {
-                var trecho = plano.TrechosCadeia[i];
-                float x0 = EscalaX(trecho.Inicio);
-                float x1 = EscalaX(trecho.Fim);
-
-                canvas.DrawLine(x0, y1 + 25, x0, y1 + 32, cotaPaint);
-                canvas.DrawLine(x1, y1 + 25, x1, y1 + 32, cotaPaint);
-                canvas.DrawLine(x0, y1 + 28, x1, y1 + 28, cotaPaint);
-
-                canvas.DrawText($"{trecho.Comprimento:F0}", (x0 + x1) / 2.0f, y1 + 42, textPaint);
+                float x0c = EscalaX(trecho.Inicio);
+                float x1c = EscalaX(trecho.Fim);
+                canvas.DrawLine(x0c, y1 + 25f, x0c, y1 + 32f, cotaPaint);
+                canvas.DrawLine(x1c, y1 + 25f, x1c, y1 + 32f, cotaPaint);
+                canvas.DrawLine(x0c, y1 + 28f, x1c, y1 + 28f, cotaPaint);
+                canvas.DrawText($"{trecho.Comprimento}", (x0c + x1c) / 2f, y1 + 42f, pCota);
             }
         }
     }

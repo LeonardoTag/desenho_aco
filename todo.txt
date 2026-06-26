@@ -4,9 +4,5 @@ Mantenha sempre um arquivo atualizado com a situação das mudanças de acordo c
 
 Existem inúmeras coisas que estão desfuncionais, irei listar coisas a consertar (Pode ser útil conferir como foi resolvido em python):
 
--> Quero algumas mudanças na aba Ordem de Produção:
-- Adicione uma coluna na lista, antes do Nome da peça, onde será uma ilustração do perfil, sem medidas, apenas forma
-- Quero que haja uma maneira de alterar uma peça da ordem de produção. Ali em ações, pode adicionar um botão "Editar", e ele abre no Editor de peça, e aí pode somente salvar que ele vai atualizar a peça da ordem de produção
-- Quero que, na ordem de produção (em pdf), os itens sejam ordenados pela chapa, isto é, primeiro todas as chapas #20, depois todas as #18, depois #16, na ordem que estiver naquele arquivo chapas.csv.
-
-- Adicione no editor de peça um botão para começar uma nova peça Ctrl+N.
+- Adicionar popup de confirmar saída do programa (caso tenha progresso não salvo)
+- A lógica de posicionamento das medidas não está legal ainda. Os leaders estão desconexos com as caixas do texto, o texto de medida as vezes conflita com o texto de angulo, etc. Deixe a "caixa" do texto (o fundo) menor e o texto maior.

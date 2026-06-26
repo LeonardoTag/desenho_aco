@@ -62,11 +62,20 @@ namespace CapitalAco.DrawingMacro.App.Services
             var dadosPlan = _geometryService.GerarDadosPlanificacao(polar);
             var dimensoes = _geometryService.CalcularDimensoesAcabadas(polar);
 
+            // Seleciona orientação automaticamente: peças mais altas que largas usam portrait
+            // para aproveitar o espaço vertical do A4; demais usam landscape (mais área horizontal).
+            bool portrait = dimensoes.HasValue && dimensoes.Value.Altura > dimensoes.Value.Largura;
+            var tamanho          = portrait ? PageSizes.A4 : PageSizes.A4.Landscape();
+            float alturaDesenho  = portrait ? 420f : 215f;
+            // Planificação precisa de ~50pt acima da barra (acumuladas) + 28pt de barra + ~48pt abaixo (cadeia).
+            // Mínimo seguro: 130pt. Os valores anteriores (100/120) faziam as cotas transbordarem para fora da caixa.
+            float alturaPlani    = portrait ? 130f : 150f;
+
             Document.Create(container =>
             {
                 container.Page(page =>
                 {
-                    page.Size(PageSizes.A4.Landscape());
+                    page.Size(tamanho);
                     page.Margin(1.0f, Unit.Centimetre);
                     page.PageColor(Colors.White);
 
@@ -96,26 +105,22 @@ namespace CapitalAco.DrawingMacro.App.Services
                         headerCol.Item().PaddingTop(6).LineHorizontal(1.2f).LineColor(Colors.Indigo.Darken4);
                     });
 
-                    // Corpo do Relatório: desenho da peça em cima, planificação embaixo (melhor visualização)
+                    // Corpo: desenho da peça em cima, planificação embaixo
                     page.Content().PaddingVertical(0.5f, Unit.Centimetre).Column(col =>
                     {
-                        // Desenho 3D do Perfil (em cima)
                         col.Item().Text("DESENHO DA PEÇA").FontSize((float)config.RelatorioDobraFonteSecao).Bold().FontColor(Colors.Grey.Darken2);
-                        col.Item().PaddingTop(2).Height(215).Background(Colors.Grey.Lighten5).Border(1).BorderColor(Colors.Grey.Lighten2).Svg(size =>
+                        col.Item().PaddingTop(2).Height(alturaDesenho).Background(Colors.Grey.Lighten5).Border(1).BorderColor(Colors.Grey.Lighten2).Svg(size =>
                             RenderizarComoSvg(size.Width, size.Height, canvas =>
                                 SkiaRenderer.RenderizarPeca(canvas, new SKSize(size.Width, size.Height), polar, dimensoes, true, _geometryService,
                                     (float)config.RelatorioDobraFonteCota, (float)config.RelatorioDobraFonteAngulo)));
 
                         col.Item().PaddingTop(10).Text("PLANIFICAÇÃO").FontSize((float)config.RelatorioDobraFonteSecao).Bold().FontColor(Colors.Grey.Darken2);
 
-                        // Planificação (embaixo)
-                        col.Item().PaddingTop(2).Height(120).Background(Colors.Grey.Lighten5).Border(1).BorderColor(Colors.Grey.Lighten2).Svg(size =>
+                        col.Item().PaddingTop(2).Height(alturaPlani).Background(Colors.Grey.Lighten5).Border(1).BorderColor(Colors.Grey.Lighten2).Svg(size =>
                             RenderizarComoSvg(size.Width, size.Height, canvas =>
                                 SkiaRenderer.RenderizarPlanificacao(canvas, new SKSize(size.Width, size.Height), dadosPlan,
                                     (float)config.RelatorioDobraFonteAngulo, (float)config.RelatorioDobraFonteSentido, (float)config.RelatorioDobraFonteCota)));
 
-                        // Legenda: discreta e compacta (sempre igual em todo relatório, não merece destaque),
-                        // numa única linha por tópico para nunca empurrar o conteúdo para uma segunda página.
                         const float fonteLegenda = 6.5f;
                         col.Item().PaddingTop(6).Text("Legenda: fundo escuro/letra branca = medida externa  ·  fundo claro/letra escura = medida interna  ·  ângulo sublinhado = dobra não-reta  ·  linha tracejada = dobra p/ cima  ·  linha contínua = dobra p/ baixo")
                             .FontSize(fonteLegenda).FontColor(Colors.Grey.Darken1);
@@ -132,7 +137,8 @@ namespace CapitalAco.DrawingMacro.App.Services
                 });
             }).GeneratePdf(caminhoPdf);
 
-            Log.Information("PDF de Detalhamento de Dobra gerado com sucesso em: {Path}", caminhoPdf);
+            Log.Information("PDF de Detalhamento de Dobra gerado ({Orientacao}) em: {Path}",
+                portrait ? "Portrait" : "Landscape", caminhoPdf);
             return caminhoPdf;
         }
 
@@ -180,16 +186,55 @@ namespace CapitalAco.DrawingMacro.App.Services
             int quantidadeTotalPecas = dadosPecas.Sum(d => d.Item.Quantidade);
             double pesoTotalGeral = dadosPecas.Sum(d => d.Peso);
 
-            float AlturaParaPeca(PecaPedidoItem it)
+            float AlturaParaPeca(PecaPedidoItem it, DimensoesAcabadas? dim)
             {
-                const float alturaBase = 90f;
-                const float alturaPorSegmentoExtra = 14f;
-                const int segmentosBase = 3;
-                const float alturaMaxima = 220f;
+                const float alturaBase              = 90f;
+                const float alturaPorSegmentoExtra  = 14f;
+                const int   segmentosBase           = 3;
+                const float alturaMaxima            = 420f;
 
+                // Tamanho mínimo que qualquer segmento pode ocupar no PDF (em pontos).
+                // Abaixo disso as cotas ficam ilegíveis.
+                const float minSegmentoPts = 25f;
+
+                // Estimativa conservadora da área de desenho disponível após colunas de dados e padding.
+                // (A4 portrait - margens - coluna de número - coluna de dados = ~330pt efetivos)
+                const float drawWidthEst = 330f;
+                // Espaço consumido pelas cotas/anotações ao redor do desenho em cada eixo.
+                const float overhead = 60f;
+
+                // 1. Altura base pelo número de segmentos
                 int numSegmentos = it.Segmentos?.Count ?? 0;
                 float altura = alturaBase + Math.Max(0, numSegmentos - segmentosBase) * alturaPorSegmentoExtra;
                 if (it.Segmentos != null && it.Segmentos.Any(s => s.EhCurvo)) altura += 18f;
+
+                // 2. Altura geométrica: garante que o menor segmento renderize com pelo menos minSegmentoPts.
+                if (dim.HasValue && it.Segmentos?.Count > 0)
+                {
+                    double dimW = Math.Max(dim.Value.Largura, 1.0);
+                    double dimH = Math.Max(dim.Value.Altura,  1.0);
+
+                    // Menor segmento reto (em mm) — determina a escala mínima necessária.
+                    double minSegMm = it.Segmentos
+                        .Where(s => !s.EhCurvo && s.Medida > 1)
+                        .Select(s => s.Medida)
+                        .DefaultIfEmpty(50.0)
+                        .Min();
+
+                    // Escala máxima limitada pela largura fixa da coluna de desenho.
+                    double maxEscalaW = (drawWidthEst - overhead) / dimW;
+
+                    // Escala necessária para o menor segmento atingir minSegmentoPts.
+                    double escalaAlvo = minSegmentoPts / minSegMm;
+
+                    // Se a largura já limita abaixo do alvo, não adianta aumentar a altura.
+                    double escalaEfetiva = Math.Min(escalaAlvo, maxEscalaW);
+
+                    // Altura necessária para atingir escalaEfetiva na dimensão vertical da peça.
+                    float alturaCalc = (float)(escalaEfetiva * dimH + overhead);
+                    altura = Math.Max(altura, alturaCalc);
+                }
+
                 return Math.Min(altura, alturaMaxima);
             }
 
@@ -247,7 +292,7 @@ namespace CapitalAco.DrawingMacro.App.Services
                             col.Item().PaddingBottom(6)
                                 .Background(idx % 2 == 0 ? Colors.White : Colors.Grey.Lighten5)
                                 .Border(0.5f).BorderColor(Colors.Grey.Lighten1)
-                                .Height(AlturaParaPeca(item))
+                                .Height(AlturaParaPeca(item, dim))
                                 .Row(row =>
                                 {
                                     row.ConstantItem(22).AlignMiddle().AlignCenter()
