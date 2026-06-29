@@ -1,0 +1,49 @@
+"Perfil U simples Medida1xMedida2": (Abas iguais) [3 segmentos; 1° e 3° segmentos iguais; todas as dobras de 90° e de mesmo sentido]
+	(Medida2) - (dobra 90° horário) - (Medida1) - (dobra 90° horário) - (Medida2)
+	ou
+	(Medida2) - (dobra 90° antihorário) - (Medida1) - (dobra 90° antihorário) - (Medida2)
+
+"Perfil U manco Medida1xMedida2xMedida3": (Abas diferentes) [3 segmentos; as duas dobras de 90° e de mesmo sentido]
+	(Medida1) - (dobra 90° horário) - (Medida2) - (dobra 90° horário) - (Medida3)
+	ou
+	(Medida1) - (dobra 90° antihorário) - (Medida2) - (dobra 90° antihorário) - (Medida3)
+	
+"Perfil U enrijecido Medida1xMedida2xMedida3": (Abas iguais e enrijecedores iguais) [5 segmentos; 1° e 5° segmentos iguais; 2° e 4° segmentos iguais; todas as dobras de 90° e de mesmo sentido]
+	(Medida3) - (dobra 90° horário) - (Medida2) - (dobra 90° horário) - (Medida1) - (dobra 90° horário) - (Medida2) - (dobra 90° horário) - (Medida3)
+	ou
+	(Medida3) - (dobra 90° antihorário) - (Medida2) - (dobra 90° antihorário) - (Medida1) - (dobra 90° antihorário) - (Medida2) - (dobra 90° antihorário) - (Medida3)
+
+"Cantoneira Medida1xMedida2": [2 segmentos; dobra de 90°]
+	(Medida1) - (dobra 90° horário) - (Medida2)
+	ou
+	(Medida1) - (dobra 90° antihorário) - (Medida2)
+
+"Meia terça Medida1xMedida2xMedida3xMedida4": [4 segmentos; todas as dobras de 90° e de mesmo sentido]
+	(Medida1) - (dobra 90° horário) - (Medida2) - (dobra 90° horário) - (Medida3) - (dobra 90° horário) - (Medida4)
+	ou
+	(Medida1) - (dobra 90° antihorário) - (Medida2) - (dobra 90° antihorário) - (Medida3) - (dobra 90° antihorário) - (Medida4)
+
+"Perfil Cartola Medida1xMedida2xMedida3": [5 segmentos; 1° e 5° segmentos iguais; 2° e 4° segmentos iguais; 1° e 4° dobras de 90° e mesmo sentido; 2° e 3° dobras de 90° e mesmo sentido (contrário ao das dobras 1° e 4°)]
+	(Medida3) - (dobra 90° antihorário) - (Medida2) - (dobra 90° horário) - (Medida1) - (dobra 90° horário) - (Medida2) - (dobra 90° antihorário) - (Medida3)
+	ou
+	(Medida3) - (dobra 90° horário) - (Medida2) - (dobra 90° antihorário) - (Medida1) - (dobra 90° antihorário) - (Medida2) - (dobra 90° horário) - (Medida3)
+
+"Perfil Cartola Medida1xMedida2xMedida3xMedida4xMedida5": [5 segmentos;1° e 4° dobras de 90° e mesmo sentido; 2° e 3° dobras de 90° e mesmo sentido (contrário ao das dobras 1° e 4°)]
+	(Medida1) - (dobra 90° antihorário) - (Medida2) - (dobra 90° horário) - (Medida3) - (dobra 90° horário) - (Medida4) - (dobra 90° antihorário) - (Medida5)
+	ou
+	(Medida1) - (dobra 90° horário) - (Medida2) - (dobra 90° antihorário) - (Medida3) - (dobra 90° antihorário) - (Medida4) - (dobra 90° horário) - (Medida5)
+
+"Perfil Z simples Medida1xMedida2": (Abas iguais) [3 segmentos; 1° e 3° segmentos iguais; dobras de 90° e de sentidos contrários]
+	(Medida2) - (dobra 90° horário) - (Medida1) - (dobra 90° antihorário) - (Medida2)
+	ou
+	(Medida2) - (dobra 90° antihorário) - (Medida1) - (dobra 90° horário) - (Medida2)
+
+"Perfil Z simples Medida1xMedida2xMedida3": (Abas diferentes) [3 segmentos; dobras de 90° e de sentidos contrários]
+	(Medida1) - (dobra 90° horário) - (Medida2) - (dobra 90° antihorário) - (Medida3)
+	ou
+	(Medida1) - (dobra 90° antihorário) - (Medida2) - (dobra 90° horário) - (Medida3)
+
+"Perfil Z enrijecido a X° Medida1xMedida2xMedida3": (Ângulo dos enrijecedores pode ser diferente de 90° como descrito, ângulo de enrijecedor deve estar presente no nome, deve ser igual para ambos os enrijecedores) [5 segmentos; 1° e 5° segmentos iguais; 2° e 4° segmentos iguais; 1° e 4° dobras entre 0° e 90° de mesmo ângulo entre si; 2° e 3° dobras de 90°; 1° e 2° dobras de mesmo sentido; 3° e 4° dobras de mesmo sentido, sentido contrário ao sentido da 1° e 2° dobras]
+	(Medida3) - (dobra 0° a 90° antihorário (X)) - (Medida2) - (dobra 90° antihorário) - (Medida1) - (dobra 90° horário) - (Medida2) - (dobra 0° a 90° horário (X)) - (Medida3)
+	ou
+	(Medida3) - (dobra 0° a 90° horário) - (Medida2) - (dobra 90° horário) - (Medida1) - (dobra 90° antihorário) - (Medida2) - (dobra 0° a 90° antihorário) - (Medida3)

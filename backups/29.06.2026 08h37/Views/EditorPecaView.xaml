@@ -1,0 +1,427 @@
+<UserControl x:Class="CapitalAco.DrawingMacro.App.Views.EditorPecaView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="1200"
+             Background="#ECEEF3"
+             Foreground="#1F2430"
+             Focusable="True"
+             PreviewKeyDown="EditorPecaView_PreviewKeyDown">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <Style TargetType="TextBox">
+            <EventSetter Event="GotKeyboardFocus" Handler="TextBox_GotKeyboardFocus"/>
+        </Style>
+    </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Gesture="Ctrl+N" Command="{Binding NovaPecaCommand}"/>
+    </UserControl.InputBindings>
+
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.0*" MinWidth="260"/>
+            <ColumnDefinition Width="3.2*" MinWidth="340"/>
+            <ColumnDefinition Width="0.75*" MinWidth="210"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Tarja indicadora do modo atual (clássico/rápido e sub-fase) -->
+        <Border Grid.Row="0" Grid.ColumnSpan="3" Background="{Binding ModoAtualCor}" CornerRadius="6" Padding="10,6" Margin="5,0,5,8">
+            <TextBlock Text="{Binding ModoAtualTexto}" Foreground="White" FontWeight="Bold" FontSize="13" HorizontalAlignment="Center"/>
+        </Border>
+
+        <!-- Painel Esquerdo: Entrada de Segmentos -->
+        <Border Grid.Row="1" Grid.Column="0" Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="10" Margin="5">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="ADICIONAR SEGMENTO" FontSize="14" FontWeight="Bold" Foreground="#12153F" VerticalAlignment="Center"/>
+                    <CheckBox Grid.Column="1" Content="Modo Rápido" IsChecked="{Binding ModoRapidoAtivo}" Foreground="#1F2430" VerticalAlignment="Center"/>
+                </Grid>
+
+                <!-- Painel Modo Rápido (teclado: setas/WASD, G = ângulo, Enter = confirmar, Backspace/Ctrl+Backspace = desfazer, E = focar chapa) -->
+                <StackPanel Grid.Row="1" Margin="0,0,0,10">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ModoRapidoAtivo}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+
+                    <TextBlock Text="{Binding StatusModoRapido}" TextWrapping="Wrap" FontSize="11" Foreground="#7A5C00" Margin="0,0,0,8"/>
+
+                    <UniformGrid Columns="3" Rows="3" Height="110" Visibility="{Binding EstaNaFaseDesenho, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,0,8">
+                        <Border/>
+                        <Button Content="▲ N" Command="{Binding AdicionarSegmentoRapidoCommand}" CommandParameter="N" Margin="2" Background="#12153F" Foreground="White" BorderThickness="0"/>
+                        <Border/>
+                        <Button Content="◄ W" Command="{Binding AdicionarSegmentoRapidoCommand}" CommandParameter="W" Margin="2" Background="#12153F" Foreground="White" BorderThickness="0"/>
+                        <Border/>
+                        <Button Content="E ►" Command="{Binding AdicionarSegmentoRapidoCommand}" CommandParameter="E" Margin="2" Background="#12153F" Foreground="White" BorderThickness="0"/>
+                        <Border/>
+                        <Button Content="▼ S" Command="{Binding AdicionarSegmentoRapidoCommand}" CommandParameter="S" Margin="2" Background="#12153F" Foreground="White" BorderThickness="0"/>
+                        <Border/>
+                    </UniformGrid>
+
+                    <Grid Visibility="{Binding EstaNaFaseDesenho, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Content="Ângulo (G)" Command="{Binding EntrarFaseGrauCommand}" Margin="2" Background="#5B6472" Foreground="White" BorderThickness="0" Height="26"/>
+                        <Button Grid.Column="1" Content="Concluir Forma (Enter)" Command="{Binding ConfirmarEsqueletoRapidoCommand}" Margin="2" Background="#27AE60" Foreground="White" BorderThickness="0" Height="26"/>
+                    </Grid>
+
+                    <Grid Visibility="{Binding EstaNaFaseGrau, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="GrauRapidoTextBox" Text="{Binding GrauRapidoAtual, UpdateSourceTrigger=PropertyChanged}" Margin="2" VerticalContentAlignment="Center"/>
+                        <Button Grid.Column="1" Content="Confirmar Ângulo (Enter)" Command="{Binding ConfirmarGrauPersonalizadoCommand}" Margin="2" Background="#27AE60" Foreground="White" BorderThickness="0" Height="26"/>
+                    </Grid>
+
+                    <Grid Visibility="{Binding EstaNaFaseMedidas, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="MedidaRapidaTextBox" Text="{Binding MedidaRapidaAtual, UpdateSourceTrigger=PropertyChanged}" Margin="2" VerticalContentAlignment="Center"/>
+                        <Button Grid.Column="1" Content="Confirmar Medida (Enter)" Command="{Binding ConfirmarMedidaRapidaCommand}" Margin="2" Background="#27AE60" Foreground="White" BorderThickness="0" Height="26"/>
+                    </Grid>
+
+                    <Button Content="Desfazer (Ctrl+Backspace)" Command="{Binding DesfazerModoRapidoCommand}" Margin="2" Background="#D35400" Foreground="White" BorderThickness="0" Height="26"/>
+                </StackPanel>
+
+                <!-- Controles de Segmento (Modo Clássico) -->
+                <Grid Grid.Row="1" Margin="0,0,0,10">
+                    <Grid.Style>
+                        <Style TargetType="Grid">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ModoRapidoAtivo}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Grid.Style>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Margin="2">
+                        <TextBlock Text="Direção:" Margin="0,0,0,3" FontSize="11" Foreground="#5B6472"/>
+                        <ComboBox SelectedValue="{Binding SegDirecao}" SelectedValuePath="Tag">
+                            <ComboBoxItem Content="↑" Tag="N" FontWeight="Bold" HorizontalContentAlignment="Center"/>
+                            <ComboBoxItem Content="→" Tag="E" FontWeight="Bold" HorizontalContentAlignment="Center"/>
+                            <ComboBoxItem Content="↓" Tag="S" FontWeight="Bold" HorizontalContentAlignment="Center"/>
+                            <ComboBoxItem Content="←" Tag="W" FontWeight="Bold" HorizontalContentAlignment="Center"/>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Margin="2">
+                        <TextBlock Text="Ângulo (graus):" Margin="0,0,0,3" FontSize="11" Foreground="#5B6472"/>
+                        <TextBox Text="{Binding SegAngulo, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1" Margin="2">
+                        <TextBlock Text="Medida (mm):" Margin="0,0,0,3" FontSize="11" Foreground="#5B6472"/>
+                        <TextBox Text="{Binding SegMedida, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1" Grid.Column="1" Margin="2">
+                        <TextBlock Text="Tipo de Medida:" Margin="0,0,0,3" FontSize="11" Foreground="#5B6472"/>
+                        <ComboBox SelectedValue="{Binding SegTipoMedida}" SelectedValuePath="Tag">
+                            <ComboBoxItem Content="Externa" Tag="e"/>
+                            <ComboBoxItem Content="Interna" Tag="i"/>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <CheckBox Grid.Row="2" Grid.ColumnSpan="2" Content="Segmento Curvo (Calandra)" IsChecked="{Binding SegEhCurvo}" Margin="2,8,2,2" Foreground="#1F2430"/>
+
+                    <!-- Detalhes Calandra -->
+                    <Border Grid.Row="3" Grid.ColumnSpan="2" Visibility="{Binding SegEhCurvo, Converter={StaticResource BooleanToVisibilityConverter}}" Background="#ECEEF3" Padding="5" Margin="2,5,2,2" CornerRadius="4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Margin="2">
+                                <TextBlock Text="Raio:" FontSize="10" Foreground="#5B6472"/>
+                                <TextBox Text="{Binding SegCurvaRaio}" FontSize="11"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="2">
+                                <TextBlock Text="Comprimento:" FontSize="10" Foreground="#5B6472"/>
+                                <TextBox Text="{Binding SegCurvaComprimento}" FontSize="11"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="1" Margin="2">
+                                <TextBlock Text="Ângulo Curva:" FontSize="10" Foreground="#5B6472"/>
+                                <TextBox Text="{Binding SegCurvaAngulo}" FontSize="11"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="1" Grid.Column="1" Margin="2">
+                                <TextBlock Text="Tipo Raio:" FontSize="10" Foreground="#5B6472"/>
+                                <ComboBox SelectedValue="{Binding SegCurvaTipoRaio}" SelectedValuePath="Content" FontSize="11">
+                                    <ComboBoxItem Content="externo"/>
+                                    <ComboBoxItem Content="interno"/>
+                                </ComboBox>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Button Grid.Row="4" Grid.ColumnSpan="2" Content="Adicionar Segmento" Command="{Binding AdicionarSegmentoCommand}" Margin="2,10,2,2" Background="#27AE60" Foreground="White" BorderThickness="0" Height="26"/>
+                </Grid>
+
+                <TextBlock Grid.Row="2" Text="SEGMENTOS ADICIONADOS" FontSize="12" FontWeight="Bold" Foreground="#12153F" Margin="0,10,0,5"/>
+
+                <!-- Tabela de Segmentos -->
+                <DataGrid x:Name="SegmentosDataGrid" Grid.Row="2" ItemsSource="{Binding Segmentos}" SelectedItem="{Binding SelectedSegmento}" AutoGenerateColumns="False" CanUserAddRows="False" Background="#ECEEF3" Foreground="#1F2430" RowBackground="#FFFFFF" AlternatingRowBackground="#ECEEF3" BorderThickness="0" Margin="0,25,0,0" BeginningEdit="SegmentosDataGrid_BeginningEdit" CellEditEnding="SegmentosDataGrid_CellEditEnding">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Dir" Binding="{Binding Direcao}" Width="35"/>
+                        <DataGridTextColumn Header="Ang" Binding="{Binding Angulo}" Width="45"/>
+                        <DataGridTextColumn Header="Medida" Binding="{Binding Medida}" Width="60"/>
+                        <DataGridTextColumn Header="Tipo" Binding="{Binding TipoMedida}" Width="40"/>
+                        <DataGridTextColumn Header="Curv" Binding="{Binding EhCurvo}" Width="45"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- Ações de Tabela -->
+                <UniformGrid Grid.Row="3" Columns="3" Margin="0,5,0,0">
+                    <Button Content="Limpar Tudo" Command="{Binding LimparSegmentosCommand}" Margin="2" Background="#E8333D" Foreground="White" BorderThickness="0" Height="25"/>
+                    <Button Content="Remover Sel." Command="{Binding RemoverSegmentoCommand}" CommandParameter="{Binding SelectedSegmento}" Margin="2" Background="#D35400" Foreground="White" BorderThickness="0" Height="25"/>
+                    <Button Content="Desfazer (Ctrl+Z)" Command="{Binding DesfazerCommand}" IsEnabled="{Binding PodeDesfazer}" Margin="2" Background="#5B6472" Foreground="White" BorderThickness="0" Height="25"/>
+                </UniformGrid>
+            </Grid>
+        </Border>
+
+        <!-- Painel Central: Desenho e Preview -->
+        <Grid Grid.Row="1" Grid.Column="1" Margin="5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Border Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="5" Grid.Row="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Image Grid.Row="0" Source="{Binding PreviewImage}" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="0" Text="Comece a desenhar para visualizar a prévia." HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#5B6472" FontSize="14" FontStyle="Italic">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding TemDesenho}" Value="False">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <TextBlock Grid.Row="1" Text="{Binding DimensoesTotaisTexto}" HorizontalAlignment="Center" Foreground="#7A5C00" FontSize="12" FontWeight="Bold" Margin="0,4,0,2"/>
+                </Grid>
+            </Border>
+
+            <!-- Avisos: aparece somente quando há itens -->
+            <Border Grid.Row="1" Background="#FDECEA" BorderBrush="#E8333D" BorderThickness="2" CornerRadius="8" Padding="6" Margin="0,5,0,0" MaxHeight="100">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Visible"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Avisos.Count}" Value="0">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <ListBox ItemsSource="{Binding Avisos}" Background="Transparent" BorderThickness="0" Foreground="#C0392B" FontSize="13" FontWeight="Bold"/>
+            </Border>
+        </Grid>
+
+        <!-- Painel Direito: Configuração da Peça e Gerador -->
+        <ScrollViewer Grid.Row="1" Grid.Column="2" Margin="5" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Peça + Ordem de Produção (mesclado) -->
+            <Border Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,10">
+                <StackPanel>
+                    <TextBlock Text="EDITANDO PEÇA DO PEDIDO" FontSize="12" FontWeight="Bold" Foreground="#E67E22" Margin="0,0,0,4"
+                               Visibility="{Binding ModoEdicao, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                    <TextBlock Text="PEÇA · ORDEM DE PRODUÇÃO" FontSize="12" FontWeight="Bold" Foreground="#12153F" Margin="0,0,0,8"/>
+
+                    <TextBlock Text="Nome da Peça:" FontSize="9" Foreground="#5B6472"/>
+                    <TextBox Text="{Binding NomePeca, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,6"/>
+
+                    <!-- Comprimento (C) | Chapa (E) -->
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="80"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,3,0">
+                            <TextBlock Text="Comp. (mm) — C:" FontSize="9" Foreground="#5B6472"/>
+                            <TextBox x:Name="ComprimentoTextBox" Text="{Binding ComprimentoPeca, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" IsEnabled="{Binding ComprimentoUnicoHabilitado}" Margin="0,2,0,0">
+                                <TextBox.Style>
+                                    <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ComprimentoInvalido}" Value="True">
+                                                <Setter Property="BorderBrush" Value="#E74C3C"/>
+                                                <Setter Property="BorderThickness" Value="1.5"/>
+                                                <Setter Property="ToolTip" Value="Informe um comprimento maior que zero."/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBox.Style>
+                            </TextBox>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="Chapa — E:" FontSize="9" Foreground="#5B6472"/>
+                            <ComboBox x:Name="ChapaComboBox" ItemsSource="{Binding Chapas}" SelectedItem="{Binding ChapaSelecionada}" DisplayMemberPath="CodigoExibicao" TextSearch.TextPath="CodigoExibicao" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Qtd | Observação -->
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="55"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,3,0">
+                            <TextBlock Text="Qtd:" FontSize="9" Foreground="#5B6472"/>
+                            <TextBox x:Name="PedidoQuantidadeTextBox" Text="{Binding PedidoQuantidade}" Margin="0,2,0,0"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="Observação:" FontSize="9" Foreground="#5B6472"/>
+                            <TextBox x:Name="PedidoObservacaoTextBox" Text="{Binding PedidoObservacao}" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <CheckBox Content="Múltiplos comprimentos" IsChecked="{Binding MultiplosComprimentosHabilitado}" Foreground="#1F2430" Margin="0,0,0,4"/>
+                    <StackPanel Visibility="{Binding MultiplosComprimentosHabilitado, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Comp./Qtds (ex: 10x3000, 50x500):" FontSize="9" Foreground="#5B6472"/>
+                        <TextBox Text="{Binding ComprimentosMultiplosTexto, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,6"/>
+                    </StackPanel>
+
+                    <Button Content="{Binding TextoBotaoAddPedido}" Command="{Binding AdicionarAoPedidoCommand}" Margin="0,2,0,2" Background="#27AE60" Foreground="White" BorderThickness="0" Height="26"/>
+                    <TextBlock Text="{Binding MensagemStatus}" FontSize="9" Foreground="#27AE60" FontWeight="SemiBold"
+                               TextAlignment="Center" Margin="0,0,0,4"
+                               Visibility="{Binding StatusVisivel, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                    <UniformGrid Columns="2" Margin="0,0,0,4">
+                        <Button Content="Salvar Biblioteca" Command="{Binding SalvarNaBibliotecaCommand}" Margin="2" Background="#12153F" Foreground="White" BorderThickness="0" Height="26"/>
+                        <Button Content="Ficha Dobra (Ctrl+F)" Command="{Binding GerarFichaDobraCommand}" Margin="2" Background="#8E44AD" Foreground="White" BorderThickness="0" Height="26"/>
+                    </UniformGrid>
+                    <UniformGrid Columns="2">
+                        <Button Content="Nova Peça (Ctrl+N)" Command="{Binding NovaPecaCommand}" Margin="2" Background="#2980B9" Foreground="White" BorderThickness="0" Height="26"/>
+                        <Button Content="Relatórios" Command="{Binding AbrirPastaRelatoriosCommand}" Margin="2" Background="#5B6472" Foreground="White" BorderThickness="0" Height="26"/>
+                    </UniformGrid>
+                    <Button Content="Cancelar Edição" Command="{Binding CancelarEdicaoCommand}" Margin="0,4,0,0" Background="#D35400" Foreground="White" BorderThickness="0" Height="26"
+                            Visibility="{Binding ModoEdicao, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Galeria de Geradores -->
+            <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="10">
+                <StackPanel>
+                    <TextBlock Text="GALERIA DE GERADORES" FontSize="13" FontWeight="Bold" Foreground="#E67E22" Margin="0,0,0,8"/>
+                    <TextBlock Text="Gerador:" FontSize="9" Foreground="#5B6472"/>
+                    <ComboBox ItemsSource="{Binding GeradoresDisponiveis}" SelectedItem="{Binding GeradorSelecionado}" Margin="0,2,0,10"/>
+
+                    <StackPanel Visibility="{Binding GeradorEhBoiadeira, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Margin="2">
+                                <TextBlock Text="Aba (Y):" FontSize="9" Foreground="#5B6472"/>
+                                <TextBox Text="{Binding BoiadeiraAltura}" FontSize="11"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="2">
+                                <TextBlock Text="Largura (X):" FontSize="9" Foreground="#5B6472"/>
+                                <TextBox Text="{Binding BoiadeiraLargura}" FontSize="11"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="1" Margin="2">
+                                <TextBlock Text="1° Gomo:" FontSize="9" Foreground="#5B6472"/>
+                                <TextBox Text="{Binding BoiadeiraPrimeiroGomo}" FontSize="11"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="1" Grid.Column="1" Margin="2">
+                                <TextBlock Text="Gomo Sup:" FontSize="9" Foreground="#5B6472"/>
+                                <TextBox Text="{Binding BoiadeiraGomoSuperior}" FontSize="11"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="2" Margin="2">
+                                <TextBlock Text="Gomo Inf:" FontSize="9" Foreground="#5B6472"/>
+                                <TextBox Text="{Binding BoiadeiraGomoInferior}" FontSize="11"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="2" Grid.Column="1" Margin="2">
+                                <TextBlock Text="N° Gomos:" FontSize="9" Foreground="#5B6472"/>
+                                <TextBox Text="{Binding BoiadeiraNumGomos}" FontSize="11"/>
+                            </StackPanel>
+                        </Grid>
+                        <Button Content="Resolver Otimização" Command="{Binding GerarBoiadeiraCommand}" Margin="0,8,0,0" Background="#E67E22" Foreground="White" BorderThickness="0" Height="26"/>
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding GeradorEhTuboRedondo, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Margin="2">
+                                <TextBlock Text="Diâmetro (mm):" FontSize="9" Foreground="#5B6472"/>
+                                <TextBox Text="{Binding TuboDiametro}" FontSize="11"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="2">
+                                <TextBlock Text="Tipo Diâmetro:" FontSize="9" Foreground="#5B6472"/>
+                                <ComboBox SelectedValue="{Binding TuboTipoDiametro}" SelectedValuePath="Content" FontSize="11">
+                                    <ComboBoxItem Content="externo"/>
+                                    <ComboBoxItem Content="interno"/>
+                                </ComboBox>
+                            </StackPanel>
+                        </Grid>
+                        <Button Content="Gerar Tubo Redondo" Command="{Binding GerarTuboRedondoCommand}" Margin="0,8,0,0" Background="#E67E22" Foreground="White" BorderThickness="0" Height="26"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

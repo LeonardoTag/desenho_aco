@@ -1,3 +1,4 @@
 Mantenha sempre um arquivo atualizado com a situação das mudanças de acordo com este todo.txt.
 
-- Consertar curva!
+- É possível extender as funcionalidades do Enter no modo desenho rápido para o botão Tab também? Isso quebraria alguma outra funcionalidade do programa sem querer? Se der para ser implementada sem problemas, faça, se não, não faça.
+- Altere o tamanho "padrão" de segmenntos de 50 para 100.

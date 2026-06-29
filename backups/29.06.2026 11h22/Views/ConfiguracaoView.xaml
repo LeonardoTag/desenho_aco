@@ -1,0 +1,169 @@
+<UserControl x:Class="CapitalAco.DrawingMacro.App.Views.ConfiguracaoView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="1200"
+             Background="#ECEEF3"
+             Foreground="#1F2430">
+    <UserControl.Resources>
+        <Style x:Key="FonteLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Foreground" Value="#5B6472"/>
+            <Setter Property="Margin" Value="0,0,0,3"/>
+        </Style>
+        <Style x:Key="FonteBox" TargetType="TextBox">
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Margin" Value="2,0,2,8"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Background" Value="#ECEEF3"/>
+            <Setter Property="Foreground" Value="#1F2430"/>
+            <Setter Property="BorderBrush" Value="#5B6472"/>
+        </Style>
+    </UserControl.Resources>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Painel Esquerdo: Relatórios -->
+            <Border Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="15" Margin="5">
+                <StackPanel>
+                    <TextBlock Text="CONFIGURAÇÕES GERAIS DE RELATÓRIO" FontSize="15" FontWeight="Bold" Foreground="#12153F" Margin="0,0,0,15"/>
+
+                    <TextBlock Text="Responsável / Emissor do Relatório:" FontSize="12" Foreground="#5B6472" Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding Responsavel, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,15" Height="26" VerticalContentAlignment="Center" Background="#ECEEF3" Foreground="#1F2430" BorderBrush="#5B6472"/>
+
+                    <TextBlock Text="Observação Geral Padrão (Ficha de Pedido):" FontSize="12" Foreground="#5B6472" Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding ObservacaoPadrao, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="True" Height="150" VerticalContentAlignment="Top" Padding="5" Background="#ECEEF3" Foreground="#1F2430" BorderBrush="#5B6472"/>
+
+                    <CheckBox Content="Reorganizar itens por espessura ao gerar Ordem de Produção" IsChecked="{Binding OrdenarPorEspessura}" Margin="0,15,0,0" FontSize="12" Foreground="#1F2430"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Painel Direito: Parâmetros Boiadeira -->
+            <Border Grid.Column="1" Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="15" Margin="5">
+                <StackPanel>
+                    <TextBlock Text="PARÂMETROS PADRÃO - PERFIL BOIADEIRA" FontSize="15" FontWeight="Bold" Foreground="#E67E22" Margin="0,0,0,15"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Linha 0 -->
+                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,15">
+                            <TextBlock Text="Altura Lateral Aba (Y) (mm):" FontSize="11" Foreground="#5B6472" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding BoiadeiraAltura, UpdateSourceTrigger=PropertyChanged}" Height="26" VerticalContentAlignment="Center" Background="#ECEEF3" Foreground="#1F2430" BorderBrush="#5B6472"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,15">
+                            <TextBlock Text="Largura Total Peça (X) (mm):" FontSize="11" Foreground="#5B6472" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding BoiadeiraLargura, UpdateSourceTrigger=PropertyChanged}" Height="26" VerticalContentAlignment="Center" Background="#ECEEF3" Foreground="#1F2430" BorderBrush="#5B6472"/>
+                        </StackPanel>
+
+                        <!-- Linha 1 -->
+                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,10,15">
+                            <TextBlock Text="Primeiro Gomo (mm):" FontSize="11" Foreground="#5B6472" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding BoiadeiraPrimeiroGomo, UpdateSourceTrigger=PropertyChanged}" Height="26" VerticalContentAlignment="Center" Background="#ECEEF3" Foreground="#1F2430" BorderBrush="#5B6472"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,15">
+                            <TextBlock Text="Altura Gomo Superior (mm):" FontSize="11" Foreground="#5B6472" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding BoiadeiraGomoSuperior, UpdateSourceTrigger=PropertyChanged}" Height="26" VerticalContentAlignment="Center" Background="#ECEEF3" Foreground="#1F2430" BorderBrush="#5B6472"/>
+                        </StackPanel>
+
+                        <!-- Linha 2 -->
+                        <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,10,15">
+                            <TextBlock Text="Altura Gomo Inferior (mm):" FontSize="11" Foreground="#5B6472" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding BoiadeiraGomoInferior, UpdateSourceTrigger=PropertyChanged}" Height="26" VerticalContentAlignment="Center" Background="#ECEEF3" Foreground="#1F2430" BorderBrush="#5B6472"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,0,0,15">
+                            <TextBlock Text="Quantidade de Gomos (N):" FontSize="11" Foreground="#5B6472" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding BoiadeiraNumGomos, UpdateSourceTrigger=PropertyChanged}" Height="26" VerticalContentAlignment="Center" Background="#ECEEF3" Foreground="#1F2430" BorderBrush="#5B6472"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Painel: Tamanho de Fontes -->
+        <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="15" Margin="5,5,5,0">
+            <StackPanel>
+                <TextBlock Text="TAMANHO DE FONTES" FontSize="15" FontWeight="Bold" Foreground="#7D3C98" Margin="0,0,0,15"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Coluna 1: Desenho/Preview -->
+                    <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                        <TextBlock Text="Desenho / Prévia" FontSize="12" FontWeight="Bold" Foreground="#12153F" Margin="0,0,0,8"/>
+                        <TextBlock Text="Fonte mínima (preview):" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding FonteDesenhoBaseMinima, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                        <TextBlock Text="Fonte mínima (relatório):" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding FonteRelatorioMinima, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                        <TextBlock Text="Fonte mínima (dobra):" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding FonteDobraMinima, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                    </StackPanel>
+
+                    <!-- Coluna 2: Detalhamento de Dobra -->
+                    <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                        <TextBlock Text="Detalhamento de Dobra (PDF)" FontSize="12" FontWeight="Bold" Foreground="#8E44AD" Margin="0,0,0,8"/>
+                        <TextBlock Text="Título:" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding DobraFonteTitulo, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                        <TextBlock Text="Seção:" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding DobraFonteSecao, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                        <TextBlock Text="Texto:" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding DobraFonteTexto, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                        <TextBlock Text="Cota:" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding DobraFonteCota, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                        <TextBlock Text="Ângulo:" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding DobraFonteAngulo, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                        <TextBlock Text="Sentido:" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding DobraFonteSentido, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                    </StackPanel>
+
+                    <!-- Coluna 3: Ordem de Produção -->
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Ordem de Produção (PDF)" FontSize="12" FontWeight="Bold" Foreground="#27AE60" Margin="0,0,0,8"/>
+                        <TextBlock Text="Título:" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding PedidoFonteTitulo, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                        <TextBlock Text="Subtítulo:" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding PedidoFonteSubtitulo, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                        <TextBlock Text="Texto:" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding PedidoFonteTexto, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                        <TextBlock Text="Destaque:" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding PedidoFonteDestaque, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                        <TextBlock Text="Rótulo da peça:" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding PedidoFonteRotuloPeca, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                        <TextBlock Text="Rótulo de campo:" Style="{StaticResource FonteLabel}"/>
+                        <TextBox Text="{Binding PedidoFonteRotuloCampo, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FonteBox}"/>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <!-- Botão Salvar Global -->
+        <Border Grid.Row="2" Background="#FFFFFF" BorderBrush="#E2E5ED" BorderThickness="1" CornerRadius="8" Padding="10" Margin="5,10,5,5">
+            <Button Content="Salvar Todas as Configurações" Command="{Binding SalvarConfiguracoesCommand}" Background="#27AE60" Foreground="White" BorderThickness="0" Height="40" FontSize="15" FontWeight="Bold"/>
+        </Border>
+    </Grid>
+    </ScrollViewer>
+</UserControl>

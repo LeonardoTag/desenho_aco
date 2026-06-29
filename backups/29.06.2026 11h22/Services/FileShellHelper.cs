@@ -1,0 +1,75 @@
+using System;
+using System.Collections.Specialized;
+using System.Diagnostics;
+using System.IO;
+using System.Windows;
+using Serilog;
+
+namespace CapitalAco.DrawingMacro.App.Services
+{
+    // Operações de integração com o Explorer do Windows: abrir pastas e colocar arquivos na área de
+    // transferência no formato CF_HDROP (o mesmo usado pelo Explorer ao pressionar Ctrl+C sobre um arquivo),
+    // permitindo que o usuário cole o arquivo em qualquer lugar (pasta, e-mail, chat) com Ctrl+V.
+    public static class FileShellHelper
+    {
+        public static void CopiarArquivoParaAreaDeTransferencia(string caminhoArquivo)
+        {
+            if (!File.Exists(caminhoArquivo)) return;
+
+            try
+            {
+                var colecao = new StringCollection { caminhoArquivo };
+                Clipboard.SetFileDropList(colecao);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Não foi possível copiar o arquivo para a área de transferência: {Arquivo}", caminhoArquivo);
+                MessageBox.Show("Não foi possível copiar o arquivo para a área de transferência.\n\n" + ex.Message,
+                    "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        public static void AbrirPasta(string caminhoPasta)
+        {
+            if (!Directory.Exists(caminhoPasta)) return;
+
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = caminhoPasta,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Não foi possível abrir a pasta: {Pasta}", caminhoPasta);
+            }
+        }
+
+        // Usa o verbo "print" do shell do Windows, que envia o arquivo diretamente para a impressora
+        // padrão através do aplicativo associado a PDFs (sem abrir uma janela de visualização para o usuário).
+        public static void ImprimirArquivo(string caminhoArquivo)
+        {
+            if (!File.Exists(caminhoArquivo)) return;
+
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = caminhoArquivo,
+                    Verb = "print",
+                    UseShellExecute = true,
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                });
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Não foi possível imprimir o arquivo: {Arquivo}", caminhoArquivo);
+                MessageBox.Show("Não foi possível enviar o arquivo para impressão.\n\n" + ex.Message,
+                    "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+    }
+}
